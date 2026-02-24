@@ -108,11 +108,11 @@ workflowsynth/
 
 ## Status
 
-**Active research** — Dissertation deadline: March 23, 2026
+**Active research** — Dissertation deadline: November, 2026
 
-- [x] Proposal submitted
-- [x] Literature review in progress
-- [x] Architecture designed
+- [ ] Proposal submitted
+- [ ] Literature review in progress
+- [ ] Architecture designed
 - [ ] Prototype implementation
 - [ ] Evaluation benchmarks
 - [ ] Dissertation writeup
@@ -123,8 +123,8 @@ workflowsynth/
 
 **Institution:** University of Liverpool
 **Programme:** MSc Artificial Intelligence
-**Supervisor:** TBD
-**Expected Completion:** March 2026
+**Supervisor:** Kathleen Kelm
+**Expected Completion:** November 2026
 
 ---
 
