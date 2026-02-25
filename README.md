@@ -130,5 +130,5 @@ workflowsynth/
 
 ## Related Projects
 
-- [Soccer Verdun AI Support](https://github.com/danisola/soccer-verdun-ai) — production multi-tool RAG agent (practical application of agentic patterns studied in this research)
-- [AlterEco Publishing Pipeline](https://github.com/danisola/altereco-pipeline) — production document intelligence pipeline
+- [Soccer Verdun AI Support](https://github.com/daniszwarc/soccer-verdun-ai) — production multi-tool RAG agent (practical application of agentic patterns studied in this research)
+- [AlterEco Publishing Pipeline](https://github.com/daniszwarc/altereco-pipeline) — production document intelligence pipeline
