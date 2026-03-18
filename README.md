@@ -118,7 +118,7 @@ The synthesis engine uses a stateful LangGraph pipeline implementing the verify-
 | Verification Module | Custom Python | Deterministic formal methods |
 | n8n Adapter | Python JSON serialiser | n8n is JSON-based |
 | LangChain Adapter | LangChain | Natural fit |
-| Primary LLMs | Claude + GPT-4o | Swappable via LangChain abstraction |
+| Primary LLMs | Claude + GPT-5.4 | Swappable via LangChain abstraction |
 | Testing | pytest | Standard Python testing |
 
 ---
@@ -166,7 +166,7 @@ Design Science Research (Hevner et al., 2004) across four phases:
 **Primary metric:** pass@10 — proportion of tasks where at least one correct workflow is generated within 10 attempts.
 
 **Baselines (all on identical specs and test suites):**
-- Pure LLM generation (GPT-4o, no DSL constraint, no verification)
+- Pure LLM generation (GPT-5.4, no DSL constraint, no verification)
 - LangChain agents
 - Manual implementations
 
