@@ -267,4 +267,4 @@ workflowsynth/
 ## Related Projects
 
 - [Soccer Verdun AI Support](https://github.com/daniszwarc/soccer-verdun-ai) — production multilingual RAG agent
-- [AlterEco Publishing Pipeline](https://github.com/daniszwarc/altereco-pipeline) — production PDF-to-Drupal automation pipeline
+- [AlterEco Publishing Pipeline](https://github.com/daniszwarc/altereco) — production PDF-to-Drupal automation pipeline
