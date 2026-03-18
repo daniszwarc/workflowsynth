@@ -213,7 +213,7 @@ Four public AI benchmarks adapted to WorkflowSynth DSL: GAIA, WebArena, ToolBenc
 
 | Week | Date | Milestone | Weight |
 |---|---|---|---|
-| 8 | 23 Mar 2026 | Proposal Approval ✅ | 10% |
+| 8 | 23 Mar 2026 | Proposal Approval | 10% | - **Approved**
 | 11 | 13 Apr 2026 | Ethical Approval Submission | — |
 | 16 | 18 May 2026 | Specification & Design Report | 10% |
 | 28 | 10 Aug 2026 | Poster | 10% |
