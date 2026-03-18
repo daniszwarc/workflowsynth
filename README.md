@@ -211,14 +211,14 @@ Four public AI benchmarks adapted to WorkflowSynth DSL: GAIA, WebArena, ToolBenc
 
 ## University Milestones
 
-| Week | Date | Milestone | Weight |
-|---|---|---|---|
+| Week | Date | Milestone | Weight | Status |
+|---|---|---|---|---|
 | 8 | 23 Mar 2026 | Proposal Approval | 10% | - **Approved**
-| 11 | 13 Apr 2026 | Ethical Approval Submission | — |
-| 16 | 18 May 2026 | Specification & Design Report | 10% |
-| 28 | 10 Aug 2026 | Poster | 10% |
-| 36 | 5 Oct 2026 | Draft Submission | — |
-| 40 | 2 Nov 2026 | IT Artefact + Video Demo + Dissertation | 70% |
+| 11 | 13 Apr 2026 | Ethical Approval Submission | — |---|
+| 16 | 18 May 2026 | Specification & Design Report | 10% |---|
+| 28 | 10 Aug 2026 | Poster | 10% |---|
+| 36 | 5 Oct 2026 | Draft Submission | — |---|
+| 40 | 2 Nov 2026 | IT Artefact + Video Demo + Dissertation | 70% |---|
 
 ---
 
