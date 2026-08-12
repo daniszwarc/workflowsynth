@@ -15,10 +15,13 @@
 import subprocess
 import tempfile
 import json
+from langchain_core.messages import SystemMessage, HumanMessage
 from .state import WorkflowSynthState
 from ..dsl.parser import parse_workflow
 from ..dsl.type_checker import type_check
 from ..verification.taint import taint_analysis
+from .llm_client import get_llm
+from .prompts import SYSTEM_PROMPT, build_repair_prompt
 
 
 # --- Node 1: translate_to_dsl ------------------------------------------------
@@ -27,24 +30,24 @@ def translate_to_dsl(state: WorkflowSynthState) -> dict:
     """
     Calls the LLM to translate the natural language spec into a YAML DSL candidate.
 
-    On the first attempt, the prompt contains only the spec.
-    On subsequent attempts, the prompt also contains the attempt history
-    so the LLM knows what errors it produced and what to fix.
+    On the first attempt (repair_attempt == 0), sends only the spec.
+    On subsequent attempts, this node is NOT called -- repair_with_llm
+    handles re-generation with error context. translate_to_dsl is only
+    ever called once per synthesis run (the initial generation).
 
-    STUB: Returns a hardcoded minimal YAML for testing.
-    Real LLM integration is Session 04.
+    Uses get_llm() to choose the LLM provider for this attempt.
     """
-    # STUB: real implementation calls select_model() and the LangChain LLM client
-    stub_yaml = (
-        "workflow_id: stub_workflow\n"
-        "steps:\n"
-        "  - id: step_1\n"
-        "    op: fetch_api\n"
-        "    params:\n"
-        "      endpoint: /data\n"
-        "    output: raw_data\n"
-    )
-    return {"llm_sketch": stub_yaml}
+    llm = get_llm(state["repair_attempt"])
+
+    messages = [
+        SystemMessage(content=SYSTEM_PROMPT),
+        HumanMessage(content=state["natural_language_spec"]),
+    ]
+
+    response = llm.invoke(messages)
+    yaml_string = response.content.strip()
+
+    return {"llm_sketch": yaml_string}
 
 
 # --- Node 2: verify_dsl ------------------------------------------------------
@@ -174,8 +177,8 @@ def repair_with_llm(state: WorkflowSynthState) -> dict:
         - Test failures (if any)
         - Attempt number / attempts remaining
 
-    STUB: Appends history and increments counter; LLM call returns the same
-    stub YAML. Real LLM integration is Session 04.
+    CONSTRAINT: attempt_history is append-only. Never overwrite.
+    CONSTRAINT: natural_language_spec is immutable. Always use the original.
     """
     # Build the attempt record (append-only)
     attempt_record = {
@@ -188,14 +191,33 @@ def repair_with_llm(state: WorkflowSynthState) -> dict:
     }
 
     new_history = state["attempt_history"] + [attempt_record]
+    new_attempt = state["repair_attempt"] + 1
 
-    # STUB: real implementation calls the LLM with the repair prompt
-    stub_repaired_yaml = state["llm_sketch"]  # no real repair in stub
+    # Build repair prompt from current errors
+    repair_prompt = build_repair_prompt(
+        original_spec=state["natural_language_spec"],
+        failing_yaml=state["llm_sketch"],
+        type_errors=state["dsl_type_errors"],
+        taint_violations=state["dsl_taint_violations"],
+        test_failures=state["test_results"],
+        attempt_number=state["repair_attempt"],
+        max_attempts=state["max_attempts"],
+    )
+
+    # Call the LLM (provider selected by attempt number)
+    llm = get_llm(new_attempt)
+    messages = [
+        SystemMessage(content=SYSTEM_PROMPT),
+        HumanMessage(content=repair_prompt),
+    ]
+
+    response = llm.invoke(messages)
+    repaired_yaml = response.content.strip()
 
     return {
         "attempt_history": new_history,
-        "repair_attempt": state["repair_attempt"] + 1,
-        "llm_sketch": stub_repaired_yaml,
+        "repair_attempt": new_attempt,
+        "llm_sketch": repaired_yaml,
     }
 
 
@@ -298,5 +320,5 @@ def select_model(attempt: int) -> str:
     CONSTRAINT: Do not change the model selection logic without a journal entry.
     """
     if attempt <= 7:
-        return "claude-opus-4-7"
-    return "gpt-5.4"
+        return "claude-opus-4-6"
+    return "gpt-5.4-2026-03-05"
