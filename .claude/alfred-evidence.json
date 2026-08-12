@@ -1,0 +1,52 @@
+[
+  {
+    "timestamp": "2026-08-06T15:46:48.446714+00:00",
+    "command": "/Library/Frameworks/Python.framework/Versions/3.10/bin/python3 -m pytest tests/unit/ -v",
+    "result": "unknown"
+  },
+  {
+    "timestamp": "2026-08-06T18:22:52.184410+00:00",
+    "command": "ls && echo --- && find . -path ./node_modules -prune -o -name \"*.md\" -print | grep -i session && echo --- && ls tests/unit/ 2>/dev/null && echo --- && python3 -m pytest tests/unit/ -q 2>&1 | tail -20",
+    "result": "unknown"
+  },
+  {
+    "timestamp": "2026-08-06T18:22:57.249305+00:00",
+    "command": "pytest tests/unit/ -q 2>&1 | tail -15",
+    "result": "unknown"
+  },
+  {
+    "timestamp": "2026-08-06T18:24:26.818015+00:00",
+    "command": "pytest tests/unit/ -v 2>&1",
+    "result": "unknown"
+  },
+  {
+    "timestamp": "2026-08-12T16:50:10.997712+00:00",
+    "command": "pytest tests/unit/ -v 2>&1",
+    "result": "unknown"
+  },
+  {
+    "timestamp": "2026-08-12T16:57:03.870142+00:00",
+    "command": "pytest tests/integration/ -v -s 2>&1 | tail -80",
+    "result": "unknown"
+  },
+  {
+    "timestamp": "2026-08-12T17:07:00.790868+00:00",
+    "command": "pytest tests/unit/ -v 2>&1",
+    "result": "unknown"
+  },
+  {
+    "timestamp": "2026-08-12T17:07:53.816897+00:00",
+    "command": "pytest tests/unit/ -v 2>&1",
+    "result": "unknown"
+  },
+  {
+    "timestamp": "2026-08-12T17:08:41.293712+00:00",
+    "command": "pytest tests/integration/ -v -s 2>&1",
+    "result": "unknown"
+  },
+  {
+    "timestamp": "2026-08-12T17:54:34.525763+00:00",
+    "command": "python3 -m pytest tests/integration/test_pipeline_diagnostic.py -v -s 2>&1 | tail -100",
+    "result": "unknown"
+  }
+]
