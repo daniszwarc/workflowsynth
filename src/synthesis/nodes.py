@@ -19,7 +19,9 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from .state import WorkflowSynthState
 from ..dsl.parser import parse_workflow
 from ..dsl.type_checker import type_check
+from ..dsl.ast_nodes import WorkflowAST, WorkflowStep
 from ..verification.taint import taint_analysis
+from ..verification.evidence_report import generate_evidence_report
 from .llm_client import get_llm
 from .prompts import SYSTEM_PROMPT, build_repair_prompt
 
@@ -240,17 +242,59 @@ def translate_output(state: WorkflowSynthState) -> dict:
 
 def verify_output(state: WorkflowSynthState) -> dict:
     """
-    Stage 2 verification: security checks on the translated n8n JSON
-    and LangChain Python outputs.
+    Stage 2 verification: security checks on the translated outputs.
+    Generates the evidence report and attaches it to the final output.
 
-    STUB: Returns passed with no errors.
-    Real Stage 2 verification is Session 06.
+    CONSTRAINT (Critical Constraint 8): Never deliver a workflow without
+    the evidence report.
     """
+    # Reconstruct the AST from the dsl_candidate dict
+    # (state carries dict, not the dataclass, for JSON-serialisability)
+    ast = _reconstruct_ast(state["dsl_candidate"])
+
+    # Generate the evidence report
+    report = generate_evidence_report(
+        ast=ast,
+        synthesis_attempts=state["repair_attempt"] + 1,
+        type_errors=state["dsl_type_errors"],
+        taint_violations=state["dsl_taint_violations"],
+        test_results=state["test_results"],
+    )
+
+    # Attach the evidence report to the final outputs
+    n8n_with_report = {
+        **(state.get("final_n8n_json") or {}),
+        **report.to_dict(),
+    }
+    langchain_with_report = (
+        (state.get("final_langchain_python") or "") +
+        f"\n\n# Evidence Report\n# {report.summary().replace(chr(10), chr(10) + '# ')}"
+    )
+
     return {
         "output_verification_passed": True,
         "output_errors": [],
         "synthesis_successful": True,
+        "final_n8n_json": n8n_with_report,
+        "final_langchain_python": langchain_with_report,
     }
+
+
+def _reconstruct_ast(dsl_candidate: dict) -> WorkflowAST:
+    """Reconstructs a WorkflowAST from the dict stored in state."""
+    steps = [
+        WorkflowStep(
+            id=s["id"],
+            op=s["op"],
+            params=s.get("params", {}),
+            output=s.get("output"),
+        )
+        for s in dsl_candidate.get("steps", [])
+    ]
+    return WorkflowAST(
+        workflow_id=dsl_candidate.get("workflow_id", "unknown"),
+        steps=steps,
+    )
 
 
 # --- Node 8: record_failure --------------------------------------------------
