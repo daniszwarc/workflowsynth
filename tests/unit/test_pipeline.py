@@ -8,6 +8,7 @@
 # Integration tests with the full pipeline are in tests/integration/.
 
 import pytest
+from unittest.mock import patch, MagicMock
 from workflowsynth.synthesis.state import WorkflowSynthState, initial_state
 from workflowsynth.synthesis.nodes import (
     verify_dsl,
@@ -161,7 +162,14 @@ def test_routing_repair_when_tests_fail_and_attempts_remain():
 
 # --- repair_with_llm node ----------------------------------------------------
 
-def test_repair_appends_to_history():
+@patch("workflowsynth.synthesis.nodes.get_llm")
+def test_repair_appends_to_history(mock_get_llm):
+    mock_llm = MagicMock()
+    mock_llm.invoke.return_value.content = (
+        "workflow_id: stub\nsteps:\n  - id: s1\n    op: fetch_api\n"
+    )
+    mock_get_llm.return_value = mock_llm
+
     state = initial_state("test")
     state["llm_sketch"] = VALID_YAML
     state["dsl_type_errors"] = ["some error"]
@@ -176,7 +184,14 @@ def test_repair_appends_to_history():
     assert result["attempt_history"][0]["attempt_number"] == 0
     assert result["repair_attempt"] == 1
 
-def test_repair_history_is_append_only():
+@patch("workflowsynth.synthesis.nodes.get_llm")
+def test_repair_history_is_append_only(mock_get_llm):
+    mock_llm = MagicMock()
+    mock_llm.invoke.return_value.content = (
+        "workflow_id: stub\nsteps:\n  - id: s1\n    op: fetch_api\n"
+    )
+    mock_get_llm.return_value = mock_llm
+
     state = initial_state("test")
     state["llm_sketch"] = VALID_YAML
     state["dsl_type_errors"] = []
@@ -232,8 +247,8 @@ def test_classify_failure_empty_history():
 
 def test_select_model_claude_for_early_attempts():
     for i in range(8):
-        assert select_model(i) == "claude-opus-4-7"
+        assert select_model(i) == "claude-opus-4-6"
 
 def test_select_model_gpt_for_late_attempts():
-    assert select_model(8) == "gpt-5.4"
-    assert select_model(9) == "gpt-5.4"
+    assert select_model(8) == "gpt-5.4-2026-03-05"
+    assert select_model(9) == "gpt-5.4-2026-03-05"
