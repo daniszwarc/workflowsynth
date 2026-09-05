@@ -22,6 +22,8 @@ from ..dsl.type_checker import type_check
 from ..dsl.ast_nodes import WorkflowAST, WorkflowStep
 from ..verification.taint import taint_analysis
 from ..verification.evidence_report import generate_evidence_report
+from ..integration.n8n_adapter import to_n8n_json
+from ..integration.langchain_adapter import to_langchain_python
 from .llm_client import get_llm
 from .prompts import SYSTEM_PROMPT, build_repair_prompt
 
@@ -228,13 +230,27 @@ def repair_with_llm(state: WorkflowSynthState) -> dict:
 def translate_output(state: WorkflowSynthState) -> dict:
     """
     Translates the verified dsl_candidate to n8n JSON and LangChain Python.
+    Generates the evidence report and attaches it to both outputs.
 
-    STUB: Returns minimal placeholder outputs.
-    Real adapters are Session 06 (n8n_adapter, langchain_adapter).
+    CONSTRAINT (Critical Constraint 8): Never deliver a workflow without
+    the evidence report embedded in the output.
     """
+    ast = _reconstruct_ast(state["dsl_candidate"])
+
+    evidence_report = generate_evidence_report(
+        ast=ast,
+        synthesis_attempts=state["repair_attempt"] + 1,
+        type_errors=state["dsl_type_errors"],
+        taint_violations=state["dsl_taint_violations"],
+        test_results=state["test_results"],
+    )
+
+    n8n_json = to_n8n_json(ast, evidence_report)
+    langchain_python = to_langchain_python(ast, evidence_report)
+
     return {
-        "final_n8n_json": {"stub": "n8n output", "workflow_id": state["dsl_candidate"].get("workflow_id")},
-        "final_langchain_python": f"# LangChain stub for {state['dsl_candidate'].get('workflow_id')}",
+        "final_n8n_json": n8n_json,
+        "final_langchain_python": langchain_python,
     }
 
 
