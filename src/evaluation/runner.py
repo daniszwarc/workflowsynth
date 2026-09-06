@@ -22,6 +22,7 @@ from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Optional
 
+import anthropic
 import yaml
 from langchain_core.messages import SystemMessage, HumanMessage
 
@@ -68,6 +69,8 @@ class TaskResult:
     domain: str = ""
     has_security_constraint: bool = False
     error_message: str = ""
+    total_input_tokens: int = 0
+    total_output_tokens: int = 0
 
 
 @dataclass
@@ -83,6 +86,21 @@ class EvaluationSummary:
     by_complexity: dict = field(default_factory=dict)
     by_domain: dict = field(default_factory=dict)
     results: list = field(default_factory=list)
+    total_input_tokens: int = 0
+    total_output_tokens: int = 0
+    estimated_cost_usd: float = 0.0
+
+
+# Claude Opus 4.6 per-token rates (USD per 1M tokens).
+_OPUS_INPUT_RATE_PER_MILLION = 5.0
+_OPUS_OUTPUT_RATE_PER_MILLION = 25.0
+
+
+def _estimate_cost_usd(total_input_tokens: int, total_output_tokens: int) -> float:
+    return (
+        total_input_tokens / 1_000_000 * _OPUS_INPUT_RATE_PER_MILLION
+        + total_output_tokens / 1_000_000 * _OPUS_OUTPUT_RATE_PER_MILLION
+    )
 
 
 # --- Pytest execution helper ---------------------------------------------------
@@ -241,6 +259,9 @@ class EvaluationRunner:
                 for future in as_completed(futures):
                     results.append(future.result())
 
+        total_input_tokens = sum(r.total_input_tokens for r in results)
+        total_output_tokens = sum(r.total_output_tokens for r in results)
+
         return EvaluationSummary(
             condition=self.condition,
             total_tasks=len(results),
@@ -253,6 +274,9 @@ class EvaluationRunner:
             by_complexity=_by_complexity(results),
             by_domain=_by_domain(results),
             results=results,
+            total_input_tokens=total_input_tokens,
+            total_output_tokens=total_output_tokens,
+            estimated_cost_usd=_estimate_cost_usd(total_input_tokens, total_output_tokens),
         )
 
     def _run_single_safe(self, task_id: str) -> TaskResult:
@@ -288,6 +312,173 @@ class EvaluationRunner:
         spec_text = self._read_spec(task_id)
         test_file = self._test_file_path(task_id)
 
+        llm_sketch, input_tokens, output_tokens = self._translate_to_dsl(spec_text, attempt=0)
+
+        result = self._run_attempt_loop(
+            task_id=task_id,
+            spec_text=spec_text,
+            test_file=test_file,
+            meta=meta,
+            start=start,
+            llm_sketch=llm_sketch,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+        )
+
+        self._persist(result)
+        return result
+
+    def run_dataset_batch(self, task_ids: Optional[list] = None) -> EvaluationSummary:
+        """
+        Submits first attempts for `task_ids` (or the whole dataset) as a
+        single Anthropic Batch API request, then runs verification and the
+        repair loop (attempts 2-10) synchronously for each returned
+        candidate. Cuts first-attempt cost in half relative to run_dataset.
+        """
+        from .metrics import (
+            pass_at_k as _pass_at_k,
+            mean_attempts as _mean_attempts,
+            security_pass_rate as _security_pass_rate,
+            by_complexity as _by_complexity,
+            by_domain as _by_domain,
+        )
+
+        ids = task_ids if task_ids is not None else self.task_ids
+        client = anthropic.Anthropic()
+
+        first_attempt_payloads = [
+            (task_id, *self._build_synthesis_messages(self._read_spec(task_id)))
+            for task_id in ids
+        ]
+
+        batch = client.messages.batches.create(
+            requests=[
+                anthropic.types.MessageCreateParamsNonStreaming(
+                    custom_id=task_id,
+                    params={
+                        "model": "claude-opus-4-6",
+                        "max_tokens": 2048,
+                        "system": system_prompt,
+                        "messages": messages,
+                    },
+                )
+                for task_id, system_prompt, messages in first_attempt_payloads
+            ]
+        )
+        print(f"Batch submitted: {batch.id} ({len(ids)} tasks)")
+
+        while True:
+            batch = client.messages.batches.retrieve(batch.id)
+            print(
+                f"Batch status: {batch.processing_status} "
+                f"({batch.request_counts.succeeded} succeeded, "
+                f"{batch.request_counts.errored} errored)"
+            )
+            if batch.processing_status == "ended":
+                break
+            time.sleep(60)
+
+        results: list = []
+        for result in client.messages.batches.results(batch.id):
+            task_id = result.custom_id
+            if result.result.type == "succeeded":
+                candidate_yaml = result.result.message.content[0].text
+                input_tokens = result.result.message.usage.input_tokens
+                output_tokens = result.result.message.usage.output_tokens
+                task_result = self._continue_from_first_attempt(
+                    task_id=task_id,
+                    first_attempt_yaml=candidate_yaml,
+                    first_attempt_tokens=(input_tokens, output_tokens),
+                )
+            else:
+                error_message = getattr(getattr(result.result, "error", None), "error_message", str(result.result.type))
+                task_result = self._make_error_result(task_id=task_id, error_message=error_message)
+
+            self._persist_result(task_result)
+            results.append(task_result)
+
+        total_input_tokens = sum(r.total_input_tokens for r in results)
+        total_output_tokens = sum(r.total_output_tokens for r in results)
+
+        return EvaluationSummary(
+            condition=self.condition,
+            total_tasks=len(results),
+            pass_at_1=_pass_at_k(results, 1),
+            pass_at_3=_pass_at_k(results, 3),
+            pass_at_5=_pass_at_k(results, 5),
+            pass_at_10=_pass_at_k(results, 10),
+            mean_attempts=_mean_attempts(results),
+            security_pass_rate=_security_pass_rate(results),
+            by_complexity=_by_complexity(results),
+            by_domain=_by_domain(results),
+            results=results,
+            total_input_tokens=total_input_tokens,
+            total_output_tokens=total_output_tokens,
+            estimated_cost_usd=_estimate_cost_usd(total_input_tokens, total_output_tokens),
+        )
+
+    def _continue_from_first_attempt(
+        self,
+        task_id: str,
+        first_attempt_yaml: str,
+        first_attempt_tokens: tuple,
+    ) -> TaskResult:
+        """
+        Picks up a task after its first attempt was produced by the Batch
+        API, then runs verification and (if needed) the synchronous repair
+        loop for attempts 2-10, exactly as run_single does for attempt 1.
+        """
+        start = time.monotonic()
+        meta = self.index.get(task_id, {})
+        spec_text = self._read_spec(task_id)
+        test_file = self._test_file_path(task_id)
+        input_tokens, output_tokens = first_attempt_tokens
+
+        return self._run_attempt_loop(
+            task_id=task_id,
+            spec_text=spec_text,
+            test_file=test_file,
+            meta=meta,
+            start=start,
+            llm_sketch=first_attempt_yaml,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+        )
+
+    def _make_error_result(self, task_id: str, error_message: str) -> TaskResult:
+        meta = self.index.get(task_id, {})
+        return TaskResult(
+            task_id=task_id,
+            condition=self.condition,
+            success=False,
+            attempts_used=0,
+            failure_category="error",
+            error_message=error_message,
+            complexity=meta.get("complexity", 0),
+            domain=meta.get("domain", ""),
+            has_security_constraint=meta.get("has_security_constraint", False),
+        )
+
+    def _persist_result(self, result: TaskResult) -> None:
+        self._persist(result)
+
+    def _run_attempt_loop(
+        self,
+        task_id: str,
+        spec_text: str,
+        test_file: Path,
+        meta: dict,
+        start: float,
+        llm_sketch: str,
+        input_tokens: int,
+        output_tokens: int,
+    ) -> TaskResult:
+        """
+        Runs the shared verify/test/repair loop given an already-generated
+        first-attempt candidate. Used by both run_single (sync first
+        attempt) and _continue_from_first_attempt (Batch API first
+        attempt). Does not persist -- callers persist the returned result.
+        """
         max_attempts = 1 if self.condition == "no_repair" else DEFAULT_MAX_ATTEMPTS
 
         attempt_history: list = []
@@ -295,12 +486,12 @@ class EvaluationRunner:
         attempts_used = 0
         timed_out = False
 
-        llm_sketch = self._translate_to_dsl(spec_text, attempt=0)
-
         for attempt_number in range(max_attempts):
             attempts_used = attempt_number + 1
 
             record = self._evaluate_attempt(attempt_number, llm_sketch, test_file)
+            record["input_tokens"] = input_tokens
+            record["output_tokens"] = output_tokens
             attempt_history.append(record)
 
             if record["success"]:
@@ -315,7 +506,7 @@ class EvaluationRunner:
             if is_last_attempt:
                 break
 
-            llm_sketch = self._repair(
+            llm_sketch, input_tokens, output_tokens = self._repair(
                 original_spec=spec_text,
                 failing_yaml=llm_sketch,
                 record=record,
@@ -338,8 +529,10 @@ class EvaluationRunner:
             failure_category = self._classify_task_failure(attempt_history)
 
         pass_at_k_map = {k: bool(success and attempts_used <= k) for k in (1, 3, 5, 10)}
+        total_input_tokens = sum(a.get("input_tokens", 0) for a in attempt_history)
+        total_output_tokens = sum(a.get("output_tokens", 0) for a in attempt_history)
 
-        result = TaskResult(
+        return TaskResult(
             task_id=task_id,
             condition=self.condition,
             success=success,
@@ -354,10 +547,9 @@ class EvaluationRunner:
             complexity=meta.get("complexity", 0),
             domain=meta.get("domain", ""),
             has_security_constraint=meta.get("has_security_constraint", False),
+            total_input_tokens=total_input_tokens,
+            total_output_tokens=total_output_tokens,
         )
-
-        self._persist(result)
-        return result
 
     # -- Dataset I/O -------------------------------------------------------------
 
@@ -373,16 +565,31 @@ class EvaluationRunner:
 
     # -- Synthesis / verification -------------------------------------------------
 
-    def _translate_to_dsl(self, spec_text: str, attempt: int) -> str:
-        llm = get_llm(attempt)
-        messages = [
-            SystemMessage(content=SYSTEM_PROMPT),
-            HumanMessage(content=spec_text),
-        ]
-        response = llm.invoke(messages)
-        return response.content.strip()
+    def _build_synthesis_messages(self, spec_text: str) -> tuple:
+        """
+        Returns (system_prompt, messages) for the initial synthesis call.
+        Shared by the synchronous path (_translate_to_dsl) and the Batch
+        API path (run_dataset_batch) so both submit identical prompts.
+        """
+        return SYSTEM_PROMPT, [{"role": "user", "content": spec_text}]
 
-    def _repair(self, original_spec, failing_yaml, record, attempt_number, max_attempts) -> str:
+    @staticmethod
+    def _invoke_and_capture_usage(llm, system_prompt: str, messages: list) -> tuple:
+        lc_messages = [SystemMessage(content=system_prompt)] + [
+            HumanMessage(content=m["content"]) for m in messages
+        ]
+        response = llm.invoke(lc_messages)
+        usage = getattr(response, "usage_metadata", {}) or {}
+        input_tokens = usage.get("input_tokens", 0)
+        output_tokens = usage.get("output_tokens", 0)
+        return response.content.strip(), input_tokens, output_tokens
+
+    def _translate_to_dsl(self, spec_text: str, attempt: int) -> tuple:
+        llm = get_llm(attempt)
+        system_prompt, messages = self._build_synthesis_messages(spec_text)
+        return self._invoke_and_capture_usage(llm, system_prompt, messages)
+
+    def _repair(self, original_spec, failing_yaml, record, attempt_number, max_attempts) -> tuple:
         repair_prompt = build_repair_prompt(
             original_spec=original_spec,
             failing_yaml=failing_yaml,
@@ -393,12 +600,7 @@ class EvaluationRunner:
             max_attempts=max_attempts,
         )
         llm = get_llm(attempt_number + 1)
-        messages = [
-            SystemMessage(content=SYSTEM_PROMPT),
-            HumanMessage(content=repair_prompt),
-        ]
-        response = llm.invoke(messages)
-        return response.content.strip()
+        return self._invoke_and_capture_usage(llm, SYSTEM_PROMPT, [{"role": "user", "content": repair_prompt}])
 
     def _verify(self, ast) -> tuple:
         """Returns (type_errors, taint_violations) according to self.condition."""
