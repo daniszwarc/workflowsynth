@@ -1,0 +1,60 @@
+workflow_id: wf_pb_007
+# domain: insurance_brokerage
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 8
+# source: Insurance Brokerage Client -- duplicate ticket merge (ref_ticket_id logic)
+steps:
+  - id: receive_merge_request
+    op: fetch_api
+    params:
+      endpoint: "/api/tickets/[id]"
+    output: merge_request
+
+  - id: read_duplicate_ticket
+    op: read_database
+    params:
+      table: tickets
+      filter: "id = merge_request.ticket_id"
+    output: duplicate_ticket
+
+  - id: read_target_ticket
+    op: read_database
+    params:
+      table: tickets
+      filter: "id = merge_request.ref_ticket_id"
+    output: target_ticket
+
+  - id: extract_message
+    op: extract_field
+    params:
+      input: duplicate_ticket
+      field: "resumen"
+    output: duplicate_message
+
+  - id: append_message
+    op: write_database
+    params:
+      input: duplicate_message
+      table: messages
+    output: message_logged
+
+  - id: update_target_ticket
+    op: write_database
+    params:
+      input: target_ticket
+      table: tickets
+    output: updated_ticket
+
+  - id: archive_duplicate
+    op: write_database
+    params:
+      input: duplicate_ticket
+      table: tickets
+    output: archived_ticket
+
+  - id: log_merge
+    op: log_audit
+    params:
+      input: updated_ticket
+      action: "ticket_merged" 

@@ -1,0 +1,40 @@
+workflow_id: wf_ms_007
+# domain: clinical_ai
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: Clinical Analysis Research Tool -- trial_validator.py (ClinicalTrials.gov API v2)
+steps:
+  - id: extract_nct_numbers
+    op: extract_field
+    params:
+      input: analysis_findings
+      field: "nct_numbers"
+    output: nct_list
+
+  - id: authenticate_validation_service
+    op: authenticate_user
+    params:
+      role: "validation_service"
+    output: auth_result
+
+  - id: validate_nct_numbers
+    op: call_webhook
+    params:
+      input: nct_list
+      url: "https://clinicaltrials.gov/api/v2/studies"
+    output: validation_results
+
+  - id: apply_validation_rule
+    op: apply_rule
+    params:
+      input: validation_results
+      rule: "nct_exists_and_valid"
+    output: validated_ncts
+
+  - id: store_validation_results
+    op: write_database
+    params:
+      input: validated_ncts
+      table: trial_validations
+    output: stored_validations

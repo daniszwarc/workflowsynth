@@ -1,0 +1,52 @@
+workflow_id: wf_aw_007
+# domain: enterprise_knowledge
+# complexity: 4
+# has_security_constraint: false
+# primitive_count: 7
+# source: Enterprise Knowledge Base -- /api/seds/search-stream, NDJSON streaming, per-SED summaries
+steps:
+  - id: receive_sed_search
+    op: fetch_api
+    params:
+      endpoint: "/api/seds/search-stream"
+    output: sed_query
+
+  - id: authenticate_user
+    op: authenticate_user
+    params:
+      role: "any_authenticated"
+    output: auth_result
+
+  - id: embed_and_search_seds
+    op: call_webhook
+    params:
+      input: sed_query
+      url: "https://llm-api.example.com/v1/embeddings"
+    output: sed_results
+
+  - id: stream_per_sed_summaries
+    op: loop_records
+    params:
+      input: sed_results
+      batch_size: 1
+    output: streamed_summaries
+
+  - id: generate_synthesis
+    op: call_webhook
+    params:
+      input: sed_results
+      url: "https://llm-api.example.com/v1/chat/completions"
+    output: synthesis_response
+
+  - id: format_synthesis_stream
+    op: format_output
+    params:
+      input: synthesis_response
+      format: "ndjson_synthesis"
+    output: synthesis_chunk
+
+  - id: log_search
+    op: log_audit
+    params:
+      input: sed_query
+      action: "sed_search_completed" 

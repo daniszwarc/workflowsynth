@@ -1,0 +1,60 @@
+workflow_id: wf_ms_008
+# domain: clinical_ai
+# complexity: 4
+# has_security_constraint: true
+# primitive_count: 8
+# source: Clinical Analysis Research Tool -- analysis_engine.py _merge_findings(), documented vs inferred
+steps:
+  - id: read_converged_findings
+    op: read_database
+    params:
+      table: analysis_findings
+      filter: "case_id = current_case AND status = converged"
+    output: converged_findings
+
+  - id: authenticate_report_service
+    op: authenticate_user
+    params:
+      role: "report_service"
+    output: auth_result
+
+  - id: classify_findings_by_tier
+    op: apply_rule
+    params:
+      input: converged_findings
+      rule: "documented_vs_inferred_classification"
+    output: tiered_findings
+
+  - id: apply_promotion_rule
+    op: apply_rule
+    params:
+      input: tiered_findings
+      rule: "inferred_to_documented_requires_citation"
+    output: promoted_findings
+
+  - id: validate_no_confidence_labels
+    op: validate_schema
+    params:
+      input: promoted_findings
+      schema: no_confidence_labels_schema
+    output: validated_report
+
+  - id: encrypt_report
+    op: encrypt_field
+    params:
+      input: validated_report
+      field: "report_content"
+    output: encrypted_report
+
+  - id: store_report
+    op: write_database
+    params:
+      input: encrypted_report
+      table: clinical_reports
+    output: stored_report
+
+  - id: log_report_generation
+    op: log_audit
+    params:
+      input: stored_report
+      action: "two_tier_report_generated" 

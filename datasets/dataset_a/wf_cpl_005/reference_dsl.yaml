@@ -1,0 +1,45 @@
+workflow_id: wf_cpl_005
+# domain: sports_media
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: Sports Media Admin System -- shared standings include (called from live scoring and manual results)
+steps:
+  - id: receive_finished_game
+    op: fetch_api
+    params:
+      endpoint: "internal://standings_update"
+    output: finished_game
+
+  - id: authenticate_service
+    op: authenticate_user
+    params:
+      role: "admin_or_scoring_service"
+    output: auth_result
+
+  - id: read_team_standings
+    op: read_database
+    params:
+      table: standings
+      filter: "team_id IN (home_team, away_team)"
+    output: current_standings
+
+  - id: apply_result_classification
+    op: apply_rule
+    params:
+      input: finished_game
+      rule: "win_draw_loss_points"
+    output: result_classification
+
+  - id: update_standings_accumulators
+    op: write_database
+    params:
+      input: result_classification
+      table: standings
+    output: updated_standings
+
+  - id: log_standings_update
+    op: log_audit
+    params:
+      input: updated_standings
+      action: "standings_updated" 

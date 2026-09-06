@@ -1,0 +1,48 @@
+workflow_id: wf_btp_004
+# domain: clinical_ai
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: Clinical AI Platform -- GET /alerts, deterministic rules on lab values
+steps:
+  - id: read_lab_values
+    op: read_database
+    params:
+      table: lab_results
+      filter: "date = most_recent"
+    output: lab_values
+
+  - id: authenticate_user
+    op: authenticate_user
+    params:
+      role: "admin_or_patient"
+    output: auth_result
+
+  - id: apply_neutrophil_rule
+    op: apply_rule
+    params:
+      input: lab_values
+      rule: "neutrophil_threshold"
+    output: neutrophil_alerts
+
+  - id: apply_hepatic_rules
+    op: apply_rule
+    params:
+      input: lab_values
+      rule: "hepatic_panel_thresholds"
+    output: hepatic_alerts
+
+  - id: apply_tumor_marker_rules
+    op: apply_rule
+    params:
+      input: lab_values
+      rule: "tumor_marker_rules"
+    output: tumor_alerts
+
+  - id: merge_and_format_alerts
+    op: merge_datasets
+    params:
+      input: neutrophil_alerts
+      secondary: hepatic_alerts
+      join_key: patient_id
+    output: all_alerts

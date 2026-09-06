@@ -1,0 +1,47 @@
+workflow_id: wf_ft_003
+# domain: health_fitness
+# complexity: 3
+# has_security_constraint: false
+# primitive_count: 6
+# source: Mobile Fitness App -- Comida screen, AI vision model (mimo-v2.5) for label scanning
+steps:
+  - id: receive_label_image
+    op: fetch_api
+    params:
+      endpoint: "/api/scan-label"
+    output: label_image
+
+  - id: validate_image
+    op: validate_schema
+    params:
+      input: label_image
+      schema: image_upload_schema
+    output: validated_image
+
+  - id: extract_via_ai_vision
+    op: call_webhook
+    params:
+      input: validated_image
+      url: "https://llm-api.example.com/v1/chat/completions"
+    output: ai_extraction
+
+  - id: parse_nutritional_data
+    op: transform_json
+    params:
+      input: ai_extraction
+      transformation: "parse_nutrition_label_response"
+    output: nutritional_data
+
+  - id: validate_plausible_values
+    op: apply_rule
+    params:
+      input: nutritional_data
+      rule: "plausible_nutrition_values"
+    output: validated_nutrition
+
+  - id: return_prepopulated_form
+    op: format_output
+    params:
+      input: validated_nutrition
+      format: "food_entry_form"
+    output: prepopulated_form

@@ -1,0 +1,53 @@
+workflow_id: wf_aw_001
+# domain: enterprise_knowledge
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 7
+# source: Enterprise Knowledge Base -- /api/auth/login, TOTP or email code, 8h session, rate limiting
+steps:
+  - id: receive_login
+    op: fetch_api
+    params:
+      endpoint: "/api/auth/login"
+    output: login_request
+
+  - id: validate_credentials
+    op: read_database
+    params:
+      table: users
+      filter: "email = login_request.email"
+    output: user_record
+
+  - id: apply_rate_limit_rule
+    op: apply_rule
+    params:
+      input: login_request
+      rule: "10_attempts_per_min_per_ip"
+    output: rate_limit_check
+
+  - id: determine_2fa_method
+    op: apply_rule
+    params:
+      input: user_record
+      rule: "totp_or_email_2fa"
+    output: auth_method
+
+  - id: send_email_code
+    op: notify_user
+    params:
+      input: auth_method
+      recipient: "user_email"
+      message: "Verification code"
+
+  - id: validate_2fa_code
+    op: validate_schema
+    params:
+      input: auth_method
+      schema: two_factor_code_schema
+    output: validated_2fa
+
+  - id: create_session
+    op: authenticate_user
+    params:
+      role: "user_assigned_role"
+    output: session

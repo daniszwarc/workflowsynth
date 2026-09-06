@@ -1,0 +1,32 @@
+workflow_id: wf_ktg_005
+# domain: workers_compensation
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 4
+# source: Workers' Compensation Client -- administration/act_ins_sys_sai.cfm, act_ins_emp_sai.cfm (CRUD)
+steps:
+  - id: receive_sai_form
+    op: fetch_api
+    params:
+      endpoint: "/administration/act_ins_sys_sai.cfm"
+    output: sai_form
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin"
+    output: auth_result
+
+  - id: validate_sai_fields
+    op: validate_schema
+    params:
+      input: sai_form
+      schema: sai_configuration_schema
+    output: validated_sai
+
+  - id: upsert_sai_record
+    op: write_database
+    params:
+      input: validated_sai
+      table: tbl_sys_sai
+    output: sai_record

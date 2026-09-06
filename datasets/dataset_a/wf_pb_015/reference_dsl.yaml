@@ -1,0 +1,110 @@
+workflow_id: wf_pb_015
+# domain: insurance_brokerage
+# complexity: 4
+# has_security_constraint: true
+# primitive_count: 15
+# source: Insurance Brokerage Client -- complete email end-to-end orchestrator
+steps:
+  - id: read_inbox
+    op: read_database
+    params:
+      table: imap_inbox
+      filter: "status = UNSEEN"
+    output: raw_emails
+
+  - id: normalise_email
+    op: transform_json
+    params:
+      input: raw_emails
+      transformation: "normalise_email_fields"
+    output: normalised_email
+
+  - id: mask_sensitive_data
+    op: transform_json
+    params:
+      input: normalised_email
+      transformation: "mask_pii_financial"
+    output: sanitised_email
+
+  - id: extract_message_id
+    op: extract_field
+    params:
+      input: sanitised_email
+      field: "message_id"
+    output: message_id
+
+  - id: check_dedup
+    op: read_database
+    params:
+      table: processed_emails
+      filter: "message_id = message_id"
+    output: dedup_result
+
+  - id: apply_dedup_rule
+    op: apply_rule
+    params:
+      input: dedup_result
+      rule: "is_new_message_id"
+    output: is_new
+
+  - id: register_message_id
+    op: write_database
+    params:
+      input: message_id
+      table: processed_emails
+    output: dedup_record
+
+  - id: classify_email
+    op: call_webhook
+    params:
+      input: sanitised_email
+      url: "https://llm-api.example.com/v1/chat/completions"
+    output: classification_result
+
+  - id: parse_classification
+    op: transform_json
+    params:
+      input: classification_result
+      transformation: "parse_classification_response"
+    output: parsed_classification
+
+  - id: check_is_work_request
+    op: apply_rule
+    params:
+      input: parsed_classification
+      rule: "es_laboral_check"
+    output: is_work_request
+
+  - id: get_producer
+    op: read_database
+    params:
+      table: producers
+      filter: "email = sanitised_email.to_email"
+    output: producer
+
+  - id: upsert_client
+    op: write_database
+    params:
+      input: parsed_classification
+      table: clients
+    output: client
+
+  - id: create_ticket
+    op: write_database
+    params:
+      input: parsed_classification
+      table: tickets
+    output: ticket
+
+  - id: log_message
+    op: write_database
+    params:
+      input: sanitised_email
+      table: messages
+    output: message_log
+
+  - id: audit_log
+    op: log_audit
+    params:
+      input: ticket
+      action: "email_ingested" 

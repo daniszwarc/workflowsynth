@@ -1,0 +1,87 @@
+workflow_id: wf_mvp_003
+# domain: manufacturing
+# complexity: 5
+# has_security_constraint: true
+# primitive_count: 12
+# source: Commercial Kitchen Equipment Manufacturer -- addRMA.cfm -> apAddRMA.cfm (ERP integration)
+steps:
+  - id: receive_rma_form
+    op: fetch_api
+    params:
+      endpoint: "/mvp/apAddRMA.cfm"
+    output: rma_form
+
+  - id: authenticate_office_staff
+    op: authenticate_user
+    params:
+      role: "office_or_admin"
+    output: auth_result
+
+  - id: read_unit_from_local_db
+    op: read_database
+    params:
+      table: card
+      filter: "serialNumber = rma_form.sn"
+    output: unit_card
+
+  - id: read_unit_from_erp
+    op: fetch_api
+    params:
+      endpoint: "erp://SNUMBER_VIEW"
+    output: erp_data
+
+  - id: validate_unit_exists
+    op: validate_schema
+    params:
+      input: unit_card
+      schema: unit_card_schema
+    output: validated_unit
+
+  - id: apply_damage_reason_rule
+    op: apply_rule
+    params:
+      input: rma_form
+      rule: "freight_damage_or_doa_claims_routing"
+    output: claims_routing
+
+  - id: create_rma_record
+    op: write_database
+    params:
+      input: rma_form
+      table: rma
+    output: rma_record
+
+  - id: notify_warehouse
+    op: notify_user
+    params:
+      input: rma_record
+      recipient: "warehouse_staff"
+      message: "New RMA created"
+
+  - id: apply_replacement_rule
+    op: apply_rule
+    params:
+      input: rma_form
+      rule: "replacement_required_po_creation"
+    output: po_decision
+
+  - id: create_rma_history
+    op: write_database
+    params:
+      input: rma_record
+      table: rmaHist
+    output: rma_history
+
+  - id: apply_tag_rule
+    op: route_to_step
+    params:
+      input: rma_form
+      condition: "tag_required = true"
+      tagged: "notify_with_tag_email"
+      standard: "notify_standard_email"
+
+  - id: log_rma_creation
+    op: log_audit
+    params:
+      input: rma_record
+      action: "rma_created" 

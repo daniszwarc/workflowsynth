@@ -1,0 +1,35 @@
+workflow_id: wf_ae_003
+# domain: publishing
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 4
+# source: Economics Magazine Client -- JSON:API lookups for author ID, category UUID, magazine UUID
+steps:
+  - id: lookup_author
+    op: call_webhook
+    params:
+      input: categorised_article
+      url: "https://economics-magazine.example.com/jsonapi/node/author_datasheet"
+    output: author_data
+
+  - id: lookup_category
+    op: call_webhook
+    params:
+      input: categorised_article
+      url: "https://economics-magazine.example.com/jsonapi/taxonomy_term/category"
+    output: category_data
+
+  - id: lookup_magazine
+    op: call_webhook
+    params:
+      input: categorised_article
+      url: "https://economics-magazine.example.com/jsonapi/node/magazine"
+    output: magazine_data
+
+  - id: merge_metadata
+    op: merge_datasets
+    params:
+      input: author_data
+      secondary: category_data
+      join_key: article_id
+    output: article_metadata

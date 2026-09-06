@@ -1,0 +1,45 @@
+workflow_id: wf_cpl_001
+# domain: sports_media
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: Sports Media Admin System -- addTeam.cfm/apAddTeam.cfm (auto-creates standings row)
+steps:
+  - id: receive_team_form
+    op: fetch_api
+    params:
+      endpoint: "/admin/apAddTeam.cfm"
+    output: team_form
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin"
+    output: auth_result
+
+  - id: validate_team_data
+    op: validate_schema
+    params:
+      input: team_form
+      schema: team_registration_schema
+    output: validated_team
+
+  - id: insert_team_record
+    op: write_database
+    params:
+      input: validated_team
+      table: teams
+    output: team_record
+
+  - id: initialize_standings_row
+    op: write_database
+    params:
+      input: team_record
+      table: standings
+    output: standings_row
+
+  - id: log_team_creation
+    op: log_audit
+    params:
+      input: team_record
+      action: "team_registered" 

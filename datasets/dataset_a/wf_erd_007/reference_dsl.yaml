@@ -1,0 +1,60 @@
+workflow_id: wf_erd_007
+# domain: healthcare_billing
+# complexity: 4
+# has_security_constraint: true
+# primitive_count: 8
+# source: Rehabilitation Billing Client -- createSaaqInvoice.cfm (provincial auto-insurer specific billing)
+steps:
+  - id: receive_saaq_request
+    op: fetch_api
+    params:
+      endpoint: "/invoices/create-insurer"
+    output: insurer_request
+
+  - id: authenticate_office_staff
+    op: authenticate_user
+    params:
+      role: "office_or_admin"
+    output: auth_result
+
+  - id: read_approved_timesheets
+    op: read_database
+    params:
+      table: TimeSheetDetail
+      filter: "patient_id = insurer_request.patient_id AND status = 3"
+    output: approved_hours
+
+  - id: validate_dossier_number
+    op: validate_schema
+    params:
+      input: insurer_request
+      schema: insurer_invoice_schema
+    output: validated_insurer
+
+  - id: apply_insurer_billing_rules
+    op: apply_rule
+    params:
+      input: validated_insurer
+      rule: "insurer_line_item_formatting"
+    output: formatted_insurer
+
+  - id: create_invoice_header
+    op: write_database
+    params:
+      input: formatted_insurer
+      table: invoice
+    output: insurer_invoice
+
+  - id: create_line_items
+    op: write_database
+    params:
+      input: approved_hours
+      table: invoiceDetail
+    output: line_items
+
+  - id: post_to_patient_balance
+    op: write_database
+    params:
+      input: insurer_invoice
+      table: patient_balance
+    output: updated_balance

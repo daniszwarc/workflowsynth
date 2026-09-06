@@ -1,0 +1,45 @@
+workflow_id: wf_ts_006
+# domain: community_sports
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: Community Sports Club -- login_process.cfm, remember-me cookie, audit log
+steps:
+  - id: receive_login
+    op: fetch_api
+    params:
+      endpoint: "/admin/login_process.cfm"
+    output: login_request
+
+  - id: lookup_user
+    op: read_database
+    params:
+      table: users
+      filter: "username = login_request.username"
+    output: user_record
+
+  - id: apply_rate_limit_rule
+    op: apply_rule
+    params:
+      input: login_request
+      rule: "login_rate_limit"
+    output: rate_check
+
+  - id: apply_remember_me_rule
+    op: apply_rule
+    params:
+      input: login_request
+      rule: "remember_me_session"
+    output: session_config
+
+  - id: establish_session
+    op: authenticate_user
+    params:
+      role: "user_assigned_role"
+    output: session
+
+  - id: log_login
+    op: log_audit
+    params:
+      input: session
+      action: "user_login" 

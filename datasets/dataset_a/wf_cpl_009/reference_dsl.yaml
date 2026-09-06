@@ -1,0 +1,33 @@
+workflow_id: wf_cpl_009
+# domain: sports_media
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 4
+# source: Sports Media Admin System -- Dropzone.js attachment upload, sub-workflow of Requests
+steps:
+  - id: receive_file_upload
+    op: fetch_api
+    params:
+      endpoint: "/admin/apUploadAttachment.cfm"
+    output: uploaded_file
+
+  - id: validate_file
+    op: validate_schema
+    params:
+      input: uploaded_file
+      schema: attachment_file_schema
+    output: validated_file
+
+  - id: store_attachment
+    op: write_database
+    params:
+      input: validated_file
+      table: attachments
+    output: stored_file
+
+  - id: link_to_request
+    op: write_database
+    params:
+      input: stored_file
+      table: request_attachments
+    output: linked_attachment

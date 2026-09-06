@@ -1,0 +1,39 @@
+workflow_id: wf_ms_001
+# domain: clinical_ai
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: Clinical Analysis Research Tool -- pdf_extractor.py
+steps:
+  - id: receive_pdf_upload
+    op: fetch_api
+    params:
+      endpoint: "/cases/upload"
+    output: uploaded_pdf
+
+  - id: authenticate_user
+    op: authenticate_user
+    params:
+      role: "case_authorized_user"
+    output: auth_result
+
+  - id: validate_pdf
+    op: validate_schema
+    params:
+      input: uploaded_pdf
+      schema: pdf_upload_schema
+    output: validated_pdf
+
+  - id: extract_text_primary
+    op: call_webhook
+    params:
+      input: validated_pdf
+      url: "pymupdf://extract_text"
+    output: extracted_text
+
+  - id: apply_quality_rule
+    op: apply_rule
+    params:
+      input: extracted_text
+      rule: "text_quality_ocr_fallback"
+    output: final_text

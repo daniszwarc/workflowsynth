@@ -1,0 +1,46 @@
+workflow_id: wf_sv_001
+# domain: community_sports
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 6
+# source: Community Soccer Club (Montreal) -- Scraping Websites workflow (sitemap -> Vector Store)
+steps:
+  - id: fetch_sitemap
+    op: fetch_api
+    params:
+      endpoint: "https://example.com/club/sitemap.xml"
+    output: sitemap_xml
+
+  - id: parse_sitemap
+    op: transform_json
+    params:
+      input: sitemap_xml
+      transformation: "xml_to_url_list"
+    output: url_list
+
+  - id: split_urls
+    op: loop_records
+    params:
+      input: url_list
+      batch_size: 10
+    output: url_batch
+
+  - id: fetch_page_content
+    op: fetch_api
+    params:
+      input: url_batch
+      endpoint: "page_url"
+    output: raw_html
+
+  - id: extract_main_content
+    op: extract_field
+    params:
+      input: raw_html
+      field: ".main_content"
+    output: page_content
+
+  - id: index_to_vector_store
+    op: send_to_queue
+    params:
+      input: page_content
+      queue: "vector_store_customerSupportDocs" 

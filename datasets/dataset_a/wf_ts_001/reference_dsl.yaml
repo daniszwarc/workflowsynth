@@ -1,0 +1,46 @@
+workflow_id: wf_ts_001
+# domain: community_sports
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: Community Sports Club -- apAddHours.cfm (hours x rate, overlap check, insert)
+steps:
+  - id: receive_hours_form
+    op: fetch_api
+    params:
+      endpoint: "/admin/apAddHours.cfm"
+    output: hours_form
+
+  - id: authenticate_user
+    op: authenticate_user
+    params:
+      role: "any_authenticated_staff"
+    output: auth_result
+
+  - id: validate_date_range
+    op: read_database
+    params:
+      table: timesheet_dates
+      filter: "active = true"
+    output: active_range
+
+  - id: check_overlap
+    op: read_database
+    params:
+      table: timesheets
+      filter: "userID = hours_form.userID AND date = hours_form.date AND role = hours_form.role"
+    output: overlap_check
+
+  - id: apply_overlap_rule
+    op: apply_rule
+    params:
+      input: overlap_check
+      rule: "no_duplicate_entry"
+    output: overlap_result
+
+  - id: insert_timesheet_entry
+    op: write_database
+    params:
+      input: hours_form
+      table: timesheets
+    output: timesheet_record

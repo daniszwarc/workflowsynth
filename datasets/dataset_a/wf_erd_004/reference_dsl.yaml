@@ -1,0 +1,39 @@
+workflow_id: wf_erd_004
+# domain: healthcare_billing
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: Rehabilitation Billing Client -- apiFunctions.cfc, AJAX grid timesheet
+steps:
+  - id: receive_cell_update
+    op: fetch_api
+    params:
+      endpoint: "/api/timesheet/update"
+    output: cell_update
+
+  - id: authenticate_worker
+    op: authenticate_user
+    params:
+      role: "field_worker"
+    output: auth_result
+
+  - id: parse_composite_key
+    op: transform_json
+    params:
+      input: cell_update
+      transformation: "parse_timesheet_composite_key"
+    output: parsed_key
+
+  - id: validate_entry_value
+    op: validate_schema
+    params:
+      input: parsed_key
+      schema: timesheet_entry_schema
+    output: validated_entry
+
+  - id: update_timesheet_detail
+    op: write_database
+    params:
+      input: validated_entry
+      table: TimeSheetDetail
+    output: updated_entry

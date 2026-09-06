@@ -1,0 +1,48 @@
+workflow_id: wf_ms_004
+# domain: clinical_ai
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: Clinical Analysis Research Tool -- literature_service.py (PubMed API + AI, auto-triggered)
+steps:
+  - id: check_wiki_page_count
+    op: read_database
+    params:
+      table: wiki_pages
+      filter: "case_id = current_case AND content IS NOT NULL"
+    output: page_count
+
+  - id: apply_trigger_rule
+    op: apply_rule
+    params:
+      input: page_count
+      rule: "wiki_page_count_gte_3"
+    output: trigger_decision
+
+  - id: extract_clinical_terms
+    op: extract_field
+    params:
+      input: wiki_pages
+      field: "clinical_terms"
+    output: search_terms
+
+  - id: search_pubmed
+    op: call_webhook
+    params:
+      input: search_terms
+      url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
+    output: pubmed_results
+
+  - id: summarize_literature
+    op: call_webhook
+    params:
+      input: pubmed_results
+      url: "https://api.anthropic.com/v1/messages"
+    output: literature_summary
+
+  - id: store_literature_wiki_page
+    op: write_database
+    params:
+      input: literature_summary
+      table: wiki_pages
+    output: stored_page

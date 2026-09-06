@@ -1,0 +1,39 @@
+workflow_id: wf_ft_001
+# domain: health_fitness
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: Mobile Fitness App -- onboarding flow (Backend-as-a-Service auth, profile creation)
+steps:
+  - id: receive_registration
+    op: fetch_api
+    params:
+      endpoint: "/auth/register"
+    output: registration_data
+
+  - id: create_auth_account
+    op: call_webhook
+    params:
+      input: registration_data
+      url: "https://backend-as-a-service.example.com/auth/signup"
+    output: auth_account
+
+  - id: validate_profile_data
+    op: validate_schema
+    params:
+      input: registration_data
+      schema: user_profile_schema
+    output: validated_profile
+
+  - id: create_user_profile
+    op: write_database
+    params:
+      input: validated_profile
+      table: profiles
+    output: user_profile
+
+  - id: log_registration
+    op: log_audit
+    params:
+      input: user_profile
+      action: "user_registered" 

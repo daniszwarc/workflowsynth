@@ -1,0 +1,75 @@
+workflow_id: wf_pb_002
+# domain: insurance_brokerage
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 10
+# source: Insurance Brokerage Client -- WhatsApp ingestion workflow (audio branch, transcription)
+steps:
+  - id: extract_message
+    op: fetch_api
+    params:
+      endpoint: "/webhook/whatsapp"
+    output: raw_message
+
+  - id: get_audio_url
+    op: call_webhook
+    params:
+      input: raw_message
+      url: "https://graph.facebook.com/v18.0/media"
+    output: audio_url
+
+  - id: download_audio
+    op: fetch_api
+    params:
+      input: audio_url
+      endpoint: "audio_binary"
+    output: audio_binary
+
+  - id: transcribe_audio
+    op: call_webhook
+    params:
+      input: audio_binary
+      url: "https://llm-api.example.com/v1/audio/transcriptions"
+    output: transcription
+
+  - id: mask_sensitive_data
+    op: transform_json
+    params:
+      input: transcription
+      transformation: "mask_pii_financial"
+    output: sanitised_text
+
+  - id: classify_message
+    op: call_webhook
+    params:
+      input: sanitised_text
+      url: "https://llm-api.example.com/v1/chat/completions"
+    output: classification_result
+
+  - id: check_is_work_request
+    op: apply_rule
+    params:
+      input: classification_result
+      rule: "es_laboral_check"
+    output: is_work_request
+
+  - id: get_producer
+    op: read_database
+    params:
+      table: producers
+      filter: "whatsapp_number = recipient_number"
+    output: producer
+
+  - id: upsert_client
+    op: write_database
+    params:
+      input: sanitised_text
+      table: clients
+    output: client
+
+  - id: create_ticket
+    op: write_database
+    params:
+      input: classification_result
+      table: tickets
+    output: ticket

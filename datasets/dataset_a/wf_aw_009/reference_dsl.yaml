@@ -1,0 +1,33 @@
+workflow_id: wf_aw_009
+# domain: enterprise_knowledge
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 4
+# source: Enterprise Knowledge Base -- scripts/backfill-embeddings.ts, cron every 15 min
+steps:
+  - id: trigger_on_schedule
+    op: fetch_api
+    params:
+      endpoint: "cron://every_15_minutes"
+    output: trigger
+
+  - id: read_records_missing_embeddings
+    op: read_database
+    params:
+      table: rules
+      filter: "id NOT IN (SELECT record_id FROM embeddings)"
+    output: missing_embeddings
+
+  - id: filter_missing_only
+    op: filter_records
+    params:
+      input: missing_embeddings
+      condition: "embedding IS NULL"
+    output: records_to_backfill
+
+  - id: generate_and_store_embeddings
+    op: call_webhook
+    params:
+      input: records_to_backfill
+      url: "https://llm-api.example.com/v1/embeddings"
+    output: backfilled_embeddings

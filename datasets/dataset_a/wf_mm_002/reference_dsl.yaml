@@ -1,0 +1,40 @@
+workflow_id: wf_mm_002
+# domain: clinical_ai
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: Medical Data Pipeline -- pipeline/extractor.py (PDF extraction + OCR fallback)
+steps:
+  - id: receive_pdf
+    op: fetch_api
+    params:
+      endpoint: "local://tmp/pdf"
+    output: pdf_binary
+
+  - id: extract_text_primary
+    op: call_webhook
+    params:
+      input: pdf_binary
+      url: "pymupdf://extract_text"
+    output: extracted_text
+
+  - id: apply_quality_rule
+    op: apply_rule
+    params:
+      input: extracted_text
+      rule: "text_quality_check"
+    output: quality_result
+
+  - id: extract_text_ocr_fallback
+    op: call_webhook
+    params:
+      input: pdf_binary
+      url: "tesseract://ocr"
+    output: ocr_text
+
+  - id: compute_hash
+    op: encrypt_field
+    params:
+      input: pdf_binary
+      field: "sha256_hash"
+    output: document_with_hash

@@ -1,0 +1,40 @@
+workflow_id: wf_lf_002
+# domain: personal_tool
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: French TTS PWA -- FastAPI /cleanup, httpx -> LLM API Cleanup Language Model, French system prompt
+steps:
+  - id: receive_cleanup_request
+    op: fetch_api
+    params:
+      endpoint: "/cleanup"
+    output: cleanup_request
+
+  - id: validate_cors_origin
+    op: validate_schema
+    params:
+      input: cleanup_request
+      schema: cors_origin_schema
+    output: validated_request
+
+  - id: call_llm_cleanup
+    op: call_webhook
+    params:
+      input: validated_request
+      url: "https://llm-api.example.com/v1/chat/completions"
+    output: llm_response
+
+  - id: extract_cleaned_text
+    op: extract_field
+    params:
+      input: llm_response
+      field: "choices[0].message.content"
+    output: cleaned_text
+
+  - id: return_cleaned_text
+    op: format_output
+    params:
+      input: cleaned_text
+      format: "json_text_response"
+    output: cleanup_response

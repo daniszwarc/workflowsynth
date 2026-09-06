@@ -1,0 +1,53 @@
+workflow_id: wf_ktg_006
+# domain: workers_compensation
+# complexity: 5
+# has_security_constraint: true
+# primitive_count: 7
+# source: Workers' Compensation Client -- Keystone/dsp_claim_review.cfm, KTG/reports/ (60+ variants)
+steps:
+  - id: receive_report_request
+    op: fetch_api
+    params:
+      endpoint: "/Keystone/dsp_claim_review.cfm"
+    output: report_request
+
+  - id: authenticate_user
+    op: authenticate_user
+    params:
+      role: "case_staff_or_admin"
+    output: auth_result
+
+  - id: read_employer_summary
+    op: read_database
+    params:
+      table: tbl_claimant_info
+      filter: "date BETWEEN request.from AND request.to"
+    output: employer_data
+
+  - id: read_activity_data
+    op: read_database
+    params:
+      table: tbl_activity_log
+      filter: "datasource = session.datasource"
+    output: activity_data
+
+  - id: read_clinical_data
+    op: read_database
+    params:
+      table: tbl_Work_Comp
+      filter: "datasource = session.datasource"
+    output: clinical_data
+
+  - id: aggregate_report_categories
+    op: aggregate_data
+    params:
+      input: employer_data
+      group_by: report_category
+    output: aggregated_report
+
+  - id: format_report_output
+    op: format_output
+    params:
+      input: aggregated_report
+      format: "claim_status_report"
+    output: report_output

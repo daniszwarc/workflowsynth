@@ -1,0 +1,60 @@
+workflow_id: wf_mvp_005
+# domain: manufacturing
+# complexity: 4
+# has_security_constraint: true
+# primitive_count: 8
+# source: Commercial Kitchen Equipment Manufacturer -- addWorkOrder.cfm -> apAddWorkOrder.cfm
+steps:
+  - id: receive_work_order_form
+    op: fetch_api
+    params:
+      endpoint: "/mvp/apAddWorkOrder.cfm"
+    output: work_order_form
+
+  - id: authenticate_user
+    op: authenticate_user
+    params:
+      role: "technician_or_admin"
+    output: auth_result
+
+  - id: read_unit_and_vendor
+    op: read_database
+    params:
+      table: card
+      filter: "serialNumber = work_order_form.sn"
+    output: unit_and_vendor
+
+  - id: validate_work_order
+    op: validate_schema
+    params:
+      input: work_order_form
+      schema: work_order_schema
+    output: validated_wo
+
+  - id: apply_weekday_shipping_rule
+    op: apply_rule
+    params:
+      input: validated_wo
+      rule: "thursday_friday_shipping_cutoff"
+    output: shipping_flag
+
+  - id: apply_recall_linkage_rule
+    op: apply_rule
+    params:
+      input: validated_wo
+      rule: "recall_linked_work_order"
+    output: recall_decision
+
+  - id: create_work_order
+    op: write_database
+    params:
+      input: validated_wo
+      table: work_orders
+    output: work_order_record
+
+  - id: record_labor_rates
+    op: write_database
+    params:
+      input: work_order_record
+      table: labor_rates
+    output: labor_record

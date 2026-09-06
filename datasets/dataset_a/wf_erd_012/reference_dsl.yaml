@@ -1,0 +1,39 @@
+workflow_id: wf_erd_012
+# domain: healthcare_billing
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: Rehabilitation Billing Client -- changeRate.cfm, changeRateConfirmation.cfm
+steps:
+  - id: receive_rate_change
+    op: fetch_api
+    params:
+      endpoint: "/rates/change"
+    output: rate_change_request
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin"
+    output: auth_result
+
+  - id: read_current_rate
+    op: read_database
+    params:
+      table: worker_rates
+      filter: "worker_id = rate_change_request.worker_id"
+    output: current_rate
+
+  - id: apply_confirmation_rule
+    op: apply_rule
+    params:
+      input: current_rate
+      rule: "rate_change_requires_confirmation"
+    output: confirmed_change
+
+  - id: update_worker_rate
+    op: write_database
+    params:
+      input: confirmed_change
+      table: worker_rates
+    output: updated_rate

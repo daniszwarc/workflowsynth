@@ -1,0 +1,46 @@
+workflow_id: wf_ft_005
+# domain: health_fitness
+# complexity: 3
+# has_security_constraint: false
+# primitive_count: 6
+# source: Mobile Fitness App -- Coach screen, qwen3.6 AI chat with nutrition context
+steps:
+  - id: receive_question
+    op: fetch_api
+    params:
+      endpoint: "/api/coach/chat"
+    output: user_question
+
+  - id: authenticate_user
+    op: authenticate_user
+    params:
+      role: "authenticated_user"
+    output: auth_result
+
+  - id: read_nutrition_log
+    op: read_database
+    params:
+      table: nutrition_log
+      filter: "user_id = user.id AND date >= 7_days_ago"
+    output: recent_nutrition
+
+  - id: read_user_profile
+    op: read_database
+    params:
+      table: profiles
+      filter: "user_id = user.id"
+    output: user_profile
+
+  - id: call_ai_coach
+    op: call_webhook
+    params:
+      input: recent_nutrition
+      url: "https://llm-api.example.com/v1/chat/completions"
+    output: coach_response
+
+  - id: return_response
+    op: format_output
+    params:
+      input: coach_response
+      format: "coach_chat_response"
+    output: chat_message

@@ -1,0 +1,25 @@
+workflow_id: wf_sv_005
+# domain: community_sports
+# complexity: 1
+# has_security_constraint: false
+# primitive_count: 3
+# source: Community Soccer Club (Montreal) -- Email workflow (not customer support branch)
+steps:
+  - id: receive_classification
+    op: fetch_api
+    params:
+      endpoint: "/email/classified"
+    output: classification_result
+
+  - id: apply_skip_rule
+    op: apply_rule
+    params:
+      input: classification_result
+      rule: "not_customer_support_skip"
+    output: skip_decision
+
+  - id: log_skipped_email
+    op: log_audit
+    params:
+      input: classification_result
+      action: "email_skipped_not_customer_support" 

@@ -1,0 +1,25 @@
+workflow_id: wf_cpl_002
+# domain: sports_media
+# complexity: 1
+# has_security_constraint: true
+# primitive_count: 3
+# source: Sports Media Admin System -- addLeague.cfm/apAddLeague.cfm (simple CRUD)
+steps:
+  - id: receive_league_form
+    op: fetch_api
+    params:
+      endpoint: "/admin/apAddLeague.cfm"
+    output: league_form
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin"
+    output: auth_result
+
+  - id: upsert_league_record
+    op: write_database
+    params:
+      input: league_form
+      table: leagues
+    output: league_record

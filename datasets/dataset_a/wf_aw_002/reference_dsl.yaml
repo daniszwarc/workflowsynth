@@ -1,0 +1,39 @@
+workflow_id: wf_aw_002
+# domain: enterprise_knowledge
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: Enterprise Knowledge Base -- /api/documents/upload, pipeline FastAPI, document type routing
+steps:
+  - id: receive_upload
+    op: fetch_api
+    params:
+      endpoint: "/api/documents/upload"
+    output: upload_request
+
+  - id: authenticate_editor
+    op: authenticate_user
+    params:
+      role: "editor_or_admin"
+    output: auth_result
+
+  - id: validate_document_format
+    op: validate_schema
+    params:
+      input: upload_request
+      schema: document_format_schema
+    output: validated_upload
+
+  - id: store_uploaded_file
+    op: write_database
+    params:
+      input: validated_upload
+      table: documents
+    output: stored_document
+
+  - id: trigger_pipeline
+    op: call_webhook
+    params:
+      input: stored_document
+      url: "http://pipeline:8000/process"
+    output: pipeline_job

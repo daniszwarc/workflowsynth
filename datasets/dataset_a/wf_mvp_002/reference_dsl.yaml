@@ -1,0 +1,34 @@
+workflow_id: wf_mvp_002
+# domain: manufacturing
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 4
+# source: Commercial Kitchen Equipment Manufacturer -- adminMenu.cfm, index.cfm
+steps:
+  - id: read_session_role
+    op: extract_field
+    params:
+      input: session
+      field: "role"
+    output: user_role
+
+  - id: fetch_role_details
+    op: read_database
+    params:
+      table: logininfo
+      filter: "userID = session.userID"
+    output: role_details
+
+  - id: apply_role_routing
+    op: apply_rule
+    params:
+      input: role_details
+      rule: "menu_sections_by_role"
+    output: menu_config
+
+  - id: format_menu
+    op: format_output
+    params:
+      input: menu_config
+      format: "role_based_navigation_menu"
+    output: rendered_menu

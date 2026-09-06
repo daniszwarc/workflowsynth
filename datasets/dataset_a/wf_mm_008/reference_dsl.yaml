@@ -1,0 +1,94 @@
+workflow_id: wf_mm_008
+# domain: clinical_ai
+# complexity: 5
+# has_security_constraint: true
+# primitive_count: 13
+# source: Medical Data Pipeline -- pipeline/run.py end-to-end orchestrator
+steps:
+  - id: authenticate_drive
+    op: authenticate_user
+    params:
+      role: "google_drive_service_account"
+    output: drive_auth
+
+  - id: list_new_documents
+    op: fetch_api
+    params:
+      endpoint: "google_drive://medical_folder"
+    output: new_pdfs
+
+  - id: download_pdf
+    op: fetch_api
+    params:
+      input: new_pdfs
+      endpoint: "google_drive_download"
+    output: pdf_binary
+
+  - id: extract_text
+    op: call_webhook
+    params:
+      input: pdf_binary
+      url: "pymupdf://extract"
+    output: extracted_text
+
+  - id: compute_hash
+    op: encrypt_field
+    params:
+      input: pdf_binary
+      field: "sha256_hash"
+    output: hashed_doc
+
+  - id: anonymize_pii
+    op: transform_json
+    params:
+      input: extracted_text
+      transformation: "medical_pii_anonymization"
+    output: anonymized_text
+
+  - id: validate_clinical_preservation
+    op: validate_schema
+    params:
+      input: anonymized_text
+      schema: clinical_values_preservation_schema
+    output: validated_anon
+
+  - id: structure_via_ai
+    op: call_webhook
+    params:
+      input: validated_anon
+      url: "https://llm-api.example.com/v1/chat/completions"
+    output: structured_markdown
+
+  - id: verify_clinical_values
+    op: apply_rule
+    params:
+      input: structured_markdown
+      rule: "numbers_and_dates_diff_check"
+    output: verification_result
+
+  - id: route_by_confidence
+    op: route_to_step
+    params:
+      input: verification_result
+      condition: "confidence = low"
+      low: "review_queue"
+      high: "write_markdown"
+
+  - id: write_markdown
+    op: write_database
+    params:
+      input: structured_markdown
+      table: raw_documents
+    output: markdown_file
+
+  - id: authenticate_git
+    op: authenticate_user
+    params:
+      role: "pipeline_git_service_account"
+    output: git_auth
+
+  - id: commit_and_push
+    op: log_audit
+    params:
+      input: markdown_file
+      action: "git_commit_and_push" 

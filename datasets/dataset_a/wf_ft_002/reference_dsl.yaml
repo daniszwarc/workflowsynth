@@ -1,0 +1,40 @@
+workflow_id: wf_ft_002
+# domain: health_fitness
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 5
+# source: Mobile Fitness App -- food log screen, manual entry + AI label scanning
+steps:
+  - id: receive_food_entry
+    op: fetch_api
+    params:
+      endpoint: "/api/food-log"
+    output: food_entry
+
+  - id: validate_entry
+    op: validate_schema
+    params:
+      input: food_entry
+      schema: food_log_entry_schema
+    output: validated_entry
+
+  - id: lookup_food_item
+    op: read_database
+    params:
+      table: food_database
+      filter: "name = food_entry.item_name"
+    output: food_data
+
+  - id: compute_daily_totals
+    op: aggregate_data
+    params:
+      input: food_data
+      group_by: date
+    output: daily_totals
+
+  - id: store_log_entry
+    op: write_database
+    params:
+      input: validated_entry
+      table: nutrition_log
+    output: log_entry

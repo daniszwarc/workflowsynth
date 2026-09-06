@@ -1,0 +1,38 @@
+workflow_id: wf_cpl_010
+# domain: sports_media
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: Sports Media Admin System -- login_process.cfm, session.rol, Application.cfm gatekeeper
+steps:
+  - id: intercept_request
+    op: fetch_api
+    params:
+      endpoint: "/admin/any_request"
+    output: incoming_request
+
+  - id: check_session
+    op: apply_rule
+    params:
+      input: incoming_request
+      rule: "session_authenticated_check"
+    output: session_status
+
+  - id: receive_login_form
+    op: fetch_api
+    params:
+      endpoint: "/admin/login_process.cfm"
+    output: login_credentials
+
+  - id: lookup_user
+    op: read_database
+    params:
+      table: users
+      filter: "username = login_credentials.username"
+    output: user_record
+
+  - id: establish_session
+    op: authenticate_user
+    params:
+      role: "admin_role_from_session"
+    output: session

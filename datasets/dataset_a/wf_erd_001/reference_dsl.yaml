@@ -1,0 +1,44 @@
+workflow_id: wf_erd_001
+# domain: healthcare_billing
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 6
+# source: Rehabilitation Billing Client -- login.cfm, login_process.cfm, Application.cfm
+steps:
+  - id: intercept_request
+    op: fetch_api
+    params:
+      endpoint: "/admin/any_request"
+    output: incoming_request
+
+  - id: check_session
+    op: apply_rule
+    params:
+      input: incoming_request
+      rule: "session_authenticated_check"
+    output: session_status
+
+  - id: receive_login_form
+    op: fetch_api
+    params:
+      endpoint: "/admin/login_process.cfm"
+    output: login_credentials
+
+  - id: lookup_user
+    op: read_database
+    params:
+      table: users
+      filter: "username = credentials.username"
+    output: user_record
+
+  - id: establish_session
+    op: authenticate_user
+    params:
+      role: "staff_role_based"
+    output: session
+
+  - id: log_login
+    op: log_audit
+    params:
+      input: session
+      action: "user_login" 

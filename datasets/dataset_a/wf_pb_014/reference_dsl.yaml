@@ -1,0 +1,96 @@
+workflow_id: wf_pb_014
+# domain: insurance_brokerage
+# complexity: 4
+# has_security_constraint: true
+# primitive_count: 13
+# source: Insurance Brokerage Client -- complete WhatsApp end-to-end orchestrator
+steps:
+  - id: receive_webhook
+    op: fetch_api
+    params:
+      endpoint: "/webhook/whatsapp"
+    output: raw_webhook
+
+  - id: validate_webhook
+    op: validate_schema
+    params:
+      input: raw_webhook
+      schema: whatsapp_webhook_schema
+    output: validated_webhook
+
+  - id: apply_blocklist_rule
+    op: apply_rule
+    params:
+      input: validated_webhook
+      rule: "sender_not_blocked"
+    output: allowed_message
+
+  - id: route_by_type
+    op: route_to_step
+    params:
+      input: allowed_message
+      condition: "message_type = audio"
+      audio: "get_audio_file"
+      text: "mask_sensitive_data"
+
+  - id: get_audio_file
+    op: call_webhook
+    params:
+      input: allowed_message
+      url: "https://graph.facebook.com/v18.0/media"
+    output: audio_binary
+
+  - id: transcribe_audio
+    op: call_webhook
+    params:
+      input: audio_binary
+      url: "https://llm-api.example.com/v1/audio/transcriptions"
+    output: transcribed_text
+
+  - id: mask_sensitive_data
+    op: transform_json
+    params:
+      input: allowed_message
+      transformation: "mask_pii_financial"
+    output: sanitised_message
+
+  - id: classify_message
+    op: call_webhook
+    params:
+      input: sanitised_message
+      url: "https://llm-api.example.com/v1/chat/completions"
+    output: classification_result
+
+  - id: check_is_work_request
+    op: apply_rule
+    params:
+      input: classification_result
+      rule: "es_laboral_check"
+    output: is_work_request
+
+  - id: get_producer
+    op: read_database
+    params:
+      table: producers
+      filter: "whatsapp_number = recipient_number"
+    output: producer
+
+  - id: upsert_client
+    op: write_database
+    params:
+      input: sanitised_message
+      table: clients
+    output: client
+
+  - id: create_ticket
+    op: write_database
+    params:
+      input: classification_result
+      table: tickets
+    output: ticket
+
+  - id: audit_log
+    op: log_audit
+    params:
+      input: ticket
+      action: "whatsapp_message_ingested" 

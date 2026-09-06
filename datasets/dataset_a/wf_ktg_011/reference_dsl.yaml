@@ -1,0 +1,62 @@
+workflow_id: wf_ktg_011
+# domain: workers_compensation
+# complexity: 4
+# has_security_constraint: true
+# primitive_count: 8
+# source: Workers' Compensation Client -- email-to-claim ingestion pipeline (developer-described)
+steps:
+  - id: read_inbound_email
+    op: read_database
+    params:
+      table: imap_inbox
+      filter: "has_pdf_attachment = true AND status = unread"
+    output: inbound_email
+
+  - id: extract_pdf_attachment
+    op: extract_field
+    params:
+      input: inbound_email
+      field: "pdf_attachment"
+    output: claim_pdf
+
+  - id: validate_pdf_type
+    op: validate_schema
+    params:
+      input: claim_pdf
+      schema: recognized_claim_form_schema
+    output: validated_pdf
+
+  - id: map_pdf_to_schema
+    op: transform_json
+    params:
+      input: validated_pdf
+      transformation: "pdf_fields_to_claim_schema"
+    output: mapped_claim_data
+
+  - id: validate_mapped_fields
+    op: validate_schema
+    params:
+      input: mapped_claim_data
+      schema: claim_creation_schema
+    output: validated_claim
+
+  - id: create_claim_record
+    op: write_database
+    params:
+      input: validated_claim
+      table: tbl_Work_Comp
+    output: claim_record
+
+  - id: attach_original_pdf
+    op: write_database
+    params:
+      input: claim_pdf
+      table: tbl_form_attachments
+    output: attachment_record
+
+  - id: notify_case_staff
+    op: notify_user
+    params:
+      input: claim_record
+      recipient: "assigned_case_staff"
+      message: "New claim ingested from email" 

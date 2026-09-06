@@ -1,0 +1,39 @@
+workflow_id: wf_mvp_008
+# domain: manufacturing
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: Commercial Kitchen Equipment Manufacturer -- changeStatus.cfm, changeHistoryStatus.cfm
+steps:
+  - id: receive_close_request
+    op: fetch_api
+    params:
+      endpoint: "/mvp/changeStatus.cfm"
+    output: close_request
+
+  - id: authenticate_user
+    op: authenticate_user
+    params:
+      role: "any_authenticated"
+    output: auth_result
+
+  - id: remove_active_lock
+    op: write_database
+    params:
+      input: close_request
+      table: activeHistory
+    output: lock_removed
+
+  - id: record_close_date
+    op: write_database
+    params:
+      input: close_request
+      table: followUpCounter
+    output: close_record
+
+  - id: update_history_status
+    op: write_database
+    params:
+      input: close_request
+      table: history
+    output: closed_history

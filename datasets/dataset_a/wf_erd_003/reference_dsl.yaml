@@ -1,0 +1,32 @@
+workflow_id: wf_erd_003
+# domain: healthcare_billing
+# complexity: 1
+# has_security_constraint: true
+# primitive_count: 4
+# source: Rehabilitation Billing Client -- assignWorker.cfm
+steps:
+  - id: receive_assignment
+    op: fetch_api
+    params:
+      endpoint: "/patients/assign-worker"
+    output: assignment_request
+
+  - id: authenticate_office_staff
+    op: authenticate_user
+    params:
+      role: "office_or_admin"
+    output: auth_result
+
+  - id: validate_assignment
+    op: validate_schema
+    params:
+      input: assignment_request
+      schema: worker_assignment_schema
+    output: validated_assignment
+
+  - id: create_assignment
+    op: write_database
+    params:
+      input: validated_assignment
+      table: worker_patient_assignments
+    output: assignment_record

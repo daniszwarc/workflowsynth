@@ -1,0 +1,53 @@
+workflow_id: wf_erd_009
+# domain: healthcare_billing
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 7
+# source: Rehabilitation Billing Client -- applyPayment.cfm, applyPartialPayment.cfm, updateBalance.cfm
+steps:
+  - id: receive_payment
+    op: fetch_api
+    params:
+      endpoint: "/payments/apply"
+    output: payment_record
+
+  - id: authenticate_office_staff
+    op: authenticate_user
+    params:
+      role: "office_or_admin"
+    output: auth_result
+
+  - id: read_invoice
+    op: read_database
+    params:
+      table: invoice
+      filter: "id = payment_record.invoice_id"
+    output: invoice_data
+
+  - id: apply_payment_classification_rule
+    op: apply_rule
+    params:
+      input: invoice_data
+      rule: "full_or_partial_payment"
+    output: payment_classification
+
+  - id: store_payment
+    op: write_database
+    params:
+      input: payment_record
+      table: payments
+    output: stored_payment
+
+  - id: update_invoice_status
+    op: write_database
+    params:
+      input: payment_classification
+      table: invoice
+    output: updated_invoice
+
+  - id: update_patient_balance
+    op: write_database
+    params:
+      input: stored_payment
+      table: patient_balance
+    output: updated_balance

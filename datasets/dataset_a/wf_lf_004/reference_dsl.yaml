@@ -1,0 +1,25 @@
+workflow_id: wf_lf_004
+# domain: personal_tool
+# complexity: 1
+# has_security_constraint: false
+# primitive_count: 3
+# source: French TTS PWA -- Service Worker, Cache API, offline-capable installable PWA
+steps:
+  - id: precache_static_assets
+    op: fetch_api
+    params:
+      endpoint: "browser://cache_api_install"
+    output: cached_assets
+
+  - id: intercept_fetch_request
+    op: fetch_api
+    params:
+      endpoint: "browser://service_worker_fetch"
+    output: intercepted_request
+
+  - id: apply_cache_first_rule
+    op: apply_rule
+    params:
+      input: intercepted_request
+      rule: "cache_first_network_fallback"
+    output: served_response

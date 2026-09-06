@@ -1,0 +1,45 @@
+workflow_id: wf_ktg_008
+# domain: workers_compensation
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: Workers' Compensation Client -- KTG/plupload/apFileSave.cfm (chunked upload, tbl_form_attachments)
+steps:
+  - id: receive_file_upload
+    op: fetch_api
+    params:
+      endpoint: "/KTG/plupload/apFileSave.cfm"
+    output: uploaded_file
+
+  - id: authenticate_case_staff
+    op: authenticate_user
+    params:
+      role: "case_staff"
+    output: auth_result
+
+  - id: validate_file
+    op: validate_schema
+    params:
+      input: uploaded_file
+      schema: attachment_file_schema
+    output: validated_file
+
+  - id: move_to_permanent_storage
+    op: transform_json
+    params:
+      input: validated_file
+      transformation: "move_temp_to_uploads_directory"
+    output: stored_file
+
+  - id: insert_attachment_record
+    op: write_database
+    params:
+      input: stored_file
+      table: tbl_form_attachments
+    output: attachment_record
+
+  - id: log_attachment
+    op: log_audit
+    params:
+      input: attachment_record
+      action: "document_attached_to_claim" 

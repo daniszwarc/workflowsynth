@@ -1,0 +1,32 @@
+workflow_id: wf_pb_008
+# domain: insurance_brokerage
+# complexity: 1
+# has_security_constraint: false
+# primitive_count: 4
+# source: Insurance Brokerage Client -- Kanban status update
+steps:
+  - id: receive_status_change
+    op: fetch_api
+    params:
+      endpoint: "/api/tickets/[id]"
+    output: status_request
+
+  - id: validate_status
+    op: validate_schema
+    params:
+      input: status_request
+      schema: ticket_status_schema
+    output: validated_status
+
+  - id: update_ticket_status
+    op: write_database
+    params:
+      input: validated_status
+      table: tickets
+    output: updated_ticket
+
+  - id: log_history
+    op: log_audit
+    params:
+      input: updated_ticket
+      action: "status_changed" 

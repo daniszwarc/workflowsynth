@@ -1,0 +1,47 @@
+workflow_id: wf_pb_011
+# domain: insurance_brokerage
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 6
+# source: Insurance Brokerage Client -- stalled ticket detection (hours_since_update > 4)
+steps:
+  - id: read_stalled_tickets
+    op: read_database
+    params:
+      table: tickets
+      filter: "status != cerrado AND hours_since_update > 4 AND visible = true"
+    output: stalled_tickets
+
+  - id: filter_assigned_only
+    op: filter_records
+    params:
+      input: stalled_tickets
+      condition: "assigned_to IS NOT NULL"
+    output: assigned_stalled
+
+  - id: aggregate_by_producer
+    op: aggregate_data
+    params:
+      input: assigned_stalled
+      group_by: assigned_to
+    output: stalled_by_producer
+
+  - id: format_alert
+    op: format_output
+    params:
+      input: stalled_by_producer
+      format: "stalled_ticket_alert"
+    output: alert_messages
+
+  - id: send_alert
+    op: notify_user
+    params:
+      input: alert_messages
+      recipient: "producer_email"
+      message: "Stalled ticket alert"
+
+  - id: log_alert
+    op: log_audit
+    params:
+      input: stalled_by_producer
+      action: "stalled_ticket_alert_sent" 

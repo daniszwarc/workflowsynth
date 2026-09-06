@@ -1,0 +1,33 @@
+workflow_id: wf_ft_006
+# domain: health_fitness
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 4
+# source: Mobile Fitness App -- Stats screen, daily progress dashboard
+steps:
+  - id: authenticate_user
+    op: authenticate_user
+    params:
+      role: "authenticated_user"
+    output: auth_result
+
+  - id: read_todays_nutrition
+    op: read_database
+    params:
+      table: nutrition_log
+      filter: "user_id = user.id AND date = today"
+    output: todays_entries
+
+  - id: aggregate_daily_totals
+    op: aggregate_data
+    params:
+      input: todays_entries
+      group_by: macro_type
+    output: daily_totals
+
+  - id: format_progress_summary
+    op: format_output
+    params:
+      input: daily_totals
+      format: "daily_progress_dashboard"
+    output: progress_summary

@@ -1,0 +1,46 @@
+workflow_id: wf_btp_002
+# domain: clinical_ai
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: Clinical AI Platform -- POST /index/reindex, embeddings + vector database
+steps:
+  - id: receive_document
+    op: fetch_api
+    params:
+      endpoint: "/index/document"
+    output: document
+
+  - id: authenticate_indexer
+    op: authenticate_user
+    params:
+      role: "indexing_service"
+    output: auth_result
+
+  - id: validate_anonymization
+    op: validate_schema
+    params:
+      input: document
+      schema: anonymized_document_schema
+    output: validated_document
+
+  - id: chunk_document
+    op: transform_json
+    params:
+      input: validated_document
+      transformation: "split_into_chunks"
+    output: document_chunks
+
+  - id: generate_embeddings
+    op: call_webhook
+    params:
+      input: document_chunks
+      url: "https://api.openai.com/v1/embeddings"
+    output: embeddings
+
+  - id: store_embeddings
+    op: write_database
+    params:
+      input: embeddings
+      table: embeddings
+    output: indexed_document

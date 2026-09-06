@@ -1,0 +1,39 @@
+workflow_id: wf_ts_005
+# domain: community_sports
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: Community Sports Club -- addUser.cfm/apAddUser.cfm, modifyUser.cfm/apModifyUser.cfm
+steps:
+  - id: receive_staff_form
+    op: fetch_api
+    params:
+      endpoint: "/admin/apAddUser.cfm"
+    output: staff_form
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin"
+    output: auth_result
+
+  - id: validate_staff_record
+    op: validate_schema
+    params:
+      input: staff_form
+      schema: staff_record_schema
+    output: validated_staff
+
+  - id: apply_pay_status_rule
+    op: apply_rule
+    params:
+      input: validated_staff
+      rule: "valid_pay_status_values"
+    output: staff_with_status
+
+  - id: upsert_staff_record
+    op: write_database
+    params:
+      input: staff_with_status
+      table: users
+    output: staff_record

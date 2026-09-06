@@ -1,0 +1,38 @@
+workflow_id: wf_ktg_002
+# domain: workers_compensation
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: Workers' Compensation Client -- KTG/tickler/act_insert_case_tickler_kg.cfm, act_complete_ticklers.cfm
+steps:
+  - id: receive_tickler_request
+    op: fetch_api
+    params:
+      endpoint: "/KTG/tickler/act_insert_case_tickler_kg.cfm"
+    output: tickler_request
+
+  - id: authenticate_case_manager
+    op: authenticate_user
+    params:
+      role: "case_manager"
+    output: auth_result
+
+  - id: validate_tickler_fields
+    op: validate_schema
+    params:
+      input: tickler_request
+      schema: tickler_schema
+    output: validated_tickler
+
+  - id: upsert_tickler_record
+    op: write_database
+    params:
+      input: validated_tickler
+      table: tbl_tickler_log
+    output: tickler_record
+
+  - id: log_tickler_action
+    op: log_audit
+    params:
+      input: tickler_record
+      action: "tickler_created_or_updated" 

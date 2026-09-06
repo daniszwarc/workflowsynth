@@ -1,0 +1,46 @@
+workflow_id: wf_ms_003
+# domain: clinical_ai
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: Clinical Analysis Research Tool -- wiki_service.py (full page replacement, encrypted at rest)
+steps:
+  - id: receive_anonymized_text
+    op: fetch_api
+    params:
+      endpoint: "/wiki/ingest"
+    output: ingest_request
+
+  - id: authenticate_pipeline_service
+    op: authenticate_user
+    params:
+      role: "pipeline_service"
+    output: auth_result
+
+  - id: generate_wiki_page
+    op: call_webhook
+    params:
+      input: ingest_request
+      url: "https://api.anthropic.com/v1/messages"
+    output: wiki_page_content
+
+  - id: validate_no_pii_in_wiki
+    op: validate_schema
+    params:
+      input: wiki_page_content
+      schema: wiki_pii_check_schema
+    output: validated_wiki
+
+  - id: encrypt_wiki_content
+    op: encrypt_field
+    params:
+      input: validated_wiki
+      field: "page_content"
+    output: encrypted_wiki
+
+  - id: upsert_wiki_page
+    op: write_database
+    params:
+      input: encrypted_wiki
+      table: wiki_pages
+    output: stored_page

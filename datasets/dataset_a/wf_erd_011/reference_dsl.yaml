@@ -1,0 +1,40 @@
+workflow_id: wf_erd_011
+# domain: healthcare_billing
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: Rehabilitation Billing Client -- sendUnpaidAlert.cfm (internal ops alert)
+steps:
+  - id: read_unpaid_invoices
+    op: read_database
+    params:
+      table: invoice
+      filter: "invoiceStatus = 1"
+    output: unpaid_invoices
+
+  - id: authenticate_system_service
+    op: authenticate_user
+    params:
+      role: "system_service_account"
+    output: auth_result
+
+  - id: aggregate_by_overdue_band
+    op: aggregate_data
+    params:
+      input: unpaid_invoices
+      group_by: overdue_band
+    output: invoices_by_band
+
+  - id: format_alert_summary
+    op: format_output
+    params:
+      input: invoices_by_band
+      format: "unpaid_invoice_alert"
+    output: alert_email
+
+  - id: send_alert
+    op: notify_user
+    params:
+      input: alert_email
+      recipient: "billing_administrator"
+      message: "Unpaid invoice alert" 

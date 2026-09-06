@@ -1,0 +1,32 @@
+workflow_id: wf_btp_008
+# domain: clinical_ai
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 4
+# source: Clinical AI Platform -- POST /wiki/rebuild, single page or full rebuild
+steps:
+  - id: receive_rebuild_request
+    op: fetch_api
+    params:
+      endpoint: "/wiki/rebuild"
+    output: rebuild_request
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin"
+    output: auth_result
+
+  - id: validate_page_name
+    op: validate_schema
+    params:
+      input: rebuild_request
+      schema: wiki_page_name_schema
+    output: validated_request
+
+  - id: trigger_wiki_compiler
+    op: call_subworkflow
+    params:
+      workflow_id: "wf_mm_007"
+      input: validated_request
+    output: rebuild_result

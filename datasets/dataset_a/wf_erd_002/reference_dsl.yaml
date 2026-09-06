@@ -1,0 +1,39 @@
+workflow_id: wf_erd_002
+# domain: healthcare_billing
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: Rehabilitation Billing Client -- addPatient.cfm, apAddPatient.cfm
+steps:
+  - id: receive_patient_form
+    op: fetch_api
+    params:
+      endpoint: "/patients/add"
+    output: patient_form
+
+  - id: authenticate_office_staff
+    op: authenticate_user
+    params:
+      role: "office_or_admin"
+    output: auth_result
+
+  - id: validate_patient_record
+    op: validate_schema
+    params:
+      input: patient_form
+      schema: patient_registration_schema
+    output: validated_patient
+
+  - id: check_duplicate
+    op: read_database
+    params:
+      table: patients
+      filter: "name = patient_form.name AND dob = patient_form.dob"
+    output: duplicate_check
+
+  - id: store_patient
+    op: write_database
+    params:
+      input: validated_patient
+      table: patients
+    output: patient_record

@@ -1,0 +1,40 @@
+workflow_id: wf_ae_001
+# domain: publishing
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 5
+# source: Economics Magazine Client -- Google Drive download + AI Vision analysis
+steps:
+  - id: search_drive_files
+    op: fetch_api
+    params:
+      endpoint: "/google-drive/search"
+    output: drive_files
+
+  - id: filter_pdf_files
+    op: filter_records
+    params:
+      input: drive_files
+      condition: "mimetype = application/pdf"
+    output: pdf_files
+
+  - id: download_pdf
+    op: fetch_api
+    params:
+      input: pdf_files
+      endpoint: "/google-drive/download"
+    output: pdf_binary
+
+  - id: extract_article_via_ai
+    op: call_webhook
+    params:
+      input: pdf_binary
+      url: "https://api.anthropic.com/v1/messages"
+    output: ai_response
+
+  - id: validate_extraction
+    op: validate_schema
+    params:
+      input: ai_response
+      schema: article_extraction_schema
+    output: extracted_article

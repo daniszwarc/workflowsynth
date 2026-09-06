@@ -1,0 +1,25 @@
+workflow_id: wf_ktg_007
+# domain: workers_compensation
+# complexity: 1
+# has_security_constraint: true
+# primitive_count: 3
+# source: Workers' Compensation Client -- root act_email.cfm (generic email endpoint)
+steps:
+  - id: receive_email_request
+    op: fetch_api
+    params:
+      endpoint: "/act_email.cfm"
+    output: email_request
+
+  - id: authenticate_service
+    op: authenticate_user
+    params:
+      role: "internal_service_or_staff"
+    output: auth_result
+
+  - id: send_email
+    op: notify_user
+    params:
+      input: email_request
+      recipient: "email_request.to"
+      message: "email_request.body" 

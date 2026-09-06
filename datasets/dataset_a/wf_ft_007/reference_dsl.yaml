@@ -1,0 +1,47 @@
+workflow_id: wf_ft_007
+# domain: health_fitness
+# complexity: 3
+# has_security_constraint: false
+# primitive_count: 6
+# source: Mobile Fitness App -- AI-generated weekly workout plan based on user goals
+steps:
+  - id: authenticate_user
+    op: authenticate_user
+    params:
+      role: "authenticated_user"
+    output: auth_result
+
+  - id: read_user_profile
+    op: read_database
+    params:
+      table: profiles
+      filter: "user_id = user.id"
+    output: user_profile
+
+  - id: read_workout_history
+    op: read_database
+    params:
+      table: workout_log
+      filter: "user_id = user.id AND date >= 30_days_ago"
+    output: workout_history
+
+  - id: generate_workout_plan
+    op: call_webhook
+    params:
+      input: user_profile
+      url: "https://llm-api.example.com/v1/chat/completions"
+    output: generated_plan
+
+  - id: validate_plan_safety
+    op: apply_rule
+    params:
+      input: generated_plan
+      rule: "plan_within_capability_range"
+    output: validated_plan
+
+  - id: store_training_plan
+    op: write_database
+    params:
+      input: validated_plan
+      table: training_plans
+    output: active_plan

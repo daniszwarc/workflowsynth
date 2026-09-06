@@ -1,0 +1,24 @@
+workflow_id: wf_btp_009
+# domain: clinical_ai
+# complexity: 1
+# has_security_constraint: true
+# primitive_count: 3
+# source: Clinical AI Platform -- audit log, all admin actions, immutable append-only
+steps:
+  - id: receive_action
+    op: fetch_api
+    params:
+      endpoint: "/audit/log"
+    output: action_details
+
+  - id: authenticate_service
+    op: authenticate_user
+    params:
+      role: "internal_service"
+    output: auth_result
+
+  - id: write_audit_entry
+    op: log_audit
+    params:
+      input: action_details
+      action: "admin_action_logged" 

@@ -1,0 +1,59 @@
+workflow_id: wf_ms_005
+# domain: clinical_ai
+# complexity: 4
+# has_security_constraint: true
+# primitive_count: 8
+# source: Clinical Analysis Research Tool -- analysis_engine.py (Primary + Secondary LLM, MAX_ITERATIONS=8)
+steps:
+  - id: receive_case_context
+    op: fetch_api
+    params:
+      endpoint: "/analysis/iterate"
+    output: case_context
+
+  - id: authenticate_analysis_service
+    op: authenticate_user
+    params:
+      role: "analysis_service"
+    output: auth_result
+
+  - id: call_primary_llm
+    op: call_webhook
+    params:
+      input: case_context
+      url: "https://api.anthropic.com/v1/messages"
+    output: primary_response
+
+  - id: encrypt_primary_response
+    op: encrypt_field
+    params:
+      input: primary_response
+      field: "response_content"
+    output: encrypted_primary
+
+  - id: call_secondary_llm
+    op: call_webhook
+    params:
+      input: encrypted_primary
+      url: "https://api.openai.com/v1/chat/completions"
+    output: secondary_response
+
+  - id: encrypt_secondary_response
+    op: encrypt_field
+    params:
+      input: secondary_response
+      field: "response_content"
+    output: encrypted_secondary
+
+  - id: apply_convergence_rule
+    op: apply_rule
+    params:
+      input: secondary_response
+      rule: "convergence_threshold_0.10"
+    output: convergence_result
+
+  - id: store_iteration_and_log
+    op: log_audit
+    params:
+      input: convergence_result
+      action: "analysis_iteration_complete" 

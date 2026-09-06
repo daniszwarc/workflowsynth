@@ -1,0 +1,60 @@
+workflow_id: wf_aw_003
+# domain: enterprise_knowledge
+# complexity: 4
+# has_security_constraint: true
+# primitive_count: 8
+# source: Enterprise Knowledge Base -- pipeline/LangGraph, AI model, rules table, embeddings
+steps:
+  - id: receive_process_document
+    op: fetch_api
+    params:
+      endpoint: "http://pipeline:8000/process/rules"
+    output: process_document
+
+  - id: authenticate_pipeline_service
+    op: authenticate_user
+    params:
+      role: "pipeline_service"
+    output: auth_result
+
+  - id: extract_document_text
+    op: call_webhook
+    params:
+      input: process_document
+      url: "local://text_extractor"
+    output: document_text
+
+  - id: extract_rules_via_llm
+    op: call_webhook
+    params:
+      input: document_text
+      url: "https://llm-api.example.com/v1/chat/completions"
+    output: extracted_rules
+
+  - id: validate_rules_structure
+    op: validate_schema
+    params:
+      input: extracted_rules
+      schema: business_rules_schema
+    output: validated_rules
+
+  - id: store_rules_pending_review
+    op: write_database
+    params:
+      input: validated_rules
+      table: rules
+    output: stored_rules
+
+  - id: generate_rule_embeddings
+    op: call_webhook
+    params:
+      input: stored_rules
+      url: "https://llm-api.example.com/v1/embeddings"
+    output: rule_embeddings
+
+  - id: store_embeddings
+    op: write_database
+    params:
+      input: rule_embeddings
+      table: embeddings
+    output: indexed_rules

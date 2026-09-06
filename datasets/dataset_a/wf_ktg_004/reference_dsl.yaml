@@ -1,0 +1,46 @@
+workflow_id: wf_ktg_004
+# domain: workers_compensation
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: Workers' Compensation Client -- KTG/administration/act_insert_user.cfm, act_password_recovery.cfm
+steps:
+  - id: receive_user_form
+    op: fetch_api
+    params:
+      endpoint: "/KTG/administration/act_insert_user.cfm"
+    output: user_form
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin"
+    output: auth_result
+
+  - id: hash_password
+    op: encrypt_field
+    params:
+      input: user_form
+      field: "password"
+    output: hashed_credentials
+
+  - id: insert_employee_record
+    op: write_database
+    params:
+      input: hashed_credentials
+      table: Employees
+    output: employee_record
+
+  - id: insert_user_record
+    op: write_database
+    params:
+      input: employee_record
+      table: Users
+    output: user_record
+
+  - id: apply_case_manager_rule
+    op: apply_rule
+    params:
+      input: user_form
+      rule: "insert_case_manager_if_flagged"
+    output: case_manager_record

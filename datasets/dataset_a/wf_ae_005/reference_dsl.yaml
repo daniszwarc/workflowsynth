@@ -1,0 +1,33 @@
+workflow_id: wf_ae_005
+# domain: publishing
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 4
+# source: Economics Magazine Client -- Move PDF to completados folder, update Excel registry
+steps:
+  - id: move_pdf_to_completados
+    op: call_webhook
+    params:
+      input: created_node
+      url: "https://www.googleapis.com/drive/v3/files/move"
+    output: move_result
+
+  - id: read_excel_registry
+    op: read_database
+    params:
+      table: excel_categories
+      filter: "sheet = article_categories"
+    output: excel_rows
+
+  - id: update_excel_registry
+    op: write_database
+    params:
+      input: created_node
+      table: excel_categories
+    output: updated_registry
+
+  - id: audit_log
+    op: log_audit
+    params:
+      input: move_result
+      action: "pdf_moved_to_completados" 

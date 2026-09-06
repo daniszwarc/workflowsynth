@@ -1,0 +1,73 @@
+workflow_id: wf_ktg_001
+# domain: workers_compensation
+# complexity: 4
+# has_security_constraint: true
+# primitive_count: 10
+# source: Workers' Compensation Client -- KTG/patient/act_insert_new_claimant.cfm (multi-table, tenant branching)
+steps:
+  - id: receive_intake_form
+    op: fetch_api
+    params:
+      endpoint: "/KTG/patient/act_insert_new_claimant.cfm"
+    output: intake_form
+
+  - id: authenticate_case_staff
+    op: authenticate_user
+    params:
+      role: "case_staff"
+    output: auth_result
+
+  - id: validate_claimant_fields
+    op: validate_schema
+    params:
+      input: intake_form
+      schema: claimant_intake_schema
+    output: validated_intake
+
+  - id: apply_tenant_branch_rule
+    op: apply_rule
+    params:
+      input: validated_intake
+      rule: "tenant_field_list_by_datasource"
+    output: tenant_intake
+
+  - id: insert_claimant_info
+    op: write_database
+    params:
+      input: tenant_intake
+      table: tbl_claimant_info
+    output: claimant_record
+
+  - id: insert_work_comp_stub
+    op: write_database
+    params:
+      input: claimant_record
+      table: tbl_Work_Comp
+    output: wc_stub
+
+  - id: insert_icd_placeholders
+    op: write_database
+    params:
+      input: claimant_record
+      table: tbl_claimant_icd_codes
+    output: icd_rows
+
+  - id: insert_rtw_placeholders
+    op: write_database
+    params:
+      input: claimant_record
+      table: tbl_work_comp_rtw
+    output: rtw_rows
+
+  - id: log_activity
+    op: log_audit
+    params:
+      input: claimant_record
+      action: "new_patient_set_up"
+
+  - id: insert_default_tickler
+    op: write_database
+    params:
+      input: claimant_record
+      table: tbl_tickler_log
+    output: tickler_record

@@ -1,0 +1,38 @@
+workflow_id: wf_aw_008
+# domain: enterprise_knowledge
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: Enterprise Knowledge Base -- /api/rules/validate, Validator/Editor/Admin role, pending_review -> approved
+steps:
+  - id: receive_validation_decision
+    op: fetch_api
+    params:
+      endpoint: "/api/rules/validate"
+    output: validation_request
+
+  - id: authenticate_validator
+    op: authenticate_user
+    params:
+      role: "validator_or_editor_or_admin"
+    output: auth_result
+
+  - id: read_rule_record
+    op: read_database
+    params:
+      table: rules
+      filter: "id = validation_request.rule_id AND status = pending_review"
+    output: rule_record
+
+  - id: update_rule_status
+    op: write_database
+    params:
+      input: validation_request
+      table: rules
+    output: updated_rule
+
+  - id: log_validation
+    op: log_audit
+    params:
+      input: updated_rule
+      action: "rule_validated" 

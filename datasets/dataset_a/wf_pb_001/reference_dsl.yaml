@@ -1,0 +1,61 @@
+workflow_id: wf_pb_001
+# domain: insurance_brokerage
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 8
+# source: Insurance Brokerage Client -- WhatsApp ingestion workflow (text branch)
+steps:
+  - id: extract_message
+    op: fetch_api
+    params:
+      endpoint: "/webhook/whatsapp"
+    output: raw_message
+
+  - id: mask_sensitive_data
+    op: transform_json
+    params:
+      input: raw_message
+      transformation: "mask_pii_financial"
+    output: sanitised_message
+
+  - id: classify_message
+    op: call_webhook
+    params:
+      input: sanitised_message
+      url: "https://llm-api.example.com/v1/chat/completions"
+    output: classification_result
+
+  - id: check_is_work_request
+    op: apply_rule
+    params:
+      input: classification_result
+      rule: "es_laboral_check"
+    output: is_work_request
+
+  - id: get_producer
+    op: read_database
+    params:
+      table: producers
+      filter: "whatsapp_number = recipient_number"
+    output: producer
+
+  - id: upsert_client
+    op: write_database
+    params:
+      input: sanitised_message
+      table: clients
+    output: client
+
+  - id: create_ticket
+    op: write_database
+    params:
+      input: classification_result
+      table: tickets
+    output: ticket
+
+  - id: log_message
+    op: write_database
+    params:
+      input: sanitised_message
+      table: messages
+    output: message_log

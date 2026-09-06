@@ -1,0 +1,25 @@
+workflow_id: wf_mvp_006
+# domain: manufacturing
+# complexity: 1
+# has_security_constraint: true
+# primitive_count: 3
+# source: Commercial Kitchen Equipment Manufacturer -- apAddRecall.cfm
+steps:
+  - id: receive_recall_form
+    op: fetch_api
+    params:
+      endpoint: "/mvp/apAddRecall.cfm"
+    output: recall_form
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin"
+    output: auth_result
+
+  - id: create_recall_record
+    op: write_database
+    params:
+      input: recall_form
+      table: recall
+    output: recall_record

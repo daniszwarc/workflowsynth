@@ -1,0 +1,39 @@
+workflow_id: wf_cpl_006
+# domain: sports_media
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: Sports Media Admin System -- editResult.cfm/apEditResult.cfm (manual score entry)
+steps:
+  - id: receive_result_form
+    op: fetch_api
+    params:
+      endpoint: "/admin/apEditResult.cfm"
+    output: result_form
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin"
+    output: auth_result
+
+  - id: validate_scores
+    op: validate_schema
+    params:
+      input: result_form
+      schema: game_result_schema
+    output: validated_result
+
+  - id: update_game_result
+    op: write_database
+    params:
+      input: validated_result
+      table: games
+    output: updated_game
+
+  - id: trigger_standings_update
+    op: call_subworkflow
+    params:
+      workflow_id: "wf_cpl_005"
+      input: updated_game
+    output: updated_standings

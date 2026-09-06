@@ -1,0 +1,46 @@
+workflow_id: wf_btp_006
+# domain: clinical_ai
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: Clinical AI Platform -- GET /pet-suv, AI extraction, 24h cache
+steps:
+  - id: receive_request
+    op: fetch_api
+    params:
+      endpoint: "/pet-suv"
+    output: pet_request
+
+  - id: authenticate_user
+    op: authenticate_user
+    params:
+      role: "admin_or_patient"
+    output: auth_result
+
+  - id: check_cache
+    op: read_database
+    params:
+      table: pet_suv_cache
+      filter: "age < 24h AND force_refresh = false"
+    output: cache_result
+
+  - id: apply_cache_rule
+    op: apply_rule
+    params:
+      input: cache_result
+      rule: "cache_valid_or_refresh"
+    output: cache_decision
+
+  - id: read_pet_documents
+    op: read_database
+    params:
+      table: raw_documents
+      filter: "document_type = Imagen AND subtype = PET"
+    output: pet_documents
+
+  - id: extract_suv_values
+    op: call_webhook
+    params:
+      input: pet_documents
+      url: "https://llm-api.example.com/v1/chat/completions"
+    output: suv_data

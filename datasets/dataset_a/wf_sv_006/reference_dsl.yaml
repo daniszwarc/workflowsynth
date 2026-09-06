@@ -1,0 +1,83 @@
+workflow_id: wf_sv_006
+# domain: community_sports
+# complexity: 4
+# has_security_constraint: false
+# primitive_count: 11
+# source: Community Soccer Club (Montreal) -- complete end-to-end email agent orchestrator
+steps:
+  - id: poll_inbox
+    op: fetch_api
+    params:
+      endpoint: "gmail://inbox"
+      filter: "unread"
+    output: new_email
+
+  - id: extract_email_fields
+    op: extract_field
+    params:
+      input: new_email
+      field: "body,threadId,from"
+    output: email_fields
+
+  - id: fetch_thread
+    op: fetch_api
+    params:
+      input: email_fields
+      endpoint: "gmail://thread"
+    output: thread_messages
+
+  - id: build_thread_history
+    op: transform_json
+    params:
+      input: thread_messages
+      transformation: "label_messages_by_sender_domain"
+    output: thread_history
+
+  - id: classify_email
+    op: call_webhook
+    params:
+      input: thread_history
+      url: "https://api.openai.com/v1/chat/completions"
+    output: classification_result
+
+  - id: route_by_classification
+    op: apply_rule
+    params:
+      input: classification_result
+      rule: "is_customer_support"
+    output: routing_decision
+
+  - id: search_support_docs
+    op: call_webhook
+    params:
+      input: thread_history
+      url: "vector_store://customerSupportDocs"
+    output: support_docs
+
+  - id: search_club_documents
+    op: call_webhook
+    params:
+      input: thread_history
+      url: "vector_store://clubDocuments"
+    output: club_docs
+
+  - id: search_email_history
+    op: call_webhook
+    params:
+      input: thread_history
+      url: "vector_store://emailHistory"
+    output: email_history
+
+  - id: generate_draft_response
+    op: call_webhook
+    params:
+      input: support_docs
+      url: "https://api.openai.com/v1/chat/completions"
+    output: draft_response
+
+  - id: create_gmail_draft
+    op: call_webhook
+    params:
+      input: draft_response
+      url: "gmail://drafts/create"
+    output: created_draft

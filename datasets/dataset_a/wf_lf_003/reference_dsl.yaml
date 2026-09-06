@@ -1,0 +1,47 @@
+workflow_id: wf_lf_003
+# domain: personal_tool
+# complexity: 3
+# has_security_constraint: false
+# primitive_count: 6
+# source: French TTS PWA -- Web Speech API SpeechSynthesisUtterance, sentence queue, highlight sync
+steps:
+  - id: receive_cleaned_sections
+    op: fetch_api
+    params:
+      endpoint: "browser://cleanup_response"
+    output: cleaned_sections
+
+  - id: split_into_sentences
+    op: transform_json
+    params:
+      input: cleaned_sections
+      transformation: "split_french_sentences"
+    output: sentence_list
+
+  - id: create_utterance_queue
+    op: loop_records
+    params:
+      input: sentence_list
+      batch_size: 1
+    output: utterance_queue
+
+  - id: apply_inter_section_pause_rule
+    op: apply_rule
+    params:
+      input: utterance_queue
+      rule: "insert_configurable_section_pause"
+    output: full_queue
+
+  - id: start_tts_playback
+    op: call_webhook
+    params:
+      input: full_queue
+      url: "browser://speechSynthesis.speak"
+    output: playback_session
+
+  - id: sync_sentence_highlight
+    op: transform_json
+    params:
+      input: playback_session
+      transformation: "highlight_current_sentence_on_utterance_start"
+    output: highlighted_display
