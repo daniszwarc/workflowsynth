@@ -42,6 +42,11 @@ def parse_args() -> argparse.Namespace:
         default=1,
         help="Number of tasks to run concurrently.",
     )
+    parser.add_argument(
+        "--batch",
+        action="store_true",
+        help="Use Batch API for first attempts (50%% cost reduction).",
+    )
     return parser.parse_args()
 
 
@@ -54,7 +59,10 @@ def main() -> None:
         condition=args.condition,
     )
 
-    summary = runner.run_dataset(max_workers=args.max_workers, task_ids=args.tasks)
+    if args.batch:
+        summary = runner.run_dataset_batch(task_ids=args.tasks or None)
+    else:
+        summary = runner.run_dataset(max_workers=args.max_workers, task_ids=args.tasks)
 
     print(summary_table(summary.results))
 

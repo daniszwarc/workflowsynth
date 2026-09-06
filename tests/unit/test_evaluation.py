@@ -398,3 +398,62 @@ def test_langchain_agent_baseline_tools_are_callable(fake_task_dataset, tmp_path
     spec_result = next(t for t in tools if t.name == "read_spec").invoke({"task_id": "wf_agent_test_001"})
     assert isinstance(spec_result, str)
     assert "Trivial Task" in spec_result
+
+
+# --- Token usage tracking (Session 09) -----------------------------------------
+
+def test_token_usage_in_attempt_record(fake_task_dataset, tmp_path, monkeypatch):
+    runner = EvaluationRunner(
+        dataset_path=str(fake_task_dataset),
+        results_dir=str(tmp_path / "results"),
+        condition="full",
+    )
+
+    class FakeResponse:
+        content = "workflow_id: wf_agent_test_001\nsteps:\n  - id: s1\n    op: fetch_api\n"
+        usage_metadata = {"input_tokens": 1000, "output_tokens": 500}
+
+    class FakeLLM:
+        def invoke(self, messages):
+            return FakeResponse()
+
+    monkeypatch.setattr("workflowsynth.evaluation.runner.get_llm", lambda attempt: FakeLLM())
+
+    result = runner.run_single("wf_agent_test_001")
+
+    assert result.attempt_history[0]["input_tokens"] == 1000
+    assert result.attempt_history[0]["output_tokens"] == 500
+
+
+def test_task_result_token_totals():
+    result = make_result(
+        total_input_tokens=1500,
+        total_output_tokens=750,
+        attempt_history=[
+            {"attempt_number": 0, "success": False, "input_tokens": 1000, "output_tokens": 500},
+            {"attempt_number": 1, "success": True, "input_tokens": 500, "output_tokens": 250},
+        ],
+    )
+    assert result.total_input_tokens == 1500
+    assert result.total_output_tokens == 750
+    assert sum(a["input_tokens"] for a in result.attempt_history) == result.total_input_tokens
+    assert sum(a["output_tokens"] for a in result.attempt_history) == result.total_output_tokens
+
+
+def test_estimated_cost_calculation():
+    from workflowsynth.evaluation.runner import _estimate_cost_usd
+
+    assert _estimate_cost_usd(1_000_000, 1_000_000) == pytest.approx(30.0)
+
+
+def test_batch_flag_cli():
+    import subprocess
+    import sys
+
+    result = subprocess.run(
+        [sys.executable, "scripts/run_evaluation.py", "--help"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "--batch" in result.stdout
