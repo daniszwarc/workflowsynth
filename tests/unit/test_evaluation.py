@@ -14,6 +14,7 @@ import textwrap
 import pytest
 
 from workflowsynth.evaluation.runner import EvaluationRunner, TaskResult, EvaluationSummary
+from workflowsynth.evaluation.baselines import LangChainAgentBaseline
 from workflowsynth.evaluation.metrics import (
     pass_at_k,
     mean_attempts,
@@ -298,3 +299,102 @@ def test_run_dataset_subsequent_tasks_still_complete_normally(fake_dataset, tmp_
     assert ok_task.success is True
     assert ok_task.failure_category == "success"
     assert ok_task.error_message == ""
+
+
+# --- LangChainAgentBaseline ---------------------------------------------------
+
+@pytest.fixture
+def fake_task_dataset(tmp_path):
+    """A fake dataset with one real task directory (spec.md + always-passing test)."""
+    dataset_dir = tmp_path / "dataset_agent"
+    dataset_dir.mkdir()
+    index_yaml = textwrap.dedent(
+        """
+        dataset: dataset_agent
+        version: "1.0"
+        total_tasks: 1
+        tasks:
+          - {task_id: wf_agent_test_001, domain: general_ai, complexity: 1, has_security_constraint: false, primitive_count: 1}
+        """
+    )
+    (dataset_dir / "index.yaml").write_text(index_yaml)
+
+    task_dir = dataset_dir / "wf_agent_test_001"
+    (task_dir / "tests").mkdir(parents=True)
+    (task_dir / "spec.md").write_text("# Workflow: Trivial Task\n\nDo nothing of note.\n")
+    (task_dir / "tests" / "test_wf_agent_test_001.py").write_text(
+        "def test_always_passes(candidate_yaml):\n    assert candidate_yaml\n"
+    )
+    return dataset_dir
+
+
+def test_langchain_agent_baseline_returns_task_result_on_success(fake_task_dataset, tmp_path, monkeypatch):
+    baseline = LangChainAgentBaseline(
+        dataset_path=str(fake_task_dataset),
+        results_dir=str(tmp_path / "results"),
+    )
+
+    valid_yaml = "workflow_id: wf_agent_test_001\nsteps:\n  - id: s1\n    op: fetch_api\n"
+    monkeypatch.setattr(baseline, "run_agent", lambda task_id, spec_text: valid_yaml)
+
+    result = baseline.run_single("wf_agent_test_001")
+
+    assert isinstance(result, TaskResult)
+    assert result.condition == "langchain_agent_baseline"
+    assert result.success is True
+    assert result.failure_category == "success"
+    assert result.attempts_used == 1
+
+
+def test_langchain_agent_baseline_agent_error_on_invalid_yaml(fake_task_dataset, tmp_path, monkeypatch):
+    baseline = LangChainAgentBaseline(
+        dataset_path=str(fake_task_dataset),
+        results_dir=str(tmp_path / "results"),
+    )
+
+    monkeypatch.setattr(baseline, "run_agent", lambda task_id, spec_text: "not: valid: yaml: [")
+
+    result = baseline.run_single("wf_agent_test_001")
+
+    assert result.success is False
+    assert result.failure_category == "agent_error"
+
+    # Same outcome when the agent raises outright instead of returning bad text.
+    def raise_error(task_id, spec_text):
+        raise RuntimeError("agent blew up")
+
+    monkeypatch.setattr(baseline, "run_agent", raise_error)
+    result = baseline.run_single("wf_agent_test_001")
+    assert result.success is False
+    assert result.failure_category == "agent_error"
+
+
+def test_langchain_agent_baseline_tools_are_callable(fake_task_dataset, tmp_path):
+    baseline = LangChainAgentBaseline(
+        dataset_path=str(fake_task_dataset),
+        results_dir=str(tmp_path / "results"),
+    )
+
+    tools = baseline.make_tools()
+    names = {t.name for t in tools}
+    assert names == {"search_primitives", "validate_yaml", "read_spec"}
+
+    search_result = next(t for t in tools if t.name == "search_primitives").invoke({"query": "database"})
+    assert isinstance(search_result, str)
+    assert "read_database" in search_result and "write_database" in search_result
+
+    validate_result = next(t for t in tools if t.name == "validate_yaml").invoke(
+        {"yaml_str": "workflow_id: w\nsteps:\n  - id: s1\n    op: fetch_api\n"}
+    )
+    assert isinstance(validate_result, str)
+    assert validate_result == "valid"
+
+    invalid_validate_result = next(t for t in tools if t.name == "validate_yaml").invoke(
+        {"yaml_str": "not: [valid"}
+    )
+    assert isinstance(invalid_validate_result, str)
+    assert invalid_validate_result != "valid"
+
+    spec_result = next(t for t in tools if t.name == "read_spec").invoke({"task_id": "wf_agent_test_001"})
+    assert isinstance(spec_result, str)
+    assert "Trivial Task" in spec_result
