@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_aw_007",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6307874163612723,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: sed_streaming_search_with_ai_synthesis\nsteps:\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      role: \"sed_search_user\"\n    output: auth_result\n\n  - id: step_receive_query\n    op: fetch_api\n    params:\n      endpoint: \"/api/sed/search/query\"\n    output: raw_query\n\n  - id: step_validate_query\n    op: validate_schema\n    params:\n      input: raw_query\n      schema: sed_search_query_schema\n    output: validated_query\n\n  - id: step_extract_search_terms\n    op: extract_field\n    params:\n      input: validated_query\n      field: \"search_terms\"\n    output: search_terms\n\n  - id: step_generate_embedding\n    op: call_webhook\n    params:\n      input: search_terms\n      url: \"/internal/embeddings/generate\"\n      method: \"POST\"\n    output: raw_embedding\n\n  - id: step_validate_embedding\n    op: validate_schema\n    params:\n      input: raw_embedding\n      schema: embedding_vector_schema\n    output: validated_embedding\n\n  - id: step_search_seds\n    op: read_database\n    params:\n      table: \"seds\"\n      query_vector: validated_embedding\n    output: raw_sed_results\n\n  - id: step_validate_sed_results\n    op: validate_schema\n    params:\n      input: raw_sed_results\n      schema: sed_results_schema\n    output: validated_sed_results\n\n  - id: step_loop_stream_per_sed\n    op: loop_records\n    params:\n      input: validated_sed_results\n      steps:\n        - id: step_transform_sed_summary\n          op: transform_json\n          params:\n            input: \"$current_record\"\n            mapping:\n              type: \"sed_summary\"\n              format: \"ndjson_chunk\"\n          output: sed_summary_chunk\n\n        - id: step_stream_sed_chunk\n          op: send_to_queue\n          params:\n            input: sed_summary_chunk\n            queue: \"sed_search_stream\"\n            format: \"ndjson\"\n\n  - id: step_call_llm_synthesis\n    op: call_webhook\n    params:\n      input: validated_sed_results\n      url: \"/internal/llm/synthesize\"\n      method: \"POST\"\n    output: raw_synthesis\n\n  - id: step_validate_synthesis\n    op: validate_schema\n    params:\n      input: raw_synthesis\n      schema: synthesis_response_schema\n    output: validated_synthesis\n\n  - id: step_transform_synthesis_chunk\n    op: transform_json\n    params:\n      input: validated_synthesis\n      mapping:\n        type: \"synthesis\"\n        format: \"ndjson_chunk\"\n    output: synthesis_chunk\n\n  - id: step_stream_synthesis\n    op: send_to_queue\n    params:\n      input: synthesis_chunk\n      queue: \"sed_search_stream\"\n      format: \"ndjson\"\n\n  - id: step_prepare_audit_entry\n    op: transform_json\n    params:\n      input: validated_query\n      mapping:\n        action: \"sed_search\"\n        user: auth_result\n        results_count: validated_sed_results\n    output: audit_entry\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: audit_entry\n      event: \"sed_search_completed\"\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"success\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_aw_007.py::test_parses_and_type_checks": true,
+        "test_wf_aw_007.py::test_passes_taint_analysis": true,
+        "test_wf_aw_007.py::test_generates_synthesis": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1142,
+      "output_tokens": 892
+    }
+  ],
+  "complexity": 4,
+  "domain": "enterprise_knowledge",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1142,
+  "total_output_tokens": 892
+}

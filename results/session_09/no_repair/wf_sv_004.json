@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_sv_004",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "type_error",
+  "synthesis_time_seconds": 0.00683570746332407,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: rag_draft_response_generation\nsteps:\n  - id: step_authenticate_agent\n    op: authenticate_user\n    params:\n      role: \"support_agent\"\n    output: auth_result\n\n  - id: step_receive_email\n    op: fetch_api\n    params:\n      endpoint: \"/api/email/classified_thread\"\n    output: raw_email_data\n\n  - id: step_validate_email\n    op: validate_schema\n    params:\n      input: raw_email_data\n      schema: classified_email_schema\n    output: validated_email\n\n  - id: step_extract_email_body\n    op: extract_field\n    params:\n      input: validated_email\n      field: \"email_body\"\n    output: email_body\n\n  - id: step_extract_thread_history\n    op: extract_field\n    params:\n      input: validated_email\n      field: \"thread_history\"\n    output: thread_history\n\n  - id: step_search_all_knowledge_bases\n    op: parallel_execute\n    params:\n      steps:\n        - step_search_support_docs\n        - step_search_club_documents\n        - step_search_previous_emails\n\n  - id: step_search_support_docs\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge/customerSupportDocs\"\n      query_context: email_body\n    output: raw_support_docs\n\n  - id: step_search_club_documents\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge/clubDocuments\"\n      query_context: email_body\n    output: raw_club_docs\n\n  - id: step_search_previous_emails\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge/previousEmailResponses\"\n      query_context: email_body\n    output: raw_previous_emails\n\n  - id: step_validate_support_docs\n    op: validate_schema\n    params:\n      input: raw_support_docs\n      schema: knowledge_result_schema\n    output: validated_support_docs\n\n  - id: step_validate_club_docs\n    op: validate_schema\n    params:\n      input: raw_club_docs\n      schema: knowledge_result_schema\n    output: validated_club_docs\n\n  - id: step_validate_previous_emails\n    op: validate_schema\n    params:\n      input: raw_previous_emails\n      schema: knowledge_result_schema\n    output: validated_previous_emails\n\n  - id: step_merge_support_and_club\n    op: merge_datasets\n    params:\n      input: validated_support_docs\n      secondary: validated_club_docs\n      key: \"topic\"\n    output: merged_support_club\n\n  - id: step_merge_all_knowledge\n    op: merge_datasets\n    params:\n      input: merged_support_club\n      secondary: validated_previous_emails\n      key: \"topic\"\n    output: all_knowledge\n\n  - id: step_detect_language\n    op: apply_rule\n    params:\n      input: email_body\n      rule: \"detect_language_en_fr_es\"\n    output: detected_language\n\n  - id: step_apply_season_mapping\n    op: apply_rule\n    params:\n      input: email_body\n      rule: \"season_mapping_from_language_and_context\"\n      language: detected_language\n    output: season_context\n\n  - id: step_apply_date_awareness\n    op: apply_rule\n    params:\n      input: all_knowledge\n      rule: \"filter_by_current_date_activity_status\"\n    output: date_aware_knowledge\n\n  - id: step_build_draft_context\n    op: transform_json\n    params:\n      input: date_aware_knowledge\n      mapping:\n        email_body: email_body\n        thread_history: thread_history\n        knowledge: date_aware_knowledge\n        language: detected_language\n        season: season_context\n    output: draft_context\n\n  - id: step_generate_draft_response\n    op: call_subworkflow\n    params:\n      workflow_id: \"ai_draft_response_generator\"\n      input_data: draft_context\n    output: raw_draft_response\n\n  - id: step_validate_draft_response\n    op: validate_schema\n    params:\n      input: raw_draft_response\n      schema: draft_response_schema\n    output: validated_draft_response\n\n  - id: step_filter_unapproved_content\n    op: filter_records\n    params:\n      input: validated_draft_response\n      condition: \"all_information_sourced_from_knowledge_bases AND no_external_links\"\n    output: safe_draft_response\n\n  - id: step_format_draft_email\n    op: format_output\n    params:\n      input: safe_draft_response\n      format: \"gmail_draft_json\"\n      language: detected_language\n    output: formatted_draft\n\n  - id: step_create_gmail_draft\n    op: call_webhook\n    params:\n      input: formatted_draft\n      url: \"https://gmail.googleapis.com/gmail/v1/users/me/drafts\"\n      method: \"POST\"\n    output: draft_creation_result\n\n  - id: step_log_draft_creation\n    op: log_audit\n    params:\n      input: formatted_draft\n      action: \"gmail_draft_created\"\n      details:\n        language: detected_language\n        knowledge_sources: \"customerSupportDocs,clubDocuments,previousEmailResponses\"\n    output: audit_log_entry\n\n  - id: step_notify_staff\n    op: notify_user\n    params:\n      input: formatted_draft\n      recipient: \"support_staff\"\n      message: \"A new AI-drafted response is ready for review in Gmail drafts.\"\n    output: notification_result\n\n  - id: step_handle_errors\n    op: handle_error\n    params:\n      on_error: \"step_error_termination\"\n      scope: \"all\"\n\n  - id: step_error_termination\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"An error occurred during RAG draft response generation.\"\n\n  - id: step_complete\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Draft response created successfully for staff review.\"",
+      "dsl_type_errors": [
+        "Step 'step_build_draft_context': op 'transform_json' requires input of type 'records' but 'date_aware_knowledge' has type 'boolean'. Make sure the step producing 'date_aware_knowledge' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1241,
+      "output_tokens": 1551
+    }
+  ],
+  "complexity": 4,
+  "domain": "community_sports",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1241,
+  "total_output_tokens": 1551
+}

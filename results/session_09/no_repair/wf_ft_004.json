@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_ft_004",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "type_error",
+  "synthesis_time_seconds": 0.004479416646063328,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: workout_session_logging\nsteps:\n  - id: receive_session_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/workout/session/complete\"\n    output: raw_session_data\n\n  - id: validate_session_data\n    op: validate_schema\n    params:\n      input: raw_session_data\n      schema: workout_session_schema\n    output: validated_session_data\n\n  - id: extract_user_id\n    op: extract_field\n    params:\n      input: validated_session_data\n      field: \"user_id\"\n    output: user_id\n\n  - id: authenticate_user\n    op: authenticate_user\n    params:\n      user_id: user_id\n      role: \"gym_member\"\n    output: auth_result\n\n  - id: lookup_training_plan\n    op: read_database\n    params:\n      table: training_plans\n      filters:\n        user_id: user_id\n        status: \"active\"\n    output: raw_training_plan\n\n  - id: validate_training_plan\n    op: validate_schema\n    params:\n      input: raw_training_plan\n      schema: training_plan_schema\n    output: training_plan\n\n  - id: check_plan_exists\n    op: apply_rule\n    params:\n      rule: \"training_plan is not empty\"\n      input_ref: training_plan\n    output: plan_exists_result\n\n  - id: handle_no_plan\n    op: route_to_step\n    params:\n      condition: \"plan_exists_result == false\"\n      target: terminate_no_plan\n\n  - id: compute_volume\n    op: loop_records\n    params:\n      input: validated_session_data\n      collection_field: \"exercises\"\n      operation:\n        op: transform_json\n        params:\n          mapping:\n            exercise_name: \"$.exercise_name\"\n            sets: \"$.sets\"\n            reps: \"$.reps\"\n            weight: \"$.weight\"\n            volume: \"$.sets * $.reps * $.weight\"\n    output: exercises_with_volume\n\n  - id: build_session_record\n    op: transform_json\n    params:\n      input: validated_session_data\n      mapping:\n        user_id: \"$.user_id\"\n        session_date: \"$.session_date\"\n        training_plan_id: \"training_plan.plan_id\"\n        exercises: exercises_with_volume\n        notes: \"$.notes\"\n    output: session_record\n\n  - id: store_workout_session\n    op: write_database\n    params:\n      input: session_record\n      table: workout_sessions\n    output: write_session_result\n\n  - id: build_progress_update\n    op: transform_json\n    params:\n      input: exercises_with_volume\n      mapping:\n        training_plan_id: \"training_plan.plan_id\"\n        completed_exercises: exercises_with_volume\n        session_date: \"session_record.session_date\"\n    output: progress_update\n\n  - id: update_training_plan_progress\n    op: write_database\n    params:\n      input: progress_update\n      table: training_plan_progress\n    output: write_progress_result\n\n  - id: notify_user_session_logged\n    op: notify_user\n    params:\n      input: session_record\n      user_id: user_id\n      message: \"Your workout session has been logged successfully.\"\n    output: notification_result\n\n  - id: log_session_audit\n    op: log_audit\n    params:\n      input: session_record\n      action: \"workout_session_logged\"\n      user_id: user_id\n    output: audit_result\n\n  - id: terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"Workout session logged and training plan updated.\"\n\n  - id: terminate_no_plan\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"No active training plan found for user.\"",
+      "dsl_type_errors": [
+        "Step 'build_progress_update': op 'transform_json' requires input of type 'records' but 'exercises_with_volume' has type 'none'. Make sure the step producing 'exercises_with_volume' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1100,
+      "output_tokens": 983
+    }
+  ],
+  "complexity": 2,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1100,
+  "total_output_tokens": 983
+}

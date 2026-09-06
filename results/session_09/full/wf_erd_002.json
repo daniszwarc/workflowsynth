@@ -1,0 +1,53 @@
+{
+  "task_id": "wf_erd_002",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 10.211802083067596,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: patient_registration_workflow\nsteps:\n  - id: step_receive_registration\n    op: fetch_api\n    params:\n      endpoint: \"/api/patient/registration-form\"\n    output: raw_patient_form\n\n  - id: step_authenticate_staff\n    op: authenticate_user\n    params:\n      role: \"office_staff\"\n    output: auth_result\n\n  - id: step_validate_patient_schema\n    op: validate_schema\n    params:\n      input: raw_patient_form\n      schema: patient_registration_schema\n    output: validated_patient\n\n  - id: step_extract_language\n    op: extract_field\n    params:\n      input: validated_patient\n      field: \"language\"\n    output: patient_language\n\n  - id: step_extract_taxable\n    op: extract_field\n    params:\n      input: validated_patient\n      field: \"taxable\"\n    output: patient_taxable\n\n  - id: step_apply_template_rule\n    op: apply_rule\n    params:\n      rule: \"select_invoice_template\"\n      language: patient_language\n    output: invoice_template\n\n  - id: step_apply_tax_rule\n    op: apply_rule\n    params:\n      rule: \"apply_provincial_sales_tax\"\n      taxable: patient_taxable\n    output: tax_status\n\n  - id: step_transform_patient_record\n    op: transform_json\n    params:\n      input: validated_patient\n      mapping:\n        invoice_template: invoice_template\n        tax_status: tax_status\n    output: enriched_patient\n\n  - id: step_check_duplicate\n    op: read_database\n    params:\n      table: \"patients\"\n      query: \"match_by_name_and_dob\"\n      reference: enriched_patient\n    output: duplicate_results\n\n  - id: step_filter_duplicates\n    op: filter_records\n    params:\n      input: duplicate_results\n      condition: \"record_count == 0\"\n    output: no_duplicate_confirmation\n\n  - id: step_route_on_duplicate\n    op: route_to_step\n    params:\n      condition: \"no_duplicate_confirmation.is_empty == false\"\n      true_step: step_store_patient\n      false_step: step_notify_duplicate\n\n  - id: step_notify_duplicate\n    op: notify_user\n    params:\n      input: enriched_patient\n      recipient: \"submitting_staff\"\n      message: \"Duplicate patient record detected. Registration aborted.\"\n    output: duplicate_notification\n\n  - id: step_terminate_duplicate\n    op: terminate_workflow\n    params:\n      status: \"duplicate_detected\"\n\n  - id: step_encrypt_insurance\n    op: encrypt_field\n    params:\n      input: enriched_patient\n      field: \"insurance_id\"\n    output: secured_patient\n\n  - id: step_store_patient\n    op: write_database\n    params:\n      input: secured_patient\n      table: \"patients\"\n    output: write_result\n\n  - id: step_log_registration\n    op: log_audit\n    params:\n      input: secured_patient\n      action: \"patient_registered\"\n      user: auth_result\n    output: audit_entry\n\n  - id: step_notify_staff_success\n    op: notify_user\n    params:\n      input: secured_patient\n      recipient: \"submitting_staff\"\n      message: \"Patient registration completed successfully.\"\n    output: success_notification",
+      "dsl_type_errors": [
+        "Step 'step_encrypt_insurance': op 'encrypt_field' requires input of type 'string' but 'enriched_patient' has type 'records'."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1075,
+      "output_tokens": 849
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: patient_registration_workflow\nsteps:\n  - id: step_receive_registration\n    op: fetch_api\n    params:\n      endpoint: \"/api/patient/registration-form\"\n    output: raw_patient_form\n\n  - id: step_authenticate_staff\n    op: authenticate_user\n    params:\n      role: \"office_staff\"\n    output: auth_result\n\n  - id: step_validate_patient_schema\n    op: validate_schema\n    params:\n      input: raw_patient_form\n      schema: patient_registration_schema\n    output: validated_patient\n\n  - id: step_extract_language\n    op: extract_field\n    params:\n      input: validated_patient\n      field: \"language\"\n    output: patient_language\n\n  - id: step_extract_taxable\n    op: extract_field\n    params:\n      input: validated_patient\n      field: \"taxable\"\n    output: patient_taxable\n\n  - id: step_apply_template_rule\n    op: apply_rule\n    params:\n      rule: \"select_invoice_template\"\n      language: patient_language\n    output: invoice_template\n\n  - id: step_apply_tax_rule\n    op: apply_rule\n    params:\n      rule: \"apply_provincial_sales_tax\"\n      taxable: patient_taxable\n    output: tax_status\n\n  - id: step_transform_patient_record\n    op: transform_json\n    params:\n      input: validated_patient\n      mapping:\n        invoice_template: invoice_template\n        tax_status: tax_status\n    output: enriched_patient\n\n  - id: step_extract_insurance_id\n    op: extract_field\n    params:\n      input: enriched_patient\n      field: \"insurance_id\"\n    output: insurance_id_value\n\n  - id: step_encrypt_insurance\n    op: encrypt_field\n    params:\n      input: insurance_id_value\n      field: \"insurance_id\"\n    output: encrypted_insurance_id\n\n  - id: step_transform_secured_patient\n    op: transform_json\n    params:\n      input: enriched_patient\n      mapping:\n        insurance_id: encrypted_insurance_id\n    output: secured_patient\n\n  - id: step_check_duplicate\n    op: read_database\n    params:\n      table: \"patients\"\n      query: \"match_by_name_and_dob\"\n      reference: secured_patient\n    output: duplicate_results\n\n  - id: step_filter_duplicates\n    op: filter_records\n    params:\n      input: duplicate_results\n      condition: \"record_count == 0\"\n    output: no_duplicate_confirmation\n\n  - id: step_route_on_duplicate\n    op: route_to_step\n    params:\n      condition: \"no_duplicate_confirmation.is_empty == false\"\n      true_step: step_store_patient\n      false_step: step_notify_duplicate\n\n  - id: step_notify_duplicate\n    op: notify_user\n    params:\n      input: secured_patient\n      recipient: \"submitting_staff\"\n      message: \"Duplicate patient record detected. Registration aborted.\"\n    output: duplicate_notification\n\n  - id: step_terminate_duplicate\n    op: terminate_workflow\n    params:\n      status: \"duplicate_detected\"\n\n  - id: step_store_patient\n    op: write_database\n    params:\n      input: secured_patient\n      table: \"patients\"\n    output: write_result\n\n  - id: step_log_registration\n    op: log_audit\n    params:\n      input: secured_patient\n      action: \"patient_registered\"\n      user: auth_result\n    output: audit_entry\n\n  - id: step_notify_staff_success\n    op: notify_user\n    params:\n      input: secured_patient\n      recipient: \"submitting_staff\"\n      message: \"Patient registration completed successfully.\"\n    output: success_notification",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_erd_002.py::test_parses_and_type_checks": true,
+        "test_wf_erd_002.py::test_passes_taint_analysis": true,
+        "test_wf_erd_002.py::test_validates_patient": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 2030,
+      "output_tokens": 952
+    }
+  ],
+  "complexity": 2,
+  "domain": "healthcare_billing",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 3105,
+  "total_output_tokens": 1801
+}

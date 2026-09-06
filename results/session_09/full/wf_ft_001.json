@@ -1,0 +1,53 @@
+{
+  "task_id": "wf_ft_001",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 11.07072895951569,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: user_registration_and_profile_setup\nsteps:\n  - id: step_receive_registration\n    op: fetch_api\n    params:\n      endpoint: \"/api/registration/form\"\n    output: raw_registration_data\n\n  - id: step_validate_registration\n    op: validate_schema\n    params:\n      input: raw_registration_data\n      schema: registration_form_schema\n    output: validated_registration_data\n\n  - id: step_extract_credentials\n    op: extract_field\n    params:\n      input: raw_registration_data\n      field: \"credentials\"\n    output: user_credentials\n\n  - id: step_extract_profile\n    op: extract_field\n    params:\n      input: raw_registration_data\n      field: \"profile\"\n    output: raw_profile_data\n\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      role: \"new_user\"\n    output: auth_context\n\n  - id: step_create_auth_account\n    op: call_webhook\n    params:\n      input: user_credentials\n      url: \"https://baas.example.com/auth/create-account\"\n      method: \"POST\"\n    output: raw_auth_response\n\n  - id: step_validate_auth_response\n    op: validate_schema\n    params:\n      input: raw_auth_response\n      schema: auth_account_response_schema\n    output: validated_auth_response\n\n  - id: step_extract_auth_id\n    op: extract_field\n    params:\n      input: validated_auth_response\n      field: \"user_id\"\n    output: auth_user_id\n\n  - id: step_wait_auth_success\n    op: wait_for_condition\n    params:\n      condition: \"validated_auth_response.status == 'created'\"\n\n  - id: step_validate_profile_data\n    op: validate_schema\n    params:\n      input: raw_profile_data\n      schema: fitness_profile_schema\n    output: validated_profile_data\n\n  - id: step_transform_profile\n    op: transform_json\n    params:\n      input: validated_profile_data\n      mapping:\n        auth_user_id: \"auth_user_id\"\n        fitness_goals: \"profile.fitness_goals\"\n        current_weight: \"profile.current_weight\"\n        height: \"profile.height\"\n        dietary_preferences: \"profile.dietary_preferences\"\n    output: profile_record\n\n  - id: step_encrypt_sensitive_fields\n    op: encrypt_field\n    params:\n      input: profile_record\n      field: \"current_weight\"\n    output: secured_profile_record\n\n  - id: step_write_user_profile\n    op: write_database\n    params:\n      input: secured_profile_record\n      table: user_profiles\n    output: write_result\n\n  - id: step_prepare_audit_entry\n    op: transform_json\n    params:\n      input: validated_auth_response\n      mapping:\n        event: \"user_registration\"\n        user_id: \"user_id\"\n        timestamp: \"created_at\"\n    output: audit_entry\n\n  - id: step_log_registration\n    op: log_audit\n    params:\n      input: audit_entry\n      event: \"user_registration_completed\"\n    output: audit_log_result\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: \"step_terminate_failure\"\n      steps:\n        - \"step_create_auth_account\"\n        - \"step_write_user_profile\"\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"Registration process encountered an error\"\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      reason: \"User registration and profile setup successful\"",
+      "dsl_type_errors": [
+        "Step 'step_encrypt_sensitive_fields': op 'encrypt_field' requires input of type 'string' but 'profile_record' has type 'records'."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1111,
+      "output_tokens": 954
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: user_registration_and_profile_setup\nsteps:\n  - id: step_receive_registration\n    op: fetch_api\n    params:\n      endpoint: \"/api/registration/form\"\n    output: raw_registration_data\n\n  - id: step_validate_registration\n    op: validate_schema\n    params:\n      input: raw_registration_data\n      schema: registration_form_schema\n    output: validated_registration_data\n\n  - id: step_extract_credentials\n    op: extract_field\n    params:\n      input: validated_registration_data\n      field: \"credentials\"\n    output: user_credentials\n\n  - id: step_extract_profile\n    op: extract_field\n    params:\n      input: validated_registration_data\n      field: \"profile\"\n    output: raw_profile_data\n\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      role: \"new_user\"\n    output: auth_context\n\n  - id: step_create_auth_account\n    op: call_webhook\n    params:\n      input: user_credentials\n      url: \"https://baas.example.com/auth/create-account\"\n      method: \"POST\"\n    output: raw_auth_response\n\n  - id: step_validate_auth_response\n    op: validate_schema\n    params:\n      input: raw_auth_response\n      schema: auth_account_response_schema\n    output: validated_auth_response\n\n  - id: step_extract_auth_id\n    op: extract_field\n    params:\n      input: validated_auth_response\n      field: \"user_id\"\n    output: auth_user_id\n\n  - id: step_wait_auth_success\n    op: wait_for_condition\n    params:\n      condition: \"validated_auth_response.status == 'created'\"\n\n  - id: step_validate_profile_data\n    op: validate_schema\n    params:\n      input: raw_profile_data\n      schema: fitness_profile_schema\n    output: validated_profile_data\n\n  - id: step_transform_profile\n    op: transform_json\n    params:\n      input: validated_profile_data\n      mapping:\n        auth_user_id: \"auth_user_id\"\n        fitness_goals: \"profile.fitness_goals\"\n        current_weight: \"profile.current_weight\"\n        height: \"profile.height\"\n        dietary_preferences: \"profile.dietary_preferences\"\n    output: profile_record\n\n  - id: step_extract_weight\n    op: extract_field\n    params:\n      input: profile_record\n      field: \"current_weight\"\n    output: raw_weight_value\n\n  - id: step_encrypt_sensitive_fields\n    op: encrypt_field\n    params:\n      input: raw_weight_value\n      field: \"current_weight\"\n    output: encrypted_weight\n\n  - id: step_transform_secured_profile\n    op: transform_json\n    params:\n      input: profile_record\n      mapping:\n        auth_user_id: \"auth_user_id\"\n        fitness_goals: \"fitness_goals\"\n        current_weight_encrypted: \"encrypted_weight\"\n        height: \"height\"\n        dietary_preferences: \"dietary_preferences\"\n    output: secured_profile_record\n\n  - id: step_write_user_profile\n    op: write_database\n    params:\n      input: secured_profile_record\n      table: user_profiles\n    output: write_result\n\n  - id: step_prepare_audit_entry\n    op: transform_json\n    params:\n      input: validated_auth_response\n      mapping:\n        event: \"user_registration\"\n        user_id: \"user_id\"\n        timestamp: \"created_at\"\n    output: audit_entry\n\n  - id: step_log_registration\n    op: log_audit\n    params:\n      input: audit_entry\n      event: \"user_registration_completed\"\n    output: audit_log_result\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: \"step_terminate_failure\"\n      steps:\n        - \"step_create_auth_account\"\n        - \"step_write_user_profile\"\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"Registration process encountered an error\"\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      reason: \"User registration and profile setup successful\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_001.py::test_parses_and_type_checks": true,
+        "test_wf_ft_001.py::test_passes_taint_analysis": true,
+        "test_wf_ft_001.py::test_auth_before_profile": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 2172,
+      "output_tokens": 1100
+    }
+  ],
+  "complexity": 2,
+  "domain": "health_fitness",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 3283,
+  "total_output_tokens": 2054
+}

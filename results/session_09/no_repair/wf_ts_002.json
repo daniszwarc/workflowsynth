@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_ts_002",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.4536674162372947,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: timesheet_hours_edit\nsteps:\n  - id: step_receive_edit_form\n    op: fetch_api\n    params:\n      endpoint: \"/api/timesheets/edit-submission\"\n    output: raw_edit_form\n\n  - id: step_validate_edit_form\n    op: validate_schema\n    params:\n      input: raw_edit_form\n      schema: timesheet_edit_form_schema\n    output: validated_edit_form\n\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      role: \"staff\"\n    output: auth_result\n\n  - id: step_extract_record_id\n    op: extract_field\n    params:\n      input: validated_edit_form\n      field: \"record_id\"\n    output: record_id\n\n  - id: step_extract_updated_fields\n    op: extract_field\n    params:\n      input: validated_edit_form\n      field: \"updated_fields\"\n    output: updated_fields\n\n  - id: step_read_existing_record\n    op: read_database\n    params:\n      table: timesheets\n      filter:\n        id: record_id\n    output: raw_existing_record\n\n  - id: step_validate_existing_record\n    op: validate_schema\n    params:\n      input: raw_existing_record\n      schema: timesheet_record_schema\n    output: existing_record\n\n  - id: step_extract_employee_id\n    op: extract_field\n    params:\n      input: existing_record\n      field: \"employee_id\"\n    output: employee_id\n\n  - id: step_read_other_timesheets\n    op: read_database\n    params:\n      table: timesheets\n      filter:\n        employee_id: employee_id\n        exclude_id: record_id\n    output: raw_other_timesheets\n\n  - id: step_validate_other_timesheets\n    op: validate_schema\n    params:\n      input: raw_other_timesheets\n      schema: timesheet_records_schema\n    output: other_timesheets\n\n  - id: step_check_overlap\n    op: apply_rule\n    params:\n      rule: \"check_time_overlap_excluding_self\"\n      input_updated: updated_fields\n      input_existing: other_timesheets\n      exclude_record_id: record_id\n    output: overlap_result\n\n  - id: step_route_on_overlap\n    op: route_to_step\n    params:\n      condition: \"overlap_result.has_overlap == true\"\n      true_step: step_notify_overlap_error\n      false_step: step_compute_pay\n\n  - id: step_notify_overlap_error\n    op: notify_user\n    params:\n      input: overlap_result\n      message: \"Edit rejected: the updated timesheet hours overlap with another entry.\"\n      recipient: auth_result.user_id\n    output: overlap_notification\n\n  - id: step_terminate_overlap\n    op: terminate_workflow\n    params:\n      status: \"rejected\"\n      reason: \"Overlapping timesheet entries detected\"\n\n  - id: step_compute_pay\n    op: transform_json\n    params:\n      input: updated_fields\n      mapping:\n        total_pay: \"updated_fields.hours * updated_fields.hourly_rate\"\n        merged_record: \"merge(existing_record, updated_fields)\"\n    output: updated_record_with_pay\n\n  - id: step_write_updated_record\n    op: write_database\n    params:\n      input: updated_record_with_pay\n      table: timesheets\n      operation: update\n      filter:\n        id: record_id\n    output: write_result\n\n  - id: step_log_edit_audit\n    op: log_audit\n    params:\n      input: updated_record_with_pay\n      action: \"timesheet_edit\"\n      user: auth_result.user_id\n      record_id: record_id\n    output: audit_log_result\n\n  - id: step_notify_success\n    op: notify_user\n    params:\n      input: updated_record_with_pay\n      message: \"Your timesheet entry has been successfully updated.\"\n      recipient: auth_result.user_id\n    output: success_notification\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      reason: \"Timesheet entry updated successfully\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ts_002.py::test_parses_and_type_checks": true,
+        "test_wf_ts_002.py::test_passes_taint_analysis": true,
+        "test_wf_ts_002.py::test_reads_before_update": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1097,
+      "output_tokens": 1080
+    }
+  ],
+  "complexity": 3,
+  "domain": "community_sports",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1097,
+  "total_output_tokens": 1080
+}

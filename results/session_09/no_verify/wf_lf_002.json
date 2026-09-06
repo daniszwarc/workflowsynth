@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_lf_002",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.4509358322247863,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: llm_text_cleanup_via_fastapi_proxy\nsteps:\n  - id: step_receive_extracted_text\n    op: fetch_api\n    params:\n      endpoint: \"/api/pwa/extracted-text\"\n      method: \"POST\"\n    output: raw_request\n\n  - id: step_validate_request_schema\n    op: validate_schema\n    params:\n      input: raw_request\n      schema: extracted_text_request_schema\n    output: validated_request\n\n  - id: step_check_cors_origin\n    op: apply_rule\n    params:\n      rule: \"request.origin == 'https://<username>.github.io'\"\n      input: validated_request\n    output: cors_check_result\n\n  - id: step_handle_cors_rejection\n    op: route_to_step\n    params:\n      condition: \"cors_check_result.passed == false\"\n      target: step_terminate_rejected\n\n  - id: step_extract_text_body\n    op: extract_field\n    params:\n      input: validated_request\n      field: \"text\"\n    output: extracted_text\n\n  - id: step_authenticate_proxy\n    op: authenticate_user\n    params:\n      role: \"fastapi_proxy_service\"\n    output: auth_result\n\n  - id: step_forward_to_llm\n    op: call_webhook\n    params:\n      input: extracted_text\n      url: \"https://llm-api.example.com/v1/chat/completions\"\n      method: \"POST\"\n      headers:\n        Content-Type: \"application/json\"\n      body:\n        system_prompt: \"Tu es un assistant de nettoyage de texte fran\u00e7ais. Supprime les num\u00e9ros de page, les en-t\u00eates courants, les notes de bas de page et les artefacts de c\u00e9sure. Retourne uniquement le texte nettoy\u00e9.\"\n        user_message: extracted_text\n    output: raw_llm_response\n\n  - id: step_validate_llm_response\n    op: validate_schema\n    params:\n      input: raw_llm_response\n      schema: llm_cleanup_response_schema\n    output: validated_llm_response\n\n  - id: step_extract_cleaned_text\n    op: extract_field\n    params:\n      input: validated_llm_response\n      field: \"choices[0].message.content\"\n    output: cleaned_text\n\n  - id: step_format_response\n    op: format_output\n    params:\n      input: cleaned_text\n      format: \"json\"\n      template:\n        cleaned_text: cleaned_text\n        status: \"success\"\n    output: formatted_response\n\n  - id: step_log_cleanup_request\n    op: log_audit\n    params:\n      input: formatted_response\n      event: \"llm_text_cleanup_completed\"\n      detail: \"Text cleanup proxy request processed successfully\"\n\n  - id: step_return_to_pwa\n    op: call_webhook\n    params:\n      input: formatted_response\n      url: \"callback\"\n      method: \"RESPONSE\"\n    output: pwa_delivery_result\n\n  - id: step_handle_errors\n    op: handle_error\n    params:\n      on_error: step_terminate_error\n      scope:\n        - step_forward_to_llm\n        - step_validate_llm_response\n\n  - id: step_retry_llm_call\n    op: retry_step\n    params:\n      step: step_forward_to_llm\n      max_retries: 2\n      backoff: \"exponential\"\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"Cleaned text returned to PWA for TTS playback\"\n\n  - id: step_terminate_rejected\n    op: terminate_workflow\n    params:\n      status: \"rejected\"\n      message: \"Request rejected: CORS origin not allowed\"\n\n  - id: step_terminate_error\n    op: terminate_workflow\n    params:\n      status: \"error\"\n      message: \"LLM cleanup proxy encountered an unrecoverable error\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_lf_002.py::test_parses_and_type_checks": true,
+        "test_wf_lf_002.py::test_passes_taint_analysis": true,
+        "test_wf_lf_002.py::test_validates_cors_origin": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1149,
+      "output_tokens": 1010
+    }
+  ],
+  "complexity": 2,
+  "domain": "personal_tool",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1149,
+  "total_output_tokens": 1010
+}

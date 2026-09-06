@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_ae_003",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 0.563065791502595,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: drupal_metadata_lookup\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"cms_publisher\"\n    output: auth_result\n\n  - id: step_fetch_author\n    op: fetch_api\n    params:\n      endpoint: \"/jsonapi/node/author?filter[field_name]={author_name}\"\n    output: raw_author\n\n  - id: step_fetch_category\n    op: fetch_api\n    params:\n      endpoint: \"/jsonapi/taxonomy_term/category?filter[name]={category_name}\"\n    output: raw_category\n\n  - id: step_fetch_issue\n    op: fetch_api\n    params:\n      endpoint: \"/jsonapi/node/magazine_issue?filter[field_issue_number]={issue_number}\"\n    output: raw_issue\n\n  - id: step_validate_author\n    op: validate_schema\n    params:\n      input: raw_author\n      schema: author_entity_schema\n    output: validated_author\n\n  - id: step_validate_category\n    op: validate_schema\n    params:\n      input: raw_category\n      schema: category_term_schema\n    output: validated_category\n\n  - id: step_validate_issue\n    op: validate_schema\n    params:\n      input: raw_issue\n      schema: magazine_issue_schema\n    output: validated_issue\n\n  - id: step_extract_author_id\n    op: extract_field\n    params:\n      input: validated_author\n      field: \"data[0].id\"\n    output: author_entity_id\n\n  - id: step_check_author_found\n    op: apply_rule\n    params:\n      rule: \"author_entity_id is not null\"\n      input_ref: author_entity_id\n    output: author_found_result\n\n  - id: step_route_author_missing\n    op: route_to_step\n    params:\n      condition: \"author_found_result == false\"\n      target: step_flag_manual_assignment\n\n  - id: step_extract_category_uuid\n    op: extract_field\n    params:\n      input: validated_category\n      field: \"data[0].attributes.uuid\"\n    output: category_uuid\n\n  - id: step_extract_issue_uuid\n    op: extract_field\n    params:\n      input: validated_issue\n      field: \"data[0].attributes.uuid\"\n    output: issue_uuid\n\n  - id: step_merge_author_category\n    op: merge_datasets\n    params:\n      input: author_entity_id\n      secondary: category_uuid\n      key: \"article_id\"\n    output: partial_metadata\n\n  - id: step_merge_full_metadata\n    op: merge_datasets\n    params:\n      input: partial_metadata\n      secondary: issue_uuid\n      key: \"article_id\"\n    output: full_metadata\n\n  - id: step_format_metadata\n    op: format_output\n    params:\n      input: full_metadata\n      format: \"json\"\n    output: formatted_metadata\n\n  - id: step_log_success\n    op: log_audit\n    params:\n      input: formatted_metadata\n      message: \"Metadata lookup completed successfully for article publication\"\n    output: audit_log_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      result: formatted_metadata\n\n  - id: step_flag_manual_assignment\n    op: notify_user\n    params:\n      input: validated_author\n      recipient: \"content_operations_team\"\n      message: \"Author not found in CMS. Article flagged for manual author assignment.\"\n    output: notify_result\n\n  - id: step_log_manual_flag\n    op: log_audit\n    params:\n      input: validated_author\n      message: \"Article flagged for manual author assignment due to missing author entity\"\n    output: audit_flag_result\n\n  - id: step_terminate_flagged\n    op: terminate_workflow\n    params:\n      status: \"flagged_manual_assignment\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ae_003.py::test_parses_and_type_checks": true,
+        "test_wf_ae_003.py::test_passes_taint_analysis": true,
+        "test_wf_ae_003.py::test_has_three_lookups": false,
+        "test_wf_ae_003.py::test_merges_metadata": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1112,
+      "output_tokens": 991
+    }
+  ],
+  "complexity": 2,
+  "domain": "publishing",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1112,
+  "total_output_tokens": 991
+}

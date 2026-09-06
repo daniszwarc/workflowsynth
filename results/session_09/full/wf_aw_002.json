@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_aw_002",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.5076009156182408,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: document_upload_pipeline_trigger\nsteps:\n  - id: receive_document_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge-base/uploads\"\n      method: \"POST\"\n      headers:\n        Cache-Control: \"private, no-store\"\n    output: raw_upload\n\n  - id: authenticate_uploader\n    op: authenticate_user\n    params:\n      role: \"Editor,Admin,Developer\"\n    output: auth_result\n\n  - id: extract_upload_metadata\n    op: extract_field\n    params:\n      input: raw_upload\n      field: \"metadata\"\n    output: upload_metadata\n\n  - id: extract_file_content\n    op: extract_field\n    params:\n      input: raw_upload\n      field: \"file_content\"\n    output: file_content\n\n  - id: validate_document_schema\n    op: validate_schema\n    params:\n      input: upload_metadata\n      schema: document_upload_schema\n      rules:\n        - \"file_format must match selected document_type\"\n        - \"SED documents must have format DOCX\"\n        - \"allowed_formats: [PDF, DOCX, TXT]\"\n    output: validated_metadata\n\n  - id: check_validation_result\n    op: apply_rule\n    params:\n      rule: \"validated_metadata.valid == true\"\n    output: validation_decision\n\n  - id: route_on_validation\n    op: route_to_step\n    params:\n      condition: \"validation_decision == true\"\n      true_step: store_uploaded_file\n      false_step: handle_validation_error\n\n  - id: handle_validation_error\n    op: handle_error\n    params:\n      error_type: \"validation_failure\"\n      message: \"Uploaded file format does not match selected document type or violates constraints\"\n    output: validation_error\n\n  - id: notify_upload_error\n    op: notify_user\n    params:\n      input: validation_error\n      template: \"document_upload_failed\"\n      channel: \"ui\"\n    output: error_notification\n\n  - id: terminate_on_error\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"Document validation failed\"\n\n  - id: store_uploaded_file\n    op: write_database\n    params:\n      input: validated_metadata\n      table: uploads_volume\n      options:\n        cache_control: \"private, no-store\"\n    output: stored_file_record\n\n  - id: log_upload_event\n    op: log_audit\n    params:\n      input: validated_metadata\n      action: \"document_uploaded\"\n      details:\n        user: \"auth_result.user_id\"\n        document_type: \"validated_metadata.document_type\"\n        file_format: \"validated_metadata.file_format\"\n    output: audit_log_entry\n\n  - id: prepare_pipeline_payload\n    op: transform_json\n    params:\n      input: validated_metadata\n      mapping:\n        document_id: \"stored_file_record.id\"\n        document_type: \"validated_metadata.document_type\"\n        file_path: \"stored_file_record.file_path\"\n        uploaded_by: \"auth_result.user_id\"\n    output: pipeline_payload\n\n  - id: send_to_pipeline_service\n    op: call_webhook\n    params:\n      input: pipeline_payload\n      url: \"/services/extraction-pipeline/trigger\"\n      method: \"POST\"\n    output: pipeline_response\n\n  - id: validate_pipeline_response\n    op: validate_schema\n    params:\n      input: pipeline_response\n      schema: pipeline_response_schema\n    output: validated_pipeline_response\n\n  - id: notify_upload_success\n    op: notify_user\n    params:\n      input: validated_pipeline_response\n      template: \"document_upload_success\"\n      channel: \"ui\"\n    output: success_notification\n\n  - id: terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      reason: \"Document uploaded and pipeline triggered successfully\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_aw_002.py::test_parses_and_type_checks": true,
+        "test_wf_aw_002.py::test_passes_taint_analysis": true,
+        "test_wf_aw_002.py::test_validates_format": true,
+        "test_wf_aw_002.py::test_triggers_pipeline": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1121,
+      "output_tokens": 998
+    }
+  ],
+  "complexity": 2,
+  "domain": "enterprise_knowledge",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1121,
+  "total_output_tokens": 998
+}

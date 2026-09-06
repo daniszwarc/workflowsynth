@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_ft_005",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.47488195821642876,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: ai_nutrition_coach_query\nsteps:\n  - id: fetch_user_question\n    op: fetch_api\n    params:\n      endpoint: \"/api/coach/chat/receive\"\n    output: raw_user_question\n\n  - id: validate_user_question\n    op: validate_schema\n    params:\n      input: raw_user_question\n      schema: coach_question_schema\n    output: validated_question\n\n  - id: authenticate_user\n    op: authenticate_user\n    params:\n      role: \"nutrition_coach_user\"\n    output: auth_result\n\n  - id: read_nutrition_log\n    op: read_database\n    params:\n      table: nutrition_logs\n      filters:\n        user_id: auth_result\n        date_range: \"last_7_days\"\n    output: raw_nutrition_log\n\n  - id: validate_nutrition_log\n    op: validate_schema\n    params:\n      input: raw_nutrition_log\n      schema: nutrition_log_schema\n    output: validated_nutrition_log\n\n  - id: read_fitness_profile\n    op: read_database\n    params:\n      table: fitness_profiles\n      filters:\n        user_id: auth_result\n    output: raw_fitness_profile\n\n  - id: validate_fitness_profile\n    op: validate_schema\n    params:\n      input: raw_fitness_profile\n      schema: fitness_profile_schema\n    output: validated_fitness_profile\n\n  - id: build_ai_context\n    op: transform_json\n    params:\n      input: validated_nutrition_log\n      mapping:\n        question: validated_question\n        nutrition_log: validated_nutrition_log\n        fitness_profile: validated_fitness_profile\n        system_instruction: \"Provide personalized nutrition advice grounded in the user's actual data. Never provide medical advice.\"\n    output: ai_request_payload\n\n  - id: call_ai_model\n    op: call_webhook\n    params:\n      input: ai_request_payload\n      url: \"https://ai-service.internal/api/chat/completions\"\n      method: \"POST\"\n    output: raw_ai_response\n\n  - id: validate_ai_response\n    op: validate_schema\n    params:\n      input: raw_ai_response\n      schema: ai_coach_response_schema\n    output: validated_ai_response\n\n  - id: filter_medical_advice\n    op: apply_rule\n    params:\n      rule: \"response_contains_no_medical_advice\"\n      input: validated_ai_response\n    output: rule_check_result\n\n  - id: handle_medical_advice_violation\n    op: route_to_step\n    params:\n      condition: \"rule_check_result == false\"\n      target: fallback_response\n\n  - id: format_coach_response\n    op: format_output\n    params:\n      input: validated_ai_response\n      format: \"json\"\n      template: coach_chat_response\n    output: formatted_response\n\n  - id: notify_user_response\n    op: notify_user\n    params:\n      input: formatted_response\n      channel: \"coach_chat\"\n    output: notification_result\n\n  - id: log_interaction\n    op: log_audit\n    params:\n      input: formatted_response\n      event: \"nutrition_coach_query_completed\"\n      details:\n        user: auth_result\n        question: validated_question\n\n  - id: terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n\n  - id: fallback_response\n    op: format_output\n    params:\n      input: validated_ai_response\n      format: \"json\"\n      template: medical_advice_disclaimer_response\n    output: fallback_formatted\n\n  - id: notify_user_fallback\n    op: notify_user\n    params:\n      input: fallback_formatted\n      channel: \"coach_chat\"\n    output: fallback_notification_result\n\n  - id: log_fallback_interaction\n    op: log_audit\n    params:\n      input: fallback_formatted\n      event: \"nutrition_coach_medical_advice_blocked\"\n      details:\n        user: auth_result\n        question: validated_question\n\n  - id: terminate_fallback\n    op: terminate_workflow\n    params:\n      status: \"completed_with_disclaimer\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_005.py::test_parses_and_type_checks": true,
+        "test_wf_ft_005.py::test_passes_taint_analysis": true,
+        "test_wf_ft_005.py::test_reads_user_context": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1112,
+      "output_tokens": 1045
+    }
+  ],
+  "complexity": 3,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1112,
+  "total_output_tokens": 1045
+}

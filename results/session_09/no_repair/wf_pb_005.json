@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_pb_005",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.4595160000026226,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: manual_ticket_creation\nsteps:\n  - id: step_authenticate_producer\n    op: authenticate_user\n    params:\n      role: \"producer\"\n    output: auth_result\n\n  - id: step_receive_request\n    op: fetch_api\n    params:\n      endpoint: \"/api/dashboard/manual-ticket\"\n    output: raw_request\n\n  - id: step_validate_request\n    op: validate_schema\n    params:\n      input: raw_request\n      schema:\n        type: object\n        required:\n          - tipo\n        properties:\n          tipo:\n            type: string\n            enum:\n              - alta\n              - baja\n              - a_definir\n          client_name:\n            type: string\n          notes:\n            type: string\n    output: validated_request\n\n  - id: step_check_tipo_rule\n    op: apply_rule\n    params:\n      rule: \"tipo_must_be_valid\"\n      condition: \"validated_request.tipo in ['alta', 'baja', 'a_definir']\"\n    output: tipo_rule_result\n\n  - id: step_route_on_tipo_invalid\n    op: route_to_step\n    params:\n      condition: \"tipo_rule_result == false\"\n      target: step_terminate_invalid\n\n  - id: step_extract_client_info\n    op: extract_field\n    params:\n      input: validated_request\n      field: \"client_name\"\n    output: client_name\n\n  - id: step_read_existing_client\n    op: read_database\n    params:\n      table: clients\n      query:\n        name: client_name\n    output: existing_client_raw\n\n  - id: step_filter_existing_client\n    op: filter_records\n    params:\n      input: existing_client_raw\n      condition: \"record.name == client_name\"\n    output: existing_client\n\n  - id: step_transform_client_record\n    op: transform_json\n    params:\n      input: validated_request\n      mapping:\n        name: \"$.client_name\"\n        updated_from: \"manual_ticket_creation\"\n    output: client_record\n\n  - id: step_write_client\n    op: write_database\n    params:\n      input: client_record\n      table: clients\n      upsert: true\n      key: name\n    output: client_write_result\n\n  - id: step_transform_ticket\n    op: transform_json\n    params:\n      input: validated_request\n      mapping:\n        tipo: \"$.tipo\"\n        client_name: \"$.client_name\"\n        notes: \"$.notes\"\n        status: \"pendiente\"\n        source: \"manual\"\n        created_by: auth_result\n    output: ticket_record\n\n  - id: step_write_ticket\n    op: write_database\n    params:\n      input: ticket_record\n      table: tickets\n    output: ticket_write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: ticket_record\n      action: \"manual_ticket_created\"\n      actor: auth_result\n    output: audit_result\n\n  - id: step_notify_producer\n    op: notify_user\n    params:\n      input: ticket_record\n      recipient: auth_result\n      message: \"Ticket created successfully with status 'pendiente' and source 'manual'.\"\n    output: notification_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"Manual ticket created successfully.\"\n\n  - id: step_terminate_invalid\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"Invalid tipo value. Must be one of: alta, baja, a_definir.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_005.py::test_parses_and_type_checks": true,
+        "test_wf_pb_005.py::test_passes_taint_analysis": true,
+        "test_wf_pb_005.py::test_has_validation": true,
+        "test_wf_pb_005.py::test_has_ticket_write": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1081,
+      "output_tokens": 922
+    }
+  ],
+  "complexity": 1,
+  "domain": "insurance_brokerage",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1081,
+  "total_output_tokens": 922
+}

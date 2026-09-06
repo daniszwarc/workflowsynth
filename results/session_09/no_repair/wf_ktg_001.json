@@ -1,0 +1,42 @@
+{
+  "task_id": "wf_ktg_001",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.4957065833732486,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: claim_claimant_intake\nsteps:\n  - id: receive_intake_form\n    op: fetch_api\n    params:\n      endpoint: \"/api/intake/claimant-form\"\n    output: raw_intake_form\n\n  - id: authenticate_case_staff\n    op: authenticate_user\n    params:\n      role: \"case_staff\"\n    output: auth_result\n\n  - id: validate_intake_form\n    op: validate_schema\n    params:\n      input: raw_intake_form\n      schema: claimant_intake_schema\n    output: validated_intake_form\n\n  - id: extract_tenant_id\n    op: extract_field\n    params:\n      input: validated_intake_form\n      field: \"client_database_id\"\n    output: tenant_id\n\n  - id: apply_tenant_branching\n    op: apply_rule\n    params:\n      rule: \"select_field_list_by_tenant\"\n      tenant_id: tenant_id\n    output: tenant_field_config\n\n  - id: transform_for_tenant\n    op: transform_json\n    params:\n      input: validated_intake_form\n      mapping: tenant_field_config\n    output: tenant_mapped_form\n\n  - id: fetch_max_claimant_id\n    op: read_database\n    params:\n      table: \"claimants\"\n      query: \"SELECT MAX(claimant_id) AS max_id\"\n    output: raw_max_id\n\n  - id: extract_max_id\n    op: extract_field\n    params:\n      input: raw_max_id\n      field: \"max_id\"\n    output: current_max_id\n\n  - id: compute_next_claimant_id\n    op: apply_rule\n    params:\n      rule: \"increment_claimant_id\"\n      current_max: current_max_id\n    output: next_claimant_id\n\n  - id: build_claimant_record\n    op: transform_json\n    params:\n      input: tenant_mapped_form\n      mapping:\n        claimant_id: next_claimant_id\n        template: \"claimant_record\"\n    output: claimant_record\n\n  - id: insert_claimant\n    op: write_database\n    params:\n      input: claimant_record\n      table: \"claimants\"\n    output: claimant_write_result\n\n  - id: build_case_stub\n    op: transform_json\n    params:\n      input: tenant_mapped_form\n      mapping:\n        claimant_id: next_claimant_id\n        template: \"wc_case_stub\"\n    output: case_stub_record\n\n  - id: insert_case_stub\n    op: write_database\n    params:\n      input: case_stub_record\n      table: \"workers_comp_cases\"\n    output: case_write_result\n\n  - id: build_icd_placeholders\n    op: transform_json\n    params:\n      input: tenant_mapped_form\n      mapping:\n        claimant_id: next_claimant_id\n        template: \"icd_code_placeholders\"\n    output: icd_placeholder_records\n\n  - id: insert_icd_placeholders\n    op: write_database\n    params:\n      input: icd_placeholder_records\n      table: \"icd_codes\"\n    output: icd_write_result\n\n  - id: build_rtw_placeholders\n    op: transform_json\n    params:\n      input: tenant_mapped_form\n      mapping:\n        claimant_id: next_claimant_id\n        template: \"return_to_work_placeholders\"\n    output: rtw_placeholder_records\n\n  - id: insert_rtw_placeholders\n    op: write_database\n    params:\n      input: rtw_placeholder_records\n      table: \"return_to_work\"\n    output: rtw_write_result\n\n  - id: build_activity_and_tickler\n    op: transform_json\n    params:\n      input: claimant_record\n      mapping:\n        activity_type: \"New Patient Set Up\"\n        tickler_template: \"default_followup\"\n    output: activity_tickler_payload\n\n  - id: log_new_patient_activity\n    op: log_audit\n    params:\n      input: activity_tickler_payload\n      action: \"new_patient_setup\"\n    output: audit_log_result\n\n  - id: insert_tickler_followup\n    op: write_database\n    params:\n      input: activity_tickler_payload\n      table: \"tickler_followups\"\n    output: tickler_write_result\n\n  - id: handle_intake_error\n    op: handle_error\n    params:\n      monitored_steps:\n        - validate_intake_form\n        - insert_claimant\n        - insert_case_stub\n        - insert_icd_placeholders\n        - insert_rtw_placeholders\n        - insert_tickler_followup\n      on_error: notify_error_step\n    output: error_handling_result\n\n  - id: build_error_dump\n    op: transform_json\n    params:\n      input: validated_intake_form\n      mapping:\n        template: \"full_form_error_dump\"\n        error_context: error_handling_result\n    output: error_email_payload\n\n  - id: notify_error_step\n    op: notify_user\n    params:\n      input: error_email_payload\n      recipient: \"internal_staff\"\n      channel: \"email\"\n      subject: \"Claimant Intake Failure - Full Form Dump\"\n    output: error_notification_result\n\n  - id: terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Claimant intake processed successfully\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ktg_001.py::test_parses_and_type_checks": true,
+        "test_wf_ktg_001.py::test_passes_taint_analysis": true,
+        "test_wf_ktg_001.py::test_applies_tenant_branching": true,
+        "test_wf_ktg_001.py::test_writes_multiple_tables": true,
+        "test_wf_ktg_001.py::test_logs_activity": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1207,
+      "output_tokens": 1428
+    }
+  ],
+  "complexity": 4,
+  "domain": "workers_compensation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1207,
+  "total_output_tokens": 1428
+}

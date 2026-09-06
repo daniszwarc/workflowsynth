@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_sv_001",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 2,
+  "output_errors": 0,
+  "failure_category": "taint_violation",
+  "synthesis_time_seconds": 0.004680457524955273,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: website_content_ingestion_pipeline\nsteps:\n  - id: authenticate_admin\n    op: authenticate_user\n    params:\n      role: \"club_administrator\"\n    output: auth_result\n\n  - id: fetch_sitemap\n    op: fetch_api\n    params:\n      endpoint: \"/sitemap.xml\"\n      format: \"xml\"\n    output: raw_sitemap\n\n  - id: validate_sitemap\n    op: validate_schema\n    params:\n      input: raw_sitemap\n      schema: sitemap_xml_schema\n    output: validated_sitemap\n\n  - id: extract_urls\n    op: transform_json\n    params:\n      input: validated_sitemap\n      mapping: \"parse_xml_extract_urls\"\n      description: \"Parse XML sitemap and extract all page URLs into a list\"\n    output: url_list\n\n  - id: loop_url_batches\n    op: loop_records\n    params:\n      input: url_list\n      batch_size: 10\n      step: process_batch\n    output: batch_results\n\n  - id: process_batch\n    op: call_subworkflow\n    params:\n      workflow_id: process_page_batch\n      input: url_list\n      batch_size: 10\n    output: raw_batch_pages\n\n  - id: handle_batch_errors\n    op: handle_error\n    params:\n      step: process_batch\n      action: skip\n      description: \"Skip pages that return errors without halting pipeline\"\n\n  - id: wait_between_batches\n    op: wait_for_condition\n    params:\n      condition: \"delay_seconds >= 5\"\n      delay_seconds: 5\n      description: \"Wait 5 seconds between batches\"\n\n  - id: validate_batch_pages\n    op: validate_schema\n    params:\n      input: raw_batch_pages\n      schema: html_content_schema\n    output: validated_pages\n\n  - id: filter_successful_pages\n    op: filter_records\n    params:\n      input: validated_pages\n      condition: \"status == 'success' AND content IS NOT NULL\"\n    output: successful_pages\n\n  - id: extract_main_content\n    op: extract_field\n    params:\n      input: successful_pages\n      field: \".main_content\"\n      selector_type: \"css\"\n      description: \"Extract main content from each page using .main_content CSS selector\"\n    output: extracted_content\n\n  - id: transform_for_vectorstore\n    op: transform_json\n    params:\n      input: extracted_content\n      mapping:\n        content: \"$.text\"\n        source_url: \"$.url\"\n        namespace: \"knowledge_base\"\n        generate_embeddings: true\n    output: vectorstore_payload\n\n  - id: send_to_vectorstore\n    op: call_webhook\n    params:\n      input: vectorstore_payload\n      url: \"/api/vectorstore/upsert\"\n      method: \"POST\"\n      namespace: \"knowledge_base\"\n      description: \"Send extracted content with embeddings to vector store\"\n    output: vectorstore_result\n\n  - id: log_ingestion_audit\n    op: log_audit\n    params:\n      input: vectorstore_result\n      event: \"knowledge_base_refresh\"\n      details:\n        triggered_by: \"club_administrator\"\n        pages_processed: \"{{batch_results.total_count}}\"\n        pages_indexed: \"{{vectorstore_result.indexed_count}}\"\n\n  - id: notify_admin\n    op: notify_user\n    params:\n      input: vectorstore_result\n      recipient: \"club_administrator\"\n      channel: \"email\"\n      message: \"Knowledge base refresh complete. Content has been re-indexed into the vector store.\"\n\n  - id: end_workflow\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"Website content ingestion pipeline completed successfully\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [
+        "Step 'log_ingestion_audit' (op: log_audit): tainted variable 'vectorstore_result' reached a sink without sanitisation. Taint introduced at step 'send_to_vectorstore' via a source operation. Add a sanitising step (validate_schema, encrypt_field, transform_json, filter_records, or extract_field) between step 'send_to_vectorstore' and step 'log_ingestion_audit'.",
+        "Step 'notify_admin' (op: notify_user): tainted variable 'vectorstore_result' reached a sink without sanitisation. Taint introduced at step 'send_to_vectorstore' via a source operation. Add a sanitising step (validate_schema, encrypt_field, transform_json, filter_records, or extract_field) between step 'send_to_vectorstore' and step 'notify_admin'."
+      ],
+      "test_results": {},
+      "failure_category": "taint_violation",
+      "success": false,
+      "input_tokens": 1151,
+      "output_tokens": 945
+    }
+  ],
+  "complexity": 2,
+  "domain": "community_sports",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1151,
+  "total_output_tokens": 945
+}

@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_aw_007",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.5243222918361425,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: sed_streaming_search_with_ai_synthesis\nsteps:\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      role: \"sed_search_user\"\n    output: auth_result\n\n  - id: step_receive_query\n    op: fetch_api\n    params:\n      endpoint: \"/api/sed/search/query\"\n    output: raw_query\n\n  - id: step_validate_query\n    op: validate_schema\n    params:\n      input: raw_query\n      schema: sed_search_query_schema\n    output: validated_query\n\n  - id: step_extract_query_text\n    op: extract_field\n    params:\n      input: validated_query\n      field: \"query_text\"\n    output: query_text\n\n  - id: step_generate_embedding\n    op: call_webhook\n    params:\n      input: query_text\n      url: \"/internal/embeddings/generate\"\n      method: \"POST\"\n    output: raw_embedding\n\n  - id: step_validate_embedding\n    op: validate_schema\n    params:\n      input: raw_embedding\n      schema: embedding_vector_schema\n    output: query_embedding\n\n  - id: step_search_seds\n    op: read_database\n    params:\n      table: \"seds\"\n      query_embedding: query_embedding\n      match_type: \"vector_similarity\"\n    output: raw_sed_matches\n\n  - id: step_filter_relevant_seds\n    op: filter_records\n    params:\n      input: raw_sed_matches\n      condition: \"similarity_score >= 0.7\"\n    output: filtered_sed_matches\n\n  - id: step_loop_stream_per_sed\n    op: loop_records\n    params:\n      input: filtered_sed_matches\n      steps:\n        - id: step_transform_sed_summary\n          op: transform_json\n          params:\n            input: \"$current_record\"\n            mapping:\n              type: \"sed_result\"\n              sed_id: \"$.sed_id\"\n              title: \"$.title\"\n              summary: \"$.summary\"\n              score: \"$.similarity_score\"\n          output: sed_summary_chunk\n\n        - id: step_stream_sed_chunk\n          op: send_to_queue\n          params:\n            input: sed_summary_chunk\n            queue: \"ndjson_response_stream\"\n            format: \"ndjson_line\"\n    output: all_sed_summaries\n\n  - id: step_prepare_synthesis_input\n    op: transform_json\n    params:\n      input: filtered_sed_matches\n      mapping:\n        sed_summaries: \"$.[]\"\n        query: query_text\n    output: synthesis_request\n\n  - id: step_call_llm_synthesis\n    op: call_webhook\n    params:\n      input: synthesis_request\n      url: \"/internal/llm/synthesize\"\n      method: \"POST\"\n    output: raw_synthesis\n\n  - id: step_validate_synthesis\n    op: validate_schema\n    params:\n      input: raw_synthesis\n      schema: synthesis_response_schema\n    output: validated_synthesis\n\n  - id: step_format_synthesis_chunk\n    op: transform_json\n    params:\n      input: validated_synthesis\n      mapping:\n        type: \"synthesis\"\n        content: \"$.synthesis_text\"\n        sources: \"$.source_sed_ids\"\n    output: synthesis_chunk\n\n  - id: step_stream_synthesis\n    op: send_to_queue\n    params:\n      input: synthesis_chunk\n      queue: \"ndjson_response_stream\"\n      format: \"ndjson_line\"\n    output: synthesis_stream_result\n\n  - id: step_prepare_audit_data\n    op: transform_json\n    params:\n      input: validated_query\n      mapping:\n        user: auth_result\n        query: \"$.query_text\"\n        result_count: filtered_sed_matches\n        timestamp: \"now\"\n    output: audit_data\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: audit_data\n      action: \"sed_search_executed\"\n    output: audit_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_aw_007.py::test_parses_and_type_checks": true,
+        "test_wf_aw_007.py::test_passes_taint_analysis": true,
+        "test_wf_aw_007.py::test_generates_synthesis": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1142,
+      "output_tokens": 1022
+    }
+  ],
+  "complexity": 4,
+  "domain": "enterprise_knowledge",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1142,
+  "total_output_tokens": 1022
+}

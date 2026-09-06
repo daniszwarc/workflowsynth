@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_erd_004",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.49465037509799004,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: timesheet_daily_entry\nsteps:\n  - id: receive_cell_update\n    op: fetch_api\n    params:\n      endpoint: \"/api/timesheet/cell-update\"\n    output: raw_cell_update\n\n  - id: authenticate_worker\n    op: authenticate_user\n    params:\n      role: \"field_worker\"\n    output: auth_result\n\n  - id: extract_composite_key\n    op: extract_field\n    params:\n      input: raw_cell_update\n      field: \"composite_key\"\n    output: raw_composite_key\n\n  - id: extract_new_value\n    op: extract_field\n    params:\n      input: raw_cell_update\n      field: \"new_value\"\n    output: raw_new_value\n\n  - id: parse_composite_key\n    op: transform_json\n    params:\n      input: raw_composite_key\n      mapping:\n        worker_id: \"split('_')[0]\"\n        patient_id: \"split('_')[1]\"\n        date: \"split('_')[2]\"\n        entry_type: \"split('_')[3]\"\n    output: parsed_key\n\n  - id: validate_parsed_key\n    op: validate_schema\n    params:\n      input: parsed_key\n      schema:\n        required:\n          - worker_id\n          - patient_id\n          - date\n          - entry_type\n        types:\n          worker_id: string\n          patient_id: string\n          date: date\n          entry_type: string\n    output: validated_key\n\n  - id: validate_new_value\n    op: validate_schema\n    params:\n      input: raw_new_value\n      schema:\n        type: number\n        minimum: 0\n    output: validated_value\n\n  - id: check_worker_owns_entry\n    op: apply_rule\n    params:\n      rule: \"validated_key.worker_id == auth_result.user_id\"\n      on_false: \"terminate_unauthorized\"\n    output: ownership_check\n\n  - id: route_ownership_failure\n    op: route_to_step\n    params:\n      condition: \"ownership_check.result == false\"\n      target: terminate_unauthorized\n\n  - id: read_timesheet_header\n    op: read_database\n    params:\n      table: \"timesheet_headers\"\n      query:\n        worker_id: \"validated_key.worker_id\"\n        date: \"validated_key.date\"\n    output: raw_timesheet_header\n\n  - id: validate_timesheet_header\n    op: validate_schema\n    params:\n      input: raw_timesheet_header\n      schema:\n        required:\n          - status\n        types:\n          status: integer\n    output: validated_header\n\n  - id: check_draft_status\n    op: apply_rule\n    params:\n      rule: \"validated_header.status == 1\"\n      on_false: \"terminate_not_draft\"\n    output: draft_check\n\n  - id: route_draft_failure\n    op: route_to_step\n    params:\n      condition: \"draft_check.result == false\"\n      target: terminate_not_draft\n\n  - id: build_update_record\n    op: transform_json\n    params:\n      input: validated_key\n      mapping:\n        worker_id: \"validated_key.worker_id\"\n        patient_id: \"validated_key.patient_id\"\n        date: \"validated_key.date\"\n        entry_type: \"validated_key.entry_type\"\n        value: \"validated_value\"\n    output: update_record\n\n  - id: write_timesheet_detail\n    op: write_database\n    params:\n      input: update_record\n      table: \"timesheet_details\"\n      operation: \"upsert\"\n      key:\n        - worker_id\n        - patient_id\n        - date\n        - entry_type\n    output: write_result\n\n  - id: log_timesheet_update\n    op: log_audit\n    params:\n      input: update_record\n      action: \"timesheet_cell_updated\"\n      actor: \"auth_result.user_id\"\n    output: audit_result\n\n  - id: notify_worker_success\n    op: notify_user\n    params:\n      input: update_record\n      recipient: \"auth_result.user_id\"\n      message: \"Timesheet entry saved successfully.\"\n    output: notification_result\n\n  - id: terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n\n  - id: terminate_unauthorized\n    op: terminate_workflow\n    params:\n      status: \"error\"\n      reason: \"Worker can only edit their own timesheet entries.\"\n\n  - id: terminate_not_draft\n    op: terminate_workflow\n    params:\n      status: \"error\"\n      reason: \"Timesheet is not in draft status. Edits are not allowed.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_erd_004.py::test_parses_and_type_checks": true,
+        "test_wf_erd_004.py::test_passes_taint_analysis": true,
+        "test_wf_erd_004.py::test_parses_composite_key": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1112,
+      "output_tokens": 1192
+    }
+  ],
+  "complexity": 2,
+  "domain": "healthcare_billing",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1112,
+  "total_output_tokens": 1192
+}

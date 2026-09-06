@@ -1,0 +1,53 @@
+{
+  "task_id": "wf_ft_006",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 7.6391842076554894,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: daily_progress_statistics\nsteps:\n  - id: authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: read_nutrition_log\n    op: read_database\n    params:\n      table: nutrition_log\n      filters:\n        user_id: auth_result.user_id\n        date: today\n    output: raw_nutrition_entries\n\n  - id: validate_nutrition_entries\n    op: validate_schema\n    params:\n      input: raw_nutrition_entries\n      schema: nutrition_entry_schema\n    output: validated_nutrition_entries\n\n  - id: read_user_profile\n    op: read_database\n    params:\n      table: user_profiles\n      filters:\n        user_id: auth_result.user_id\n    output: raw_user_profile\n\n  - id: validate_user_profile\n    op: validate_schema\n    params:\n      input: raw_user_profile\n      schema: user_profile_schema\n    output: validated_user_profile\n\n  - id: extract_daily_targets\n    op: extract_field\n    params:\n      input: validated_user_profile\n      field: daily_targets\n    output: daily_targets\n\n  - id: aggregate_nutrition\n    op: aggregate_data\n    params:\n      input: validated_nutrition_entries\n      group_by: date\n      operations:\n        - field: calories\n          function: sum\n        - field: protein_g\n          function: sum\n        - field: carbs_g\n          function: sum\n        - field: fat_g\n          function: sum\n    output: nutrition_totals\n\n  - id: merge_totals_with_targets\n    op: merge_datasets\n    params:\n      input: nutrition_totals\n      secondary: daily_targets\n      key: date\n    output: progress_comparison\n\n  - id: apply_progress_rule\n    op: apply_rule\n    params:\n      input: progress_comparison\n      rule: \"calculate_percentage_of_target_for_each_macro\"\n    output: progress_percentages\n\n  - id: format_progress_summary\n    op: format_output\n    params:\n      input: progress_percentages\n      format: json\n      template: daily_progress_summary\n    output: progress_summary\n\n  - id: log_stats_access\n    op: log_audit\n    params:\n      input: progress_summary\n      action: \"daily_stats_viewed\"\n      user_id: auth_result.user_id",
+      "dsl_type_errors": [
+        "Step 'format_progress_summary': op 'format_output' requires input of type 'records' but 'progress_percentages' has type 'boolean'. Make sure the step producing 'progress_percentages' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1057,
+      "output_tokens": 605
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: daily_progress_statistics\nsteps:\n  - id: authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: read_nutrition_log\n    op: read_database\n    params:\n      table: nutrition_log\n      filters:\n        user_id: auth_result.user_id\n        date: today\n    output: raw_nutrition_entries\n\n  - id: validate_nutrition_entries\n    op: validate_schema\n    params:\n      input: raw_nutrition_entries\n      schema: nutrition_entry_schema\n    output: validated_nutrition_entries\n\n  - id: read_user_profile\n    op: read_database\n    params:\n      table: user_profiles\n      filters:\n        user_id: auth_result.user_id\n    output: raw_user_profile\n\n  - id: validate_user_profile\n    op: validate_schema\n    params:\n      input: raw_user_profile\n      schema: user_profile_schema\n    output: validated_user_profile\n\n  - id: extract_daily_targets\n    op: extract_field\n    params:\n      input: validated_user_profile\n      field: daily_targets\n    output: daily_targets\n\n  - id: aggregate_nutrition\n    op: aggregate_data\n    params:\n      input: validated_nutrition_entries\n      group_by: date\n      operations:\n        - field: calories\n          function: sum\n        - field: protein_g\n          function: sum\n        - field: carbs_g\n          function: sum\n        - field: fat_g\n          function: sum\n    output: nutrition_totals\n\n  - id: merge_totals_with_targets\n    op: merge_datasets\n    params:\n      input: nutrition_totals\n      secondary: daily_targets\n      key: date\n    output: progress_comparison\n\n  - id: transform_progress\n    op: transform_json\n    params:\n      input: progress_comparison\n      mapping:\n        calories_pct: \"calories / target_calories * 100\"\n        protein_pct: \"protein_g / target_protein_g * 100\"\n        carbs_pct: \"carbs_g / target_carbs_g * 100\"\n        fat_pct: \"fat_g / target_fat_g * 100\"\n    output: progress_percentages\n\n  - id: format_progress_summary\n    op: format_output\n    params:\n      input: progress_percentages\n      format: json\n      template: daily_progress_summary\n    output: progress_summary\n\n  - id: log_stats_access\n    op: log_audit\n    params:\n      input: progress_summary\n      action: \"daily_stats_viewed\"\n      user_id: auth_result.user_id",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_006.py::test_parses_and_type_checks": true,
+        "test_wf_ft_006.py::test_passes_taint_analysis": true,
+        "test_wf_ft_006.py::test_aggregates_daily": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1810,
+      "output_tokens": 671
+    }
+  ],
+  "complexity": 2,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 2867,
+  "total_output_tokens": 1276
+}

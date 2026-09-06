@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_pb_009",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.4386879997327924,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: ticket_close_and_archive\nsteps:\n  - id: step_authenticate_producer\n    op: authenticate_user\n    params:\n      role: \"producer\"\n    output: auth_result\n\n  - id: step_fetch_ticket\n    op: fetch_api\n    params:\n      endpoint: \"/api/tickets/close-and-archive\"\n      method: \"POST\"\n    output: raw_request\n\n  - id: step_validate_request\n    op: validate_schema\n    params:\n      input: raw_request\n      schema: close_archive_request_schema\n    output: validated_request\n\n  - id: step_extract_ticket_id\n    op: extract_field\n    params:\n      input: validated_request\n      field: \"ticket_id\"\n    output: ticket_id\n\n  - id: step_transform_update_payload\n    op: transform_json\n    params:\n      input: validated_request\n      mapping:\n        ticket_id: \"$.ticket_id\"\n        status: \"cerrado\"\n        visible: false\n        closed_at: \"now()\"\n    output: update_payload\n\n  - id: step_write_ticket_update\n    op: write_database\n    params:\n      input: update_payload\n      table: \"tickets\"\n      operation: \"update\"\n      key: \"ticket_id\"\n    output: write_result\n\n  - id: step_transform_history_entry\n    op: transform_json\n    params:\n      input: update_payload\n      mapping:\n        ticket_id: \"$.ticket_id\"\n        action: \"close_and_archive\"\n        status: \"cerrado\"\n        visible: false\n        closed_at: \"$.closed_at\"\n    output: history_entry\n\n  - id: step_log_closure\n    op: log_audit\n    params:\n      input: history_entry\n      event: \"ticket_closed_and_archived\"\n    output: audit_result\n\n  - id: step_write_ticket_history\n    op: write_database\n    params:\n      input: history_entry\n      table: \"ticket_history\"\n      operation: \"insert\"\n    output: history_write_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"Ticket closed and archived successfully\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_009.py::test_parses_and_type_checks": true,
+        "test_wf_pb_009.py::test_passes_taint_analysis": true,
+        "test_wf_pb_009.py::test_writes_ticket": true,
+        "test_wf_pb_009.py::test_logs_closure": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1092,
+      "output_tokens": 560
+    }
+  ],
+  "complexity": 1,
+  "domain": "insurance_brokerage",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1092,
+  "total_output_tokens": 560
+}

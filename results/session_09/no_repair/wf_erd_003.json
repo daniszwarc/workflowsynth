@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_erd_003",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.49085708335042,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: worker_assignment_to_patient\nsteps:\n  - id: receive_assignment_request\n    op: fetch_api\n    params:\n      endpoint: \"/api/assignments/requests/pending\"\n    output: raw_assignment_request\n\n  - id: validate_assignment_request\n    op: validate_schema\n    params:\n      input: raw_assignment_request\n      schema: assignment_request_schema\n    output: validated_assignment_request\n\n  - id: authenticate_staff_user\n    op: authenticate_user\n    params:\n      role: \"office_staff\"\n    output: auth_result\n\n  - id: extract_patient_id\n    op: extract_field\n    params:\n      input: validated_assignment_request\n      field: \"patient_id\"\n    output: patient_id\n\n  - id: extract_worker_id\n    op: extract_field\n    params:\n      input: validated_assignment_request\n      field: \"worker_id\"\n    output: worker_id\n\n  - id: fetch_patient_record\n    op: read_database\n    params:\n      table: patients\n      filter:\n        id: patient_id\n        status: \"active\"\n    output: raw_patient_record\n\n  - id: fetch_worker_record\n    op: read_database\n    params:\n      table: workers\n      filter:\n        id: worker_id\n        status: \"active\"\n    output: raw_worker_record\n\n  - id: validate_patient_record\n    op: validate_schema\n    params:\n      input: raw_patient_record\n      schema: active_patient_schema\n    output: validated_patient_record\n\n  - id: validate_worker_record\n    op: validate_schema\n    params:\n      input: raw_worker_record\n      schema: active_worker_schema\n    output: validated_worker_record\n\n  - id: check_records_exist\n    op: apply_rule\n    params:\n      rule: \"patient_and_worker_are_active\"\n      patient: validated_patient_record\n      worker: validated_worker_record\n    output: records_valid\n\n  - id: handle_invalid_records\n    op: handle_error\n    params:\n      condition: \"records_valid == false\"\n      route_to: terminate_invalid\n\n  - id: build_assignment_record\n    op: transform_json\n    params:\n      input: validated_assignment_request\n      mapping:\n        patient_id: \"patient_id\"\n        worker_id: \"worker_id\"\n        assigned_by: \"auth_result.user_id\"\n        status: \"active\"\n        linked_to: [\"timesheets\", \"invoices\"]\n    output: assignment_record\n\n  - id: write_assignment\n    op: write_database\n    params:\n      input: assignment_record\n      table: worker_patient_assignments\n    output: write_result\n\n  - id: log_assignment_audit\n    op: log_audit\n    params:\n      input: assignment_record\n      action: \"worker_assigned_to_patient\"\n      performed_by: \"auth_result.user_id\"\n\n  - id: notify_worker\n    op: notify_user\n    params:\n      input: assignment_record\n      recipient: worker_id\n      message: \"You have been assigned to a new patient.\"\n\n  - id: terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"Worker successfully assigned to patient.\"\n\n  - id: terminate_invalid\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"Patient or worker record not found or inactive.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_erd_003.py::test_parses_and_type_checks": true,
+        "test_wf_erd_003.py::test_passes_taint_analysis": true,
+        "test_wf_erd_003.py::test_creates_assignment": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1067,
+      "output_tokens": 863
+    }
+  ],
+  "complexity": 1,
+  "domain": "healthcare_billing",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1067,
+  "total_output_tokens": 863
+}

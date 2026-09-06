@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_pb_004",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "type_error",
+  "synthesis_time_seconds": 0.0038064168766140938,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: daily_ticket_summary_email\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"system_scheduler\"\n    output: auth_result\n\n  - id: step_read_open_tickets\n    op: read_database\n    params:\n      table: tickets\n      query: \"status != 'cerrado' AND status != 'archived' AND visible = true\"\n    output: raw_open_tickets\n\n  - id: step_validate_tickets\n    op: validate_schema\n    params:\n      input: raw_open_tickets\n      schema: open_ticket_schema\n    output: validated_tickets\n\n  - id: step_filter_open_visible\n    op: filter_records\n    params:\n      input: validated_tickets\n      condition: \"status != 'cerrado' AND status != 'archived' AND visible == true\"\n    output: filtered_tickets\n\n  - id: step_aggregate_by_producer\n    op: aggregate_data\n    params:\n      input: filtered_tickets\n      group_by: \"producer_id\"\n      calculations:\n        - field: \"hours_since_last_update\"\n          function: \"elapsed_hours_since(last_status_update)\"\n    output: grouped_tickets\n\n  - id: step_flag_stalled\n    op: apply_rule\n    params:\n      rule: \"flag_stalled_tickets\"\n      condition: \"hours_since_last_update > 4\"\n      flag_field: \"stalled_warning\"\n      flag_value: true\n      input_ref: grouped_tickets\n    output: flagged_tickets\n\n  - id: step_format_summary_email\n    op: format_output\n    params:\n      input: flagged_tickets\n      format: \"email_html\"\n      template: \"daily_ticket_summary\"\n      include_fields:\n        - ticket_id\n        - client_name\n        - status\n        - hours_since_last_update\n        - stalled_warning\n      subject: \"Daily Open Ticket Summary\"\n    output: formatted_emails\n\n  - id: step_send_emails\n    op: loop_records\n    params:\n      input: formatted_emails\n      step_ref: step_notify_producer\n    output: send_results\n\n  - id: step_notify_producer\n    op: notify_user\n    params:\n      input: formatted_emails\n      channel: \"email\"\n      recipient_field: \"producer_email\"\n      subject: \"Daily Open Ticket Summary\"\n    output: notification_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_emails\n      action: \"daily_ticket_summary_sent\"\n      details: \"Sent daily open ticket summary emails to all producers\"\n    output: audit_result\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: step_send_emails\n      action: step_retry_notification\n    output: error_handling_result\n\n  - id: step_retry_notification\n    op: retry_step\n    params:\n      step_ref: step_notify_producer\n      max_retries: 3\n      backoff_seconds: 60\n    output: retry_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Daily ticket summary emails dispatched successfully\"",
+      "dsl_type_errors": [
+        "Step 'step_format_summary_email': op 'format_output' requires input of type 'records' but 'flagged_tickets' has type 'boolean'. Make sure the step producing 'flagged_tickets' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1113,
+      "output_tokens": 817
+    }
+  ],
+  "complexity": 2,
+  "domain": "insurance_brokerage",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1113,
+  "total_output_tokens": 817
+}

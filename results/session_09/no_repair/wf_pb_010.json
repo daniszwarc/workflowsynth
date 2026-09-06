@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_pb_010",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "type_error",
+  "synthesis_time_seconds": 0.0035838335752487183,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: client_record_upsert\nsteps:\n  - id: step_extract_client_identifier\n    op: extract_field\n    params:\n      input: incoming_message\n      field: \"client_identifier\"\n    output: raw_client_identifier\n\n  - id: step_validate_identifier\n    op: validate_schema\n    params:\n      input: raw_client_identifier\n      schema:\n        type: object\n        required:\n          - identifier\n        properties:\n          identifier:\n            type: string\n            minLength: 1\n    output: validated_identifier\n\n  - id: step_apply_dedup_rule\n    op: apply_rule\n    params:\n      rule: \"if channel == 'whatsapp' then dedup_key = 'name'; if channel == 'email' then dedup_key = 'email'\"\n      input: validated_identifier\n    output: dedup_config\n\n  - id: step_authenticate_system\n    op: authenticate_user\n    params:\n      role: \"system_service\"\n    output: auth_result\n\n  - id: step_lookup_existing_client\n    op: read_database\n    params:\n      table: clients\n      query:\n        dedup_key: dedup_config\n    output: raw_existing_client\n\n  - id: step_sanitize_lookup_result\n    op: transform_json\n    params:\n      input: raw_existing_client\n      mapping:\n        client_id: \"$.id\"\n        client_name: \"$.name\"\n        client_email: \"$.email\"\n        exists: \"$.found\"\n    output: existing_client\n\n  - id: step_route_upsert\n    op: route_to_step\n    params:\n      condition: \"existing_client.exists == true\"\n      true_step: step_extract_client_id\n      false_step: step_create_client_record\n\n  - id: step_create_client_record\n    op: write_database\n    params:\n      input: validated_identifier\n      table: clients\n      operation: insert\n    output: new_client_record\n\n  - id: step_extract_client_id_from_new\n    op: extract_field\n    params:\n      input: new_client_record\n      field: \"id\"\n    output: client_id\n\n  - id: step_route_to_end\n    op: route_to_step\n    params:\n      condition: \"true\"\n      true_step: step_log_upsert\n\n  - id: step_extract_client_id\n    op: extract_field\n    params:\n      input: existing_client\n      field: \"client_id\"\n    output: client_id\n\n  - id: step_log_upsert\n    op: log_audit\n    params:\n      input: client_id\n      action: \"client_record_upsert\"\n      message: \"Client record upserted successfully\"\n    output: audit_log_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      output: client_id",
+      "dsl_type_errors": [
+        "Step 'step_extract_client_identifier' (op: extract_field): input 'incoming_message' is not defined. Available outputs at this point: none. Make sure the step that produces 'incoming_message' comes before this step and declares 'output: incoming_message'."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1097,
+      "output_tokens": 741
+    }
+  ],
+  "complexity": 2,
+  "domain": "insurance_brokerage",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1097,
+  "total_output_tokens": 741
+}

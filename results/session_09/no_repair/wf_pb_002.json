@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_pb_002",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 2,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "type_error",
+  "synthesis_time_seconds": 0.006767749786376953,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: whatsapp_audio_message_ingestion\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"system_service_account\"\n    output: auth_result\n\n  - id: step_extract_message_fields\n    op: extract_field\n    params:\n      input: webhook_payload\n      field: \"message\"\n    output: raw_message_fields\n\n  - id: step_validate_message_fields\n    op: validate_schema\n    params:\n      input: raw_message_fields\n      schema: whatsapp_audio_message_schema\n    output: validated_message_fields\n\n  - id: step_extract_audio_url\n    op: extract_field\n    params:\n      input: validated_message_fields\n      field: \"audio_url\"\n    output: audio_url\n\n  - id: step_extract_recipient_number\n    op: extract_field\n    params:\n      input: validated_message_fields\n      field: \"recipient_number\"\n    output: recipient_number\n\n  - id: step_fetch_audio_binary\n    op: fetch_api\n    params:\n      endpoint: \"/api/messaging/media\"\n      media_url: audio_url\n    output: raw_audio_binary\n\n  - id: step_validate_audio_binary\n    op: validate_schema\n    params:\n      input: raw_audio_binary\n      schema: audio_binary_schema\n    output: validated_audio_binary\n\n  - id: step_transcribe_audio\n    op: call_webhook\n    params:\n      input: validated_audio_binary\n      url: \"https://transcription-service.internal/api/transcribe\"\n      method: \"POST\"\n    output: raw_transcription_result\n\n  - id: step_validate_transcription\n    op: validate_schema\n    params:\n      input: raw_transcription_result\n      schema: transcription_result_schema\n    output: validated_transcription\n\n  - id: step_extract_transcribed_text\n    op: extract_field\n    params:\n      input: validated_transcription\n      field: \"transcribed_text\"\n    output: transcribed_text\n\n  - id: step_mask_sensitive_data\n    op: encrypt_field\n    params:\n      input: transcribed_text\n      fields:\n        - \"cedula\"\n        - \"phone_number\"\n        - \"credit_card\"\n        - \"address\"\n      method: \"mask\"\n    output: masked_text\n\n  - id: step_classify_message\n    op: call_webhook\n    params:\n      input: masked_text\n      url: \"https://ai-classification.internal/api/classify\"\n      method: \"POST\"\n    output: raw_classification_result\n\n  - id: step_validate_classification\n    op: validate_schema\n    params:\n      input: raw_classification_result\n      schema: classification_result_schema\n    output: validated_classification\n\n  - id: step_extract_es_laboral\n    op: extract_field\n    params:\n      input: validated_classification\n      field: \"es_laboral\"\n    output: es_laboral_flag\n\n  - id: step_check_laboral\n    op: apply_rule\n    params:\n      rule: \"es_laboral_flag == false\"\n    output: should_terminate\n\n  - id: step_terminate_if_not_laboral\n    op: route_to_step\n    params:\n      condition: \"should_terminate == true\"\n      target: step_terminate_non_laboral\n\n  - id: step_lookup_producer\n    op: read_database\n    params:\n      table: \"producers\"\n      query_field: \"recipient_number\"\n      query_value: recipient_number\n    output: raw_producer_record\n\n  - id: step_validate_producer\n    op: validate_schema\n    params:\n      input: raw_producer_record\n      schema: producer_record_schema\n    output: validated_producer\n\n  - id: step_extract_producer_id\n    op: extract_field\n    params:\n      input: validated_producer\n      field: \"producer_id\"\n    output: producer_id\n\n  - id: step_prepare_client_record\n    op: transform_json\n    params:\n      input: validated_message_fields\n      mapping:\n        producer_id: producer_id\n        source: \"whatsapp_audio\"\n    output: client_record_payload\n\n  - id: step_write_client_record\n    op: write_database\n    params:\n      input: client_record_payload\n      table: \"clients\"\n      upsert: true\n    output: client_record_result\n\n  - id: step_prepare_ticket\n    op: transform_json\n    params:\n      input: validated_classification\n      mapping:\n        producer_id: producer_id\n        client_id: client_record_result\n        classification: validated_classification\n        source: \"whatsapp_audio\"\n    output: ticket_payload\n\n  - id: step_write_ticket\n    op: write_database\n    params:\n      input: ticket_payload\n      table: \"tickets\"\n    output: ticket_result\n\n  - id: step_prepare_message_log\n    op: transform_json\n    params:\n      input: masked_text\n      mapping:\n        ticket_id: ticket_result\n        message_text: masked_text\n        message_type: \"audio_transcription\"\n    output: message_log_payload\n\n  - id: step_write_message_log\n    op: write_database\n    params:\n      input: message_log_payload\n      table: \"ticket_messages\"\n    output: message_log_result\n\n  - id: step_log_audit_completion\n    op: log_audit\n    params:\n      input: ticket_result\n      action: \"whatsapp_audio_ingestion_complete\"\n      details:\n        ticket_id: ticket_result\n        producer_id: producer_id\n    output: audit_log_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n\n  - id: step_terminate_non_laboral\n    op: terminate_workflow\n    params:\n      status: \"skipped_not_laboral\"",
+      "dsl_type_errors": [
+        "Step 'step_extract_message_fields' (op: extract_field): input 'webhook_payload' is not defined. Available outputs at this point: ['auth_result']. Make sure the step that produces 'webhook_payload' comes before this step and declares 'output: webhook_payload'.",
+        "Step 'step_prepare_message_log': op 'transform_json' requires input of type 'records' but 'masked_text' has type 'string'. Make sure the step producing 'masked_text' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1199,
+      "output_tokens": 1505
+    }
+  ],
+  "complexity": 3,
+  "domain": "insurance_brokerage",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1199,
+  "total_output_tokens": 1505
+}

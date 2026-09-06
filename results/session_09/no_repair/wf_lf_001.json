@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_lf_001",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "type_error",
+  "synthesis_time_seconds": 0.0038263751193881035,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: pdf_text_extraction_and_structure_detection\nsteps:\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      role: \"pdf_reader_user\"\n    output: auth_result\n\n  - id: step_receive_pdf\n    op: fetch_api\n    params:\n      endpoint: \"/client/pdf/selected_file\"\n      description: \"Receive the PDF file selected by the user in the browser\"\n    output: raw_pdf_data\n\n  - id: step_validate_pdf\n    op: validate_schema\n    params:\n      input: raw_pdf_data\n      schema: pdf_file_schema\n      constraints:\n        - \"must_have_text_layer\"\n        - \"valid_pdf_binary\"\n    output: validated_pdf\n\n  - id: step_iterate_pages\n    op: loop_records\n    params:\n      input: validated_pdf\n      iterator: \"page\"\n      description: \"Load the PDF and iterate over each page\"\n    output: pdf_pages\n\n  - id: step_extract_text_items\n    op: extract_field\n    params:\n      input: pdf_pages\n      field: \"text_items_with_font_size\"\n      description: \"Extract all text items with their font size metadata from each page\"\n    output: raw_text_items\n\n  - id: step_validate_text_items\n    op: validate_schema\n    params:\n      input: raw_text_items\n      schema: text_item_schema\n      required_fields:\n        - \"content\"\n        - \"font_size\"\n        - \"page_number\"\n    output: validated_text_items\n\n  - id: step_compute_median_font_size\n    op: aggregate_data\n    params:\n      input: validated_text_items\n      group_by: \"all\"\n      aggregation: \"median\"\n      field: \"font_size\"\n      description: \"Compute the median font size to establish the body text baseline\"\n    output: median_font_stats\n\n  - id: step_merge_text_with_median\n    op: merge_datasets\n    params:\n      input: validated_text_items\n      secondary: median_font_stats\n      join_key: \"constant\"\n      description: \"Attach median font size to each text item for comparison\"\n    output: text_items_with_baseline\n\n  - id: step_apply_heading_rule\n    op: apply_rule\n    params:\n      input: text_items_with_baseline\n      rule: \"font_size_ratio_comparison\"\n      condition: \"item.font_size > median_font_size * 1.2\"\n      classification:\n        above_threshold: \"heading\"\n        at_or_below_threshold: \"body\"\n      description: \"Classify text items as headings if font size is significantly above the median\"\n    output: classified_text_items\n\n  - id: step_transform_structure\n    op: transform_json\n    params:\n      input: classified_text_items\n      mapping:\n        headings: \"items where classification == heading\"\n        body_text: \"items where classification == body\"\n        structure: \"hierarchical_document_tree\"\n      language: \"fr\"\n      description: \"Reshape classified items into structured document with headings and body sections\"\n    output: structured_document\n\n  - id: step_format_final_output\n    op: format_output\n    params:\n      input: structured_document\n      format: \"json\"\n      locale: \"fr-FR\"\n      description: \"Serialize the structured document for client-side rendering\"\n    output: final_output\n\n  - id: step_log_extraction\n    op: log_audit\n    params:\n      input: final_output\n      action: \"pdf_text_extraction_completed\"\n      details:\n        processing: \"client_side\"\n        language: \"fr\"\n        detection_method: \"font_size_ratio_comparison\"\n    output: audit_log_entry",
+      "dsl_type_errors": [
+        "Step 'step_transform_structure': op 'transform_json' requires input of type 'records' but 'classified_text_items' has type 'boolean'. Make sure the step producing 'classified_text_items' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1136,
+      "output_tokens": 949
+    }
+  ],
+  "complexity": 2,
+  "domain": "personal_tool",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1136,
+  "total_output_tokens": 949
+}

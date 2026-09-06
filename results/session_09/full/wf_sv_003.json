@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_sv_003",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.4722765823826194,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: incoming_email_classification\nsteps:\n  - id: poll_gmail_inbox\n    op: fetch_api\n    params:\n      endpoint: \"/api/gmail/inbox/unread\"\n      poll_interval_minutes: 5\n    output: raw_email_payload\n\n  - id: validate_email_payload\n    op: validate_schema\n    params:\n      input: raw_email_payload\n      schema: gmail_unread_email_schema\n    output: validated_email_payload\n\n  - id: extract_email_body\n    op: extract_field\n    params:\n      input: validated_email_payload\n      field: \"body\"\n    output: email_body\n\n  - id: extract_thread_id\n    op: extract_field\n    params:\n      input: validated_email_payload\n      field: \"thread_id\"\n    output: thread_id\n\n  - id: extract_sender_address\n    op: extract_field\n    params:\n      input: validated_email_payload\n      field: \"sender_address\"\n    output: sender_address\n\n  - id: check_club_sender\n    op: apply_rule\n    params:\n      rule: \"sender_address ends_with '@club.example.com'\"\n      input_variable: sender_address\n    output: is_club_sender\n\n  - id: route_club_sender\n    op: route_to_step\n    params:\n      condition: \"is_club_sender == true\"\n      target_step: log_club_sender_skip\n      fallback_step: fetch_full_thread\n\n  - id: log_club_sender_skip\n    op: log_audit\n    params:\n      input: sender_address\n      message: \"Email from club domain skipped classification; customerSupport=false\"\n    output: audit_club_skip\n\n  - id: terminate_club_sender\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      result: \"customerSupport=false; club domain sender\"\n\n  - id: fetch_full_thread\n    op: fetch_api\n    params:\n      endpoint: \"/api/gmail/threads/{thread_id}\"\n      thread_id_ref: thread_id\n    output: raw_thread_data\n\n  - id: validate_thread_data\n    op: validate_schema\n    params:\n      input: raw_thread_data\n      schema: gmail_thread_schema\n    output: validated_thread_data\n\n  - id: build_thread_history\n    op: transform_json\n    params:\n      input: validated_thread_data\n      mapping:\n        label_rule: \"if message.sender_domain == 'club.example.com' then 'Club' else 'Customer'\"\n        output_fields:\n          - message_id\n          - sender\n          - label\n          - body\n          - timestamp\n    output: labeled_thread_history\n\n  - id: check_tax_receipt_request\n    op: apply_rule\n    params:\n      rule: \"email_body matches_any ['Releve 24', 'RL-24', 'relev\u00e9 24', 'rl-24'] case_insensitive across EN/FR/ES\"\n      input_variable: email_body\n    output: is_tax_receipt_request\n\n  - id: route_tax_receipt\n    op: route_to_step\n    params:\n      condition: \"is_tax_receipt_request == true\"\n      target_step: log_tax_receipt_classification\n      fallback_step: authenticate_for_classification\n\n  - id: log_tax_receipt_classification\n    op: log_audit\n    params:\n      input: email_body\n      message: \"Tax receipt request detected; customerSupport=true\"\n    output: audit_tax_receipt\n\n  - id: terminate_tax_receipt\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      result: \"customerSupport=true; tax receipt request\"\n\n  - id: authenticate_for_classification\n    op: authenticate_user\n    params:\n      role: \"email_agent_service_account\"\n    output: auth_result\n\n  - id: call_ai_classification\n    op: call_webhook\n    params:\n      input: labeled_thread_history\n      url: \"/api/ai/classify-email\"\n      method: \"POST\"\n      payload:\n        thread_history: labeled_thread_history\n        latest_body: email_body\n        sender: sender_address\n        supported_languages:\n          - EN\n          - FR\n          - ES\n    output: raw_classification_result\n\n  - id: validate_classification_result\n    op: validate_schema\n    params:\n      input: raw_classification_result\n      schema: classification_result_schema\n    output: validated_classification\n\n  - id: extract_customer_support_flag\n    op: extract_field\n    params:\n      input: validated_classification\n      field: \"customerSupport\"\n    output: customer_support_flag\n\n  - id: log_classification\n    op: log_audit\n    params:\n      input: validated_classification\n      message: \"Email classification completed\"\n    output: audit_classification\n\n  - id: terminate_workflow_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      result_variable: customer_support_flag",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_sv_003.py::test_parses_and_type_checks": true,
+        "test_wf_sv_003.py::test_passes_taint_analysis": true,
+        "test_wf_sv_003.py::test_builds_thread_history": true,
+        "test_wf_sv_003.py::test_classifies_email": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1176,
+      "output_tokens": 1261
+    }
+  ],
+  "complexity": 2,
+  "domain": "community_sports",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1176,
+  "total_output_tokens": 1261
+}

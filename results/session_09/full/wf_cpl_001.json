@@ -1,0 +1,53 @@
+{
+  "task_id": "wf_cpl_001",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 8.137557040899992,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: team_registration_and_standings_init\nsteps:\n  - id: receive_team_form\n    op: fetch_api\n    params:\n      endpoint: \"/api/admin/team-registration/submit\"\n    output: raw_team_data\n\n  - id: authenticate_admin\n    op: authenticate_user\n    params:\n      role: \"admin\"\n    output: auth_result\n\n  - id: validate_team_data\n    op: validate_schema\n    params:\n      input: raw_team_data\n      schema: team_registration_schema\n    output: validated_team_data\n\n  - id: insert_team_record\n    op: write_database\n    params:\n      input: validated_team_data\n      table: teams\n    output: team_write_result\n\n  - id: extract_team_id\n    op: extract_field\n    params:\n      input: team_write_result\n      field: \"team_id\"\n    output: new_team_id\n\n  - id: extract_league_and_season\n    op: extract_field\n    params:\n      input: validated_team_data\n      field: \"league,season\"\n    output: league_season_info\n\n  - id: apply_standings_init_rule\n    op: apply_rule\n    params:\n      rule: \"initialize_standings_row\"\n      team_id: new_team_id\n      league_season: league_season_info\n    output: standings_row\n\n  - id: format_standings_row\n    op: transform_json\n    params:\n      input: standings_row\n      mapping:\n        team_id: \"$.team_id\"\n        league: \"$.league\"\n        season: \"$.season\"\n        wins: 0\n        losses: 0\n        draws: 0\n        points: 0\n        goals_for: 0\n        goals_against: 0\n        goal_difference: 0\n        matches_played: 0\n        is_visible: true\n    output: formatted_standings_row\n\n  - id: write_standings_record\n    op: write_database\n    params:\n      input: formatted_standings_row\n      table: standings\n    output: standings_write_result\n\n  - id: log_team_creation\n    op: log_audit\n    params:\n      input: validated_team_data\n      event: \"team_registered\"\n      details:\n        team_id: new_team_id\n        standings_initialized: true\n    output: audit_log_result\n\n  - id: notify_admin_success\n    op: notify_user\n    params:\n      input: validated_team_data\n      recipient: \"admin\"\n      message: \"Team successfully registered and standings row initialized.\"\n    output: notification_result\n\n  - id: end_workflow\n    op: terminate_workflow\n    params:\n      status: \"success\"",
+      "dsl_type_errors": [
+        "Step 'format_standings_row': op 'transform_json' requires input of type 'records' but 'standings_row' has type 'boolean'. Make sure the step producing 'standings_row' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1130,
+      "output_tokens": 679
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: team_registration_and_standings_init\nsteps:\n  - id: receive_team_form\n    op: fetch_api\n    params:\n      endpoint: \"/api/admin/team-registration/submit\"\n    output: raw_team_data\n\n  - id: authenticate_admin\n    op: authenticate_user\n    params:\n      role: \"admin\"\n    output: auth_result\n\n  - id: validate_team_data\n    op: validate_schema\n    params:\n      input: raw_team_data\n      schema: team_registration_schema\n    output: validated_team_data\n\n  - id: insert_team_record\n    op: write_database\n    params:\n      input: validated_team_data\n      table: teams\n    output: team_write_result\n\n  - id: extract_team_id\n    op: extract_field\n    params:\n      input: team_write_result\n      field: \"team_id\"\n    output: new_team_id\n\n  - id: extract_league\n    op: extract_field\n    params:\n      input: validated_team_data\n      field: \"league\"\n    output: league_info\n\n  - id: extract_season\n    op: extract_field\n    params:\n      input: validated_team_data\n      field: \"season\"\n    output: season_info\n\n  - id: read_standings_template\n    op: read_database\n    params:\n      table: standings_template\n      query:\n        template: \"default_init\"\n    output: raw_standings_template\n\n  - id: validate_standings_template\n    op: validate_schema\n    params:\n      input: raw_standings_template\n      schema: standings_template_schema\n    output: validated_standings_template\n\n  - id: format_standings_row\n    op: transform_json\n    params:\n      input: validated_standings_template\n      mapping:\n        team_id: new_team_id\n        league: league_info\n        season: season_info\n        wins: 0\n        losses: 0\n        draws: 0\n        points: 0\n        goals_for: 0\n        goals_against: 0\n        goal_difference: 0\n        matches_played: 0\n        is_visible: true\n    output: formatted_standings_row\n\n  - id: write_standings_record\n    op: write_database\n    params:\n      input: formatted_standings_row\n      table: standings\n    output: standings_write_result\n\n  - id: log_team_creation\n    op: log_audit\n    params:\n      input: validated_team_data\n      event: \"team_registered\"\n      details:\n        standings_initialized: true\n    output: audit_log_result\n\n  - id: notify_admin_success\n    op: notify_user\n    params:\n      input: validated_team_data\n      recipient: \"admin\"\n      message: \"Team successfully registered and standings row initialized.\"\n    output: notification_result\n\n  - id: end_workflow\n    op: terminate_workflow\n    params:\n      status: \"success\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_cpl_001.py::test_parses_and_type_checks": true,
+        "test_wf_cpl_001.py::test_passes_taint_analysis": true,
+        "test_wf_cpl_001.py::test_initializes_standings": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1955,
+      "output_tokens": 736
+    }
+  ],
+  "complexity": 3,
+  "domain": "sports_media",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 3085,
+  "total_output_tokens": 1415
+}

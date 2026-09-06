@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_ft_007",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6758120004087687,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: weekly_workout_plan_generation\nsteps:\n  - id: authenticate_user_step\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: read_fitness_profile\n    op: read_database\n    params:\n      table: user_fitness_profiles\n      query_by: auth_result.user_id\n    output: raw_fitness_profile\n\n  - id: validate_fitness_profile\n    op: validate_schema\n    params:\n      input: raw_fitness_profile\n      schema: fitness_profile_schema\n    output: validated_fitness_profile\n\n  - id: read_workout_history\n    op: read_database\n    params:\n      table: user_workout_history\n      query_by: auth_result.user_id\n    output: raw_workout_history\n\n  - id: validate_workout_history\n    op: validate_schema\n    params:\n      input: raw_workout_history\n      schema: workout_history_schema\n    output: validated_workout_history\n\n  - id: merge_user_data\n    op: merge_datasets\n    params:\n      input: validated_fitness_profile\n      secondary: validated_workout_history\n      key: user_id\n    output: merged_user_data\n\n  - id: call_ai_plan_generator\n    op: call_webhook\n    params:\n      input: merged_user_data\n      url: \"https://ai-coach.internal/api/generate-weekly-plan\"\n      method: POST\n    output: raw_generated_plan\n\n  - id: validate_generated_plan_schema\n    op: validate_schema\n    params:\n      input: raw_generated_plan\n      schema: weekly_plan_schema\n    output: schema_validated_plan\n\n  - id: apply_safety_rules\n    op: apply_rule\n    params:\n      rule: plan_within_user_capability\n      input: schema_validated_plan\n      reference: validated_fitness_profile\n    output: safety_check_result\n\n  - id: route_on_safety\n    op: route_to_step\n    params:\n      condition: \"safety_check_result.passed == true\"\n      true_step: deactivate_previous_plan\n      false_step: handle_safety_failure\n\n  - id: handle_safety_failure\n    op: handle_error\n    params:\n      error_type: safety_validation_failed\n      message: \"Generated plan exceeds user capability range\"\n      route_to: notify_user_failure\n\n  - id: notify_user_failure\n    op: notify_user\n    params:\n      input: safety_check_result\n      recipient: auth_result.user_id\n      template: plan_generation_failed\n    output: failure_notification_result\n\n  - id: terminate_on_failure\n    op: terminate_workflow\n    params:\n      status: failed\n      reason: \"Plan failed safety validation\"\n\n  - id: deactivate_previous_plan\n    op: write_database\n    params:\n      input: schema_validated_plan\n      table: user_training_plans\n      operation: update\n      filter:\n        user_id: auth_result.user_id\n        status: active\n      set:\n        status: inactive\n    output: deactivation_result\n\n  - id: store_new_plan\n    op: write_database\n    params:\n      input: schema_validated_plan\n      table: user_training_plans\n      operation: insert\n      extra_fields:\n        user_id: auth_result.user_id\n        status: active\n    output: stored_plan_result\n\n  - id: log_plan_creation\n    op: log_audit\n    params:\n      input: stored_plan_result\n      action: weekly_plan_created\n      user_id: auth_result.user_id\n    output: audit_log_result\n\n  - id: notify_user_success\n    op: notify_user\n    params:\n      input: stored_plan_result\n      recipient: auth_result.user_id\n      template: new_weekly_plan_ready\n    output: success_notification_result\n\n  - id: terminate_success\n    op: terminate_workflow\n    params:\n      status: completed\n      message: \"Weekly workout plan generated and activated successfully\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_007.py::test_parses_and_type_checks": true,
+        "test_wf_ft_007.py::test_passes_taint_analysis": true,
+        "test_wf_ft_007.py::test_validates_plan_safety": true,
+        "test_wf_ft_007.py::test_reads_history": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1105,
+      "output_tokens": 1018
+    }
+  ],
+  "complexity": 3,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1105,
+  "total_output_tokens": 1018
+}

@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_ts_001",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.47923995833843946,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: timesheet_hours_entry\nsteps:\n  - id: step_receive_form\n    op: fetch_api\n    params:\n      endpoint: \"/api/timesheet/entry/submit\"\n    output: raw_timesheet_form\n\n  - id: step_validate_form_schema\n    op: validate_schema\n    params:\n      input: raw_timesheet_form\n      schema: timesheet_entry_schema\n    output: validated_form\n\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      role: \"staff\"\n    output: auth_result\n\n  - id: step_extract_user_id\n    op: extract_field\n    params:\n      input: validated_form\n      field: \"user_id\"\n    output: user_id\n\n  - id: step_extract_date\n    op: extract_field\n    params:\n      input: validated_form\n      field: \"entry_date\"\n    output: entry_date\n\n  - id: step_extract_role\n    op: extract_field\n    params:\n      input: validated_form\n      field: \"role\"\n    output: entry_role\n\n  - id: step_extract_hours\n    op: extract_field\n    params:\n      input: validated_form\n      field: \"hours\"\n    output: entry_hours\n\n  - id: step_extract_rate\n    op: extract_field\n    params:\n      input: validated_form\n      field: \"rate\"\n    output: entry_rate\n\n  - id: step_fetch_active_date_range\n    op: read_database\n    params:\n      table: \"active_timesheet_periods\"\n      query: \"SELECT * FROM active_timesheet_periods WHERE status = 'active'\"\n    output: raw_active_period\n\n  - id: step_validate_active_period\n    op: validate_schema\n    params:\n      input: raw_active_period\n      schema: active_period_schema\n    output: validated_active_period\n\n  - id: step_check_date_in_range\n    op: apply_rule\n    params:\n      rule: \"entry_date >= validated_active_period.start_date AND entry_date <= validated_active_period.end_date\"\n      entry_date: entry_date\n      active_period: validated_active_period\n    output: date_in_range\n\n  - id: step_route_date_invalid\n    op: route_to_step\n    params:\n      condition: \"date_in_range == false\"\n      target: step_terminate_date_invalid\n\n  - id: step_check_overlap\n    op: read_database\n    params:\n      table: \"timesheet_entries\"\n      query: \"SELECT * FROM timesheet_entries WHERE user_id = :user_id AND entry_date = :entry_date AND role = :role\"\n      bind:\n        user_id: user_id\n        entry_date: entry_date\n        role: entry_role\n    output: raw_overlap_results\n\n  - id: step_validate_overlap_results\n    op: validate_schema\n    params:\n      input: raw_overlap_results\n      schema: overlap_results_schema\n    output: validated_overlap_results\n\n  - id: step_apply_overlap_rule\n    op: apply_rule\n    params:\n      rule: \"count(validated_overlap_results) == 0\"\n      overlap_data: validated_overlap_results\n    output: no_overlap\n\n  - id: step_route_overlap_reject\n    op: route_to_step\n    params:\n      condition: \"no_overlap == false\"\n      target: step_terminate_overlap\n\n  - id: step_compute_total_pay\n    op: apply_rule\n    params:\n      rule: \"entry_hours * entry_rate\"\n      hours: entry_hours\n      rate: entry_rate\n    output: total_pay\n\n  - id: step_build_timesheet_record\n    op: transform_json\n    params:\n      input: validated_form\n      mapping:\n        user_id: \"user_id\"\n        entry_date: \"entry_date\"\n        role: \"entry_role\"\n        hours: \"entry_hours\"\n        rate: \"entry_rate\"\n        total_pay: \"total_pay\"\n    output: timesheet_record\n\n  - id: step_insert_timesheet\n    op: write_database\n    params:\n      input: timesheet_record\n      table: \"timesheet_entries\"\n    output: write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: timesheet_record\n      action: \"timesheet_entry_created\"\n      user: user_id\n    output: audit_log_result\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: timesheet_record\n      message: \"Your timesheet entry has been successfully recorded.\"\n      recipient: user_id\n    output: notification_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"Timesheet entry created successfully.\"\n\n  - id: step_terminate_date_invalid\n    op: terminate_workflow\n    params:\n      status: \"rejected\"\n      message: \"Entry date is outside the active timesheet period.\"\n\n  - id: step_terminate_overlap\n    op: terminate_workflow\n    params:\n      status: \"rejected\"\n      message: \"An overlapping timesheet entry already exists for this user, date, and role.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ts_001.py::test_parses_and_type_checks": true,
+        "test_wf_ts_001.py::test_passes_taint_analysis": true,
+        "test_wf_ts_001.py::test_checks_overlap_before_insert": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1146,
+      "output_tokens": 1329
+    }
+  ],
+  "complexity": 3,
+  "domain": "community_sports",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1146,
+  "total_output_tokens": 1329
+}

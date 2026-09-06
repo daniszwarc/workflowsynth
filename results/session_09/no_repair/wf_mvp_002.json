@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_mvp_002",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.48739250004291534,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: role_based_menu_rendering\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"authenticated_user\"\n    output: auth_result\n\n  - id: step_extract_role\n    op: extract_field\n    params:\n      input: auth_result\n      field: \"role\"\n    output: user_role\n\n  - id: step_read_role_details\n    op: read_database\n    params:\n      table: \"user_roles\"\n      filter:\n        role: user_role\n    output: raw_role_details\n\n  - id: step_validate_role_details\n    op: validate_schema\n    params:\n      input: raw_role_details\n      schema: \"role_details_schema\"\n    output: validated_role_details\n\n  - id: step_apply_admin_rule\n    op: apply_rule\n    params:\n      rule: \"role_tier_check\"\n      input_role: user_role\n      conditions:\n        admin: \"full_access\"\n        readOnly: \"view_only\"\n        manageAdmin: \"admin_tools\"\n    output: role_routing_result\n\n  - id: step_route_admin\n    op: route_to_step\n    params:\n      condition: \"role_routing_result == 'full_access'\"\n      target: step_format_admin_menu\n\n  - id: step_route_read_only\n    op: route_to_step\n    params:\n      condition: \"role_routing_result == 'view_only'\"\n      target: step_format_readonly_menu\n\n  - id: step_route_manage_admin\n    op: route_to_step\n    params:\n      condition: \"role_routing_result == 'admin_tools'\"\n      target: step_format_manage_admin_menu\n\n  - id: step_format_admin_menu\n    op: format_output\n    params:\n      input: validated_role_details\n      template: \"admin_full_menu\"\n      format: \"json\"\n      sections:\n        - \"dashboard\"\n        - \"user_management\"\n        - \"settings\"\n        - \"reports\"\n        - \"admin_tools\"\n        - \"audit_logs\"\n    output: rendered_menu\n\n  - id: step_format_readonly_menu\n    op: format_output\n    params:\n      input: validated_role_details\n      template: \"readonly_menu\"\n      format: \"json\"\n      sections:\n        - \"dashboard\"\n        - \"reports\"\n    output: rendered_menu\n\n  - id: step_format_manage_admin_menu\n    op: format_output\n    params:\n      input: validated_role_details\n      template: \"manage_admin_menu\"\n      format: \"json\"\n      sections:\n        - \"dashboard\"\n        - \"user_management\"\n        - \"settings\"\n        - \"admin_tools\"\n    output: rendered_menu\n\n  - id: step_log_menu_render\n    op: log_audit\n    params:\n      input: rendered_menu\n      action: \"menu_rendered\"\n      user_role: user_role\n    output: audit_log_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      output: rendered_menu",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_mvp_002.py::test_parses_and_type_checks": true,
+        "test_wf_mvp_002.py::test_passes_taint_analysis": true,
+        "test_wf_mvp_002.py::test_applies_role_rule": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1085,
+      "output_tokens": 798
+    }
+  ],
+  "complexity": 2,
+  "domain": "manufacturing",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1085,
+  "total_output_tokens": 798
+}

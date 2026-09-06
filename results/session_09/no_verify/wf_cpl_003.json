@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_cpl_003",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6094051664695144,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: game_and_schedule_management\nsteps:\n  - id: receive_game_form\n    op: fetch_api\n    params:\n      endpoint: \"/api/games/scheduling-form\"\n    output: raw_game_form\n\n  - id: authenticate_admin\n    op: authenticate_user\n    params:\n      role: \"admin\"\n    output: auth_result\n\n  - id: validate_game_form\n    op: validate_schema\n    params:\n      input: raw_game_form\n      schema:\n        type: object\n        required:\n          - home_team\n          - away_team\n          - league\n          - date\n          - time\n          - venue\n        properties:\n          home_team:\n            type: string\n          away_team:\n            type: string\n          league:\n            type: string\n          date:\n            type: string\n            format: date\n          time:\n            type: string\n          venue:\n            type: string\n    output: validated_game_form\n\n  - id: extract_league\n    op: extract_field\n    params:\n      input: validated_game_form\n      field: \"league\"\n    output: league_id\n\n  - id: fetch_league_teams\n    op: read_database\n    params:\n      table: teams\n      conditions:\n        league: league_id\n    output: raw_league_teams\n\n  - id: validate_league_teams\n    op: validate_schema\n    params:\n      input: raw_league_teams\n      schema:\n        type: array\n        items:\n          type: object\n          required:\n            - team_id\n            - league\n    output: validated_league_teams\n\n  - id: check_teams_belong_to_league\n    op: apply_rule\n    params:\n      rule: \"both home_team and away_team from validated_game_form must exist in validated_league_teams\"\n      input_form: validated_game_form\n      input_teams: validated_league_teams\n    output: league_membership_result\n\n  - id: route_on_league_membership\n    op: route_to_step\n    params:\n      condition: \"league_membership_result == true\"\n      on_true: check_scheduling_conflicts\n      on_false: terminate_league_error\n\n  - id: terminate_league_error\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"One or both teams do not belong to the specified league\"\n\n  - id: check_scheduling_conflicts\n    op: read_database\n    params:\n      table: games\n      conditions:\n        date: validated_game_form.date\n        teams_include: [validated_game_form.home_team, validated_game_form.away_team]\n    output: raw_conflict_games\n\n  - id: filter_conflict_games\n    op: filter_records\n    params:\n      input: raw_conflict_games\n      condition: \"home_team == validated_game_form.home_team OR away_team == validated_game_form.home_team OR home_team == validated_game_form.away_team OR away_team == validated_game_form.away_team\"\n    output: filtered_conflicts\n\n  - id: apply_conflict_rule\n    op: apply_rule\n    params:\n      rule: \"no existing game for either team on the same date; filtered_conflicts must be empty\"\n      input: filtered_conflicts\n    output: conflict_check_result\n\n  - id: route_on_conflict\n    op: route_to_step\n    params:\n      condition: \"conflict_check_result == no_conflict\"\n      on_true: prepare_game_record\n      on_false: terminate_conflict_error\n\n  - id: terminate_conflict_error\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"Scheduling conflict detected: a team already has a game on the requested date\"\n\n  - id: prepare_game_record\n    op: transform_json\n    params:\n      input: validated_game_form\n      mapping:\n        home_team: \"$.home_team\"\n        away_team: \"$.away_team\"\n        league: \"$.league\"\n        date: \"$.date\"\n        time: \"$.time\"\n        venue: \"$.venue\"\n        status: \"scheduled\"\n    output: game_record\n\n  - id: insert_game_record\n    op: write_database\n    params:\n      input: game_record\n      table: games\n    output: write_result\n\n  - id: log_game_scheduled\n    op: log_audit\n    params:\n      input: game_record\n      action: \"game_scheduled\"\n      performed_by: auth_result\n\n  - id: notify_admin_success\n    op: notify_user\n    params:\n      input: game_record\n      recipient: auth_result\n      message: \"Game successfully scheduled between home_team and away_team on the specified date and venue.\"\n\n  - id: terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      reason: \"Game scheduled successfully\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_cpl_003.py::test_parses_and_type_checks": true,
+        "test_wf_cpl_003.py::test_passes_taint_analysis": true,
+        "test_wf_cpl_003.py::test_checks_scheduling_conflict": true,
+        "test_wf_cpl_003.py::test_applies_conflict_rule": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1114,
+      "output_tokens": 1215
+    }
+  ],
+  "complexity": 3,
+  "domain": "sports_media",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1114,
+  "total_output_tokens": 1215
+}

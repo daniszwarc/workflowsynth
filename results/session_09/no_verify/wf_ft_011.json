@@ -1,0 +1,175 @@
+{
+  "task_id": "wf_ft_011",
+  "condition": "no_verify",
+  "success": false,
+  "attempts_used": 10,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 66.38084229268134,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: progress_photo_upload\nsteps:\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/photos/upload\"\n      method: \"POST\"\n    output: raw_upload\n\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: step_validate_schema\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema:\n        type: \"progress_photo\"\n        required_fields:\n          - image_data\n          - upload_date\n        optional_fields:\n          - notes\n        constraints:\n          max_image_size_mb: 10\n          allowed_formats:\n            - \"image/jpeg\"\n            - \"image/png\"\n            - \"image/webp\"\n    output: validated_upload\n\n  - id: step_extract_user_id\n    op: extract_field\n    params:\n      input: auth_result\n      field: \"user_id\"\n    output: user_id\n\n  - id: step_encrypt_photo\n    op: encrypt_field\n    params:\n      input: validated_upload\n      field: \"image_data\"\n      algorithm: \"AES-256\"\n    output: encrypted_upload\n\n  - id: step_transform_record\n    op: transform_json\n    params:\n      input: encrypted_upload\n      mapping:\n        user_id: user_id\n        image_data: \"$.image_data\"\n        upload_date: \"$.upload_date\"\n        notes: \"$.notes\"\n        visibility: \"private\"\n    output: photo_record\n\n  - id: step_write_photo\n    op: write_database\n    params:\n      input: photo_record\n      table: \"user_progress_photos\"\n      privacy: \"private\"\n    output: write_result\n\n  - id: step_log_upload\n    op: log_audit\n    params:\n      input: photo_record\n      action: \"progress_photo_uploaded\"\n      details:\n        user_id: user_id\n        timestamp: \"$.upload_date\"\n        visibility: \"private\"\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: photo_record\n      template: \"photo_upload_success\"\n      message: \"Your progress photo has been uploaded and stored securely.\"\n      channel: \"in_app\"\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: \"step_terminate_failure\"\n      steps:\n        - step_receive_upload\n        - step_validate_schema\n        - step_write_photo\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      message: \"Progress photo upload failed. Please try again.\"\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Progress photo uploaded and stored privately.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_011.py::test_parses_and_type_checks": false,
+        "test_wf_ft_011.py::test_passes_taint_analysis": true,
+        "test_wf_ft_011.py::test_validates_image": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1059,
+      "output_tokens": 734
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: progress_photo_upload\nsteps:\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/photos/upload\"\n    output: raw_upload\n\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: step_validate_schema\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema: progress_photo_schema\n    output: validated_upload\n\n  - id: step_extract_user_id\n    op: extract_field\n    params:\n      input: auth_result\n      field: \"user_id\"\n    output: user_id\n\n  - id: step_encrypt_photo\n    op: encrypt_field\n    params:\n      input: validated_upload\n      field: \"image_data\"\n    output: encrypted_upload\n\n  - id: step_transform_record\n    op: transform_json\n    params:\n      input: encrypted_upload\n      mapping:\n        user_id: \"$.user_id\"\n        image_data: \"$.image_data\"\n        upload_date: \"$.upload_date\"\n        notes: \"$.notes\"\n        visibility: \"private\"\n    output: photo_record\n\n  - id: step_write_photo\n    op: write_database\n    params:\n      input: photo_record\n      table: \"user_progress_photos\"\n    output: write_result\n\n  - id: step_log_upload\n    op: log_audit\n    params:\n      input: photo_record\n      action: \"progress_photo_uploaded\"\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: photo_record\n      template: \"photo_upload_success\"\n      channel: \"in_app\"\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: \"step_terminate_failure\"\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_011.py::test_parses_and_type_checks": false,
+        "test_wf_ft_011.py::test_passes_taint_analysis": true,
+        "test_wf_ft_011.py::test_validates_image": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1878,
+      "output_tokens": 534
+    },
+    {
+      "attempt_number": 2,
+      "llm_sketch": "workflow_id: progress_photo_upload\nsteps:\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/photos/upload\"\n    output: raw_upload\n\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: step_validate_schema\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema: progress_photo_schema\n    output: validated_upload\n\n  - id: step_extract_user_id\n    op: extract_field\n    params:\n      input: auth_result\n      field: \"user_id\"\n    output: user_id\n\n  - id: step_encrypt_photo\n    op: encrypt_field\n    params:\n      input: validated_upload\n      field: \"image_data\"\n    output: encrypted_upload\n\n  - id: step_transform_record\n    op: transform_json\n    params:\n      input: encrypted_upload\n      mapping:\n        user_id: user_id\n        image_data: \"$.image_data\"\n        upload_date: \"$.upload_date\"\n        notes: \"$.notes\"\n        visibility: \"private\"\n    output: photo_record\n\n  - id: step_write_photo\n    op: write_database\n    params:\n      input: photo_record\n      table: \"user_progress_photos\"\n    output: write_result\n\n  - id: step_sanitize_log\n    op: extract_field\n    params:\n      input: photo_record\n      field: \"user_id\"\n    output: log_info\n\n  - id: step_log_upload\n    op: log_audit\n    params:\n      input: log_info\n      action: \"progress_photo_uploaded\"\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: photo_record\n      template: \"photo_upload_success\"\n      channel: \"in_app\"\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: \"step_terminate_failure\"\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_011.py::test_parses_and_type_checks": false,
+        "test_wf_ft_011.py::test_passes_taint_analysis": true,
+        "test_wf_ft_011.py::test_validates_image": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1678,
+      "output_tokens": 576
+    },
+    {
+      "attempt_number": 3,
+      "llm_sketch": "workflow_id: progress_photo_upload\nsteps:\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/photos/upload\"\n    output: raw_upload\n\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: step_validate_schema\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema: progress_photo_schema\n    output: validated_upload\n\n  - id: step_extract_user_id\n    op: extract_field\n    params:\n      input: auth_result\n      field: \"user_id\"\n    output: user_id\n\n  - id: step_encrypt_photo\n    op: encrypt_field\n    params:\n      input: validated_upload\n      field: \"image_data\"\n    output: encrypted_upload\n\n  - id: step_transform_record\n    op: transform_json\n    params:\n      input: encrypted_upload\n      mapping:\n        user_id: \"$.user_id\"\n        image_data: \"$.image_data\"\n        upload_date: \"$.upload_date\"\n        notes: \"$.notes\"\n        visibility: \"private\"\n    output: photo_record\n\n  - id: step_write_photo\n    op: write_database\n    params:\n      input: photo_record\n      table: \"user_progress_photos\"\n    output: write_result\n\n  - id: step_sanitize_log\n    op: extract_field\n    params:\n      input: photo_record\n      field: \"user_id\"\n    output: log_info\n\n  - id: step_log_upload\n    op: log_audit\n    params:\n      input: log_info\n      action: \"progress_photo_uploaded\"\n\n  - id: step_sanitize_notify\n    op: extract_field\n    params:\n      input: photo_record\n      field: \"user_id\"\n    output: notify_info\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: notify_info\n      template: \"photo_upload_success\"\n      channel: \"in_app\"\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: \"step_terminate_failure\"\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_011.py::test_parses_and_type_checks": false,
+        "test_wf_ft_011.py::test_passes_taint_analysis": true,
+        "test_wf_ft_011.py::test_validates_image": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1720,
+      "output_tokens": 624
+    },
+    {
+      "attempt_number": 4,
+      "llm_sketch": "workflow_id: progress_photo_upload\nsteps:\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/photos/upload\"\n    output: raw_upload\n\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: step_validate_schema\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema: progress_photo_schema\n    output: validated_upload\n\n  - id: step_apply_size_rule\n    op: apply_rule\n    params:\n      rule: \"image_size_lte_10mb\"\n      input: validated_upload\n    output: size_check_result\n\n  - id: step_route_size_fail\n    op: route_to_step\n    params:\n      condition: \"size_check_result == false\"\n      target: step_terminate_failure\n\n  - id: step_encrypt_photo\n    op: encrypt_field\n    params:\n      input: validated_upload\n      field: \"image_data\"\n    output: encrypted_upload\n\n  - id: step_transform_record\n    op: transform_json\n    params:\n      input: encrypted_upload\n      mapping:\n        user_id: \"$.user_id\"\n        image_data: \"$.image_data\"\n        upload_date: \"$.upload_date\"\n        notes: \"$.notes\"\n        visibility: \"private\"\n    output: photo_record\n\n  - id: step_write_photo\n    op: write_database\n    params:\n      input: photo_record\n      table: \"user_progress_photos\"\n    output: write_result\n\n  - id: step_extract_log_info\n    op: extract_field\n    params:\n      input: photo_record\n      field: \"user_id\"\n    output: log_info\n\n  - id: step_log_upload\n    op: log_audit\n    params:\n      input: log_info\n      action: \"progress_photo_uploaded\"\n\n  - id: step_extract_notify_info\n    op: extract_field\n    params:\n      input: photo_record\n      field: \"user_id\"\n    output: notify_info\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: notify_info\n      template: \"photo_upload_success\"\n      channel: \"in_app\"\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: \"step_terminate_failure\"\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_011.py::test_parses_and_type_checks": false,
+        "test_wf_ft_011.py::test_passes_taint_analysis": true,
+        "test_wf_ft_011.py::test_validates_image": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1768,
+      "output_tokens": 681
+    },
+    {
+      "attempt_number": 5,
+      "llm_sketch": "workflow_id: progress_photo_upload\nsteps:\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/photos/upload\"\n    output: raw_upload\n\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: step_validate_schema\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema: progress_photo_schema\n    output: validated_upload\n\n  - id: step_apply_size_rule\n    op: apply_rule\n    params:\n      rule: \"image_size_lte_10mb\"\n      input: validated_upload\n    output: size_check_result\n\n  - id: step_route_size_fail\n    op: route_to_step\n    params:\n      condition: \"size_check_result == false\"\n      target: step_terminate_failure\n\n  - id: step_encrypt_photo\n    op: encrypt_field\n    params:\n      input: validated_upload\n      field: \"image_data\"\n    output: encrypted_upload\n\n  - id: step_transform_record\n    op: transform_json\n    params:\n      input: encrypted_upload\n      mapping:\n        user_id: \"$.user_id\"\n        image_data: \"$.image_data\"\n        upload_date: \"$.upload_date\"\n        notes: \"$.notes\"\n        visibility: \"private\"\n    output: photo_record\n\n  - id: step_write_photo\n    op: write_database\n    params:\n      input: photo_record\n      table: \"user_progress_photos\"\n    output: write_result\n\n  - id: step_extract_log_info\n    op: extract_field\n    params:\n      input: photo_record\n      field: \"user_id\"\n    output: log_info\n\n  - id: step_log_upload\n    op: log_audit\n    params:\n      input: log_info\n      action: \"progress_photo_uploaded\"\n    output: log_result\n\n  - id: step_extract_notify_info\n    op: extract_field\n    params:\n      input: photo_record\n      field: \"user_id\"\n    output: notify_info\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: notify_info\n      template: \"photo_upload_success\"\n      channel: \"in_app\"\n    output: notify_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: \"step_terminate_failure\"\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_011.py::test_parses_and_type_checks": false,
+        "test_wf_ft_011.py::test_passes_taint_analysis": true,
+        "test_wf_ft_011.py::test_validates_image": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1825,
+      "output_tokens": 695
+    },
+    {
+      "attempt_number": 6,
+      "llm_sketch": "workflow_id: progress_photo_upload\nsteps:\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/photos/upload\"\n    output: raw_upload\n\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: step_validate_schema\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema: progress_photo_schema\n    output: validated_upload\n\n  - id: step_apply_size_rule\n    op: apply_rule\n    params:\n      rule: \"image_size_lte_10mb\"\n      input: validated_upload\n    output: size_check_result\n\n  - id: step_route_size_fail\n    op: route_to_step\n    params:\n      condition: \"size_check_result == false\"\n      target: step_terminate_failure\n\n  - id: step_encrypt_photo\n    op: encrypt_field\n    params:\n      input: validated_upload\n      field: \"image_data\"\n    output: encrypted_upload\n\n  - id: step_transform_record\n    op: transform_json\n    params:\n      input: encrypted_upload\n      mapping:\n        user_id: \"$.user_id\"\n        image_data: \"$.image_data\"\n        upload_date: \"$.upload_date\"\n        notes: \"$.notes\"\n        visibility: \"private\"\n    output: photo_record\n\n  - id: step_write_photo\n    op: write_database\n    params:\n      input: photo_record\n      table: \"user_progress_photos\"\n    output: write_result\n\n  - id: step_extract_log_info\n    op: extract_field\n    params:\n      input: photo_record\n      field: \"user_id\"\n    output: log_info\n\n  - id: step_log_upload\n    op: log_audit\n    params:\n      input: log_info\n      action: \"progress_photo_uploaded\"\n\n  - id: step_extract_notify_info\n    op: extract_field\n    params:\n      input: photo_record\n      field: \"user_id\"\n    output: notify_info\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: notify_info\n      template: \"photo_upload_success\"\n      channel: \"in_app\"\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: step_terminate_failure\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_011.py::test_parses_and_type_checks": false,
+        "test_wf_ft_011.py::test_passes_taint_analysis": true,
+        "test_wf_ft_011.py::test_validates_image": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1839,
+      "output_tokens": 679
+    },
+    {
+      "attempt_number": 7,
+      "llm_sketch": "workflow_id: progress_photo_upload\nsteps:\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/photos/upload\"\n    output: raw_upload\n\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: step_validate_schema\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema: progress_photo_schema\n    output: validated_upload\n\n  - id: step_apply_size_rule\n    op: apply_rule\n    params:\n      rule: \"image_size_lte_10mb\"\n      input: validated_upload\n    output: size_check_result\n\n  - id: step_route_size_fail\n    op: route_to_step\n    params:\n      condition: \"size_check_result == false\"\n      target: step_terminate_failure\n\n  - id: step_encrypt_photo\n    op: encrypt_field\n    params:\n      input: validated_upload\n      field: \"image_data\"\n    output: encrypted_upload\n\n  - id: step_transform_record\n    op: transform_json\n    params:\n      input: encrypted_upload\n      mapping:\n        user_id: \"$.user_id\"\n        image_data: \"$.image_data\"\n        upload_date: \"$.upload_date\"\n        notes: \"$.notes\"\n        visibility: \"private\"\n    output: photo_record\n\n  - id: step_write_photo\n    op: write_database\n    params:\n      input: photo_record\n      table: \"user_progress_photos\"\n    output: write_result\n\n  - id: step_extract_log_info\n    op: extract_field\n    params:\n      input: photo_record\n      field: \"user_id\"\n    output: log_info\n\n  - id: step_log_upload\n    op: log_audit\n    params:\n      input: log_info\n      action: \"progress_photo_uploaded\"\n    output: log_result\n\n  - id: step_extract_notify_info\n    op: extract_field\n    params:\n      input: photo_record\n      field: \"user_id\"\n    output: notify_info\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: notify_info\n      template: \"photo_upload_success\"\n      channel: \"in_app\"\n    output: notify_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: step_terminate_failure\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_011.py::test_parses_and_type_checks": false,
+        "test_wf_ft_011.py::test_passes_taint_analysis": true,
+        "test_wf_ft_011.py::test_validates_image": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1823,
+      "output_tokens": 693
+    },
+    {
+      "attempt_number": 8,
+      "llm_sketch": "workflow_id: progress_photo_upload\nsteps:\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/photos/upload\"\n    output: raw_upload\n\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: step_validate_upload\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema: progress_photo_schema\n    output: validated_upload\n\n  - id: step_apply_size_rule\n    op: apply_rule\n    params:\n      input: validated_upload\n      rule: \"image_size_lte_10mb\"\n    output: size_check_result\n\n  - id: step_route_size_failure\n    op: route_to_step\n    params:\n      condition: \"size_check_result == false\"\n      target: step_terminate_failure\n\n  - id: step_encrypt_photo\n    op: encrypt_field\n    params:\n      input: validated_upload\n      field: \"image_data\"\n    output: encrypted_upload\n\n  - id: step_transform_record\n    op: transform_json\n    params:\n      input: encrypted_upload\n      mapping:\n        user_id: \"$.user_id\"\n        image_data: \"$.image_data\"\n        upload_date: \"$.upload_date\"\n        notes: \"$.notes\"\n        visibility: \"private\"\n    output: photo_record\n\n  - id: step_write_photo\n    op: write_database\n    params:\n      input: photo_record\n      table: \"user_progress_photos\"\n    output: write_result\n\n  - id: step_extract_audit_data\n    op: extract_field\n    params:\n      input: photo_record\n      field: \"user_id\"\n    output: audit_data\n\n  - id: step_log_upload\n    op: log_audit\n    params:\n      input: audit_data\n      action: \"progress_photo_uploaded\"\n    output: log_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_011.py::test_parses_and_type_checks": false,
+        "test_wf_ft_011.py::test_passes_taint_analysis": true,
+        "test_wf_ft_011.py::test_validates_image": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1545,
+      "output_tokens": 460
+    },
+    {
+      "attempt_number": 9,
+      "llm_sketch": "workflow_id: progress_photo_upload\nsteps:\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/photos/upload\"\n    output: raw_upload\n\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: step_validate_upload\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema: progress_photo_schema\n    output: validated_upload\n\n  - id: step_apply_size_rule\n    op: apply_rule\n    params:\n      input: validated_upload\n      rule: \"image_size_lte_10mb\"\n    output: size_check_result\n\n  - id: step_route_size_failure\n    op: route_to_step\n    params:\n      condition: \"size_check_result == false\"\n      target: step_terminate_failure\n\n  - id: step_encrypt_photo\n    op: encrypt_field\n    params:\n      input: validated_upload\n      field: \"image_data\"\n    output: encrypted_upload\n\n  - id: step_transform_record\n    op: transform_json\n    params:\n      input: encrypted_upload\n      mapping:\n        user_id: \"$.user_id\"\n        image_data: \"$.image_data\"\n        upload_date: \"$.upload_date\"\n        notes: \"$.notes\"\n        visibility: \"private\"\n    output: photo_record\n\n  - id: step_write_photo\n    op: write_database\n    params:\n      input: photo_record\n      table: \"user_progress_photos\"\n    output: write_result\n\n  - id: step_extract_audit_data\n    op: extract_field\n    params:\n      input: photo_record\n      field: \"user_id\"\n    output: audit_data\n\n  - id: step_format_audit_record\n    op: transform_json\n    params:\n      input: audit_data\n      mapping:\n        user_id: \"$\"\n        action: \"progress_photo_uploaded\"\n    output: audit_record\n\n  - id: step_log_upload\n    op: log_audit\n    params:\n      input: audit_record\n      action: \"progress_photo_uploaded\"\n    output: log_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_011.py::test_parses_and_type_checks": false,
+        "test_wf_ft_011.py::test_passes_taint_analysis": true,
+        "test_wf_ft_011.py::test_validates_image": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1439,
+      "output_tokens": 508
+    }
+  ],
+  "complexity": 2,
+  "domain": "health_fitness",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 16574,
+  "total_output_tokens": 6184
+}

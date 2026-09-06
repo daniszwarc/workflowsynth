@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_ft_011",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.4618434580042958,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: progress_photo_upload\nsteps:\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/photos/upload\"\n      method: \"POST\"\n    output: raw_upload\n\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: step_validate_schema\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema:\n        type: object\n        required:\n          - image\n          - date\n          - user_id\n        properties:\n          image:\n            type: binary\n            max_size_mb: 10\n            allowed_formats:\n              - \"image/jpeg\"\n              - \"image/png\"\n              - \"image/webp\"\n          date:\n            type: string\n            format: date\n          notes:\n            type: string\n            max_length: 500\n          user_id:\n            type: string\n    output: validated_upload\n\n  - id: step_extract_image\n    op: extract_field\n    params:\n      input: validated_upload\n      field: \"image\"\n    output: raw_image\n\n  - id: step_encrypt_image\n    op: encrypt_field\n    params:\n      input: raw_image\n      algorithm: \"AES-256\"\n    output: encrypted_image\n\n  - id: step_transform_record\n    op: transform_json\n    params:\n      input: validated_upload\n      mapping:\n        user_id: \"$.user_id\"\n        photo_date: \"$.date\"\n        notes: \"$.notes\"\n        encrypted_image: encrypted_image\n        visibility: \"private\"\n        uploaded_at: \"@now\"\n    output: photo_record\n\n  - id: step_write_photo\n    op: write_database\n    params:\n      input: photo_record\n      table: user_progress_photos\n      privacy: \"private\"\n    output: write_result\n\n  - id: step_audit_log\n    op: log_audit\n    params:\n      input: photo_record\n      action: \"progress_photo_uploaded\"\n      details:\n        user_id: \"$.user_id\"\n        photo_date: \"$.photo_date\"\n        visibility: \"private\"\n    output: audit_result\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: photo_record\n      channel: \"in_app\"\n      message: \"Your progress photo has been uploaded successfully.\"\n    output: notification_result\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: \"step_terminate_failure\"\n      scope:\n        - step_receive_upload\n        - step_validate_schema\n        - step_write_photo\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"Progress photo uploaded and stored securely.\"\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"Progress photo upload failed. Please try again.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_011.py::test_parses_and_type_checks": true,
+        "test_wf_ft_011.py::test_passes_taint_analysis": true,
+        "test_wf_ft_011.py::test_validates_image": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1059,
+      "output_tokens": 767
+    }
+  ],
+  "complexity": 2,
+  "domain": "health_fitness",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1059,
+  "total_output_tokens": 767
+}

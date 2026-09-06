@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_btp_002",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.586691583506763,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: document_indexing_pipeline\nsteps:\n  - id: fetch_uploaded_document\n    op: fetch_api\n    params:\n      endpoint: \"/api/documents/pending-indexing\"\n    output: raw_document\n\n  - id: authenticate_indexing_service\n    op: authenticate_user\n    params:\n      role: \"indexing_service\"\n    output: auth_result\n\n  - id: validate_anonymized\n    op: validate_schema\n    params:\n      input: raw_document\n      schema: anonymized_document_schema\n    output: validated_document\n\n  - id: log_document_received\n    op: log_audit\n    params:\n      input: validated_document\n      action: \"document_received_for_indexing\"\n\n  - id: extract_document_id\n    op: extract_field\n    params:\n      input: validated_document\n      field: \"document_id\"\n    output: source_document_id\n\n  - id: extract_document_text\n    op: extract_field\n    params:\n      input: validated_document\n      field: \"text_content\"\n    output: document_text\n\n  - id: split_into_chunks\n    op: transform_json\n    params:\n      input: document_text\n      mapping:\n        strategy: \"overlapping_chunks\"\n        chunk_size: 512\n        overlap: 64\n        source_document_id: \"{{source_document_id}}\"\n    output: document_chunks\n\n  - id: generate_embeddings\n    op: loop_records\n    params:\n      input: document_chunks\n      step: embed_single_chunk\n    output: chunks_with_embeddings\n\n  - id: embed_single_chunk\n    op: call_webhook\n    params:\n      input: document_chunks\n      url: \"/embedding-model/v1/embed\"\n      method: \"POST\"\n    output: raw_embeddings\n\n  - id: validate_embeddings\n    op: validate_schema\n    params:\n      input: raw_embeddings\n      schema: embedding_vector_schema\n    output: validated_embeddings\n\n  - id: prepare_for_storage\n    op: transform_json\n    params:\n      input: validated_embeddings\n      mapping:\n        embed_vectors: \"{{validated_embeddings}}\"\n        source_document_id: \"{{source_document_id}}\"\n        link_chunks_to_source: true\n    output: storage_payload\n\n  - id: store_embeddings\n    op: write_database\n    params:\n      input: storage_payload\n      table: vector_store_embeddings\n    output: write_result\n\n  - id: log_indexing_complete\n    op: log_audit\n    params:\n      input: storage_payload\n      action: \"document_indexed_successfully\"\n\n  - id: notify_indexing_complete\n    op: notify_user\n    params:\n      input: storage_payload\n      template: \"document_indexing_complete\"\n      recipient: \"document_owner\"\n\n  - id: handle_indexing_error\n    op: handle_error\n    params:\n      on_error: terminate_on_failure\n      steps:\n        - validate_anonymized\n        - embed_single_chunk\n        - store_embeddings\n\n  - id: terminate_on_failure\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"Document indexing pipeline encountered an unrecoverable error\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_btp_002.py::test_parses_and_type_checks": true,
+        "test_wf_btp_002.py::test_passes_taint_analysis": true,
+        "test_wf_btp_002.py::test_validates_anonymization_before_indexing": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1124,
+      "output_tokens": 821
+    }
+  ],
+  "complexity": 3,
+  "domain": "clinical_ai",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1124,
+  "total_output_tokens": 821
+}

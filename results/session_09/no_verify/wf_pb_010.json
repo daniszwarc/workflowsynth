@@ -1,0 +1,175 @@
+{
+  "task_id": "wf_pb_010",
+  "condition": "no_verify",
+  "success": false,
+  "attempts_used": 10,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 72.78488004207611,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: client_record_upsert\nsteps:\n  - id: step_extract_client_identifier\n    op: extract_field\n    params:\n      input: incoming_message\n      field: \"client_identifier\"\n    output: raw_client_identifier\n\n  - id: step_validate_identifier\n    op: validate_schema\n    params:\n      input: raw_client_identifier\n      schema:\n        type: object\n        required:\n          - identifier\n        properties:\n          identifier:\n            type: string\n            minLength: 1\n    output: validated_identifier\n\n  - id: step_apply_dedup_rule\n    op: apply_rule\n    params:\n      rule: \"if channel == 'whatsapp' then dedup_key = 'name'; if channel == 'email' then dedup_key = 'email'\"\n      input: validated_identifier\n    output: dedup_config\n\n  - id: step_authenticate_system\n    op: authenticate_user\n    params:\n      role: \"system_service\"\n    output: auth_result\n\n  - id: step_lookup_existing_client\n    op: read_database\n    params:\n      table: clients\n      query_field: dedup_config\n    output: raw_existing_client\n\n  - id: step_sanitize_lookup_result\n    op: transform_json\n    params:\n      input: raw_existing_client\n      mapping:\n        client_id: \"$.id\"\n        client_name: \"$.name\"\n        client_email: \"$.email\"\n        exists: \"$.found\"\n    output: existing_client\n\n  - id: step_route_upsert\n    op: route_to_step\n    params:\n      condition: \"existing_client.exists == true\"\n      true_step: step_extract_client_id\n      false_step: step_create_client_record\n\n  - id: step_create_client_record\n    op: write_database\n    params:\n      input: validated_identifier\n      table: clients\n      operation: insert\n    output: new_client_record\n\n  - id: step_extract_client_id_from_new\n    op: extract_field\n    params:\n      input: new_client_record\n      field: \"id\"\n    output: client_id\n\n  - id: step_route_to_end\n    op: route_to_step\n    params:\n      condition: \"true\"\n      true_step: step_log_upsert\n\n  - id: step_extract_client_id\n    op: extract_field\n    params:\n      input: existing_client\n      field: \"client_id\"\n    output: client_id\n\n  - id: step_log_upsert\n    op: log_audit\n    params:\n      input: client_id\n      action: \"client_record_upsert\"\n      message: \"Client record upserted successfully\"\n    output: audit_log_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      output: client_id",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_010.py::test_parses_and_type_checks": false,
+        "test_wf_pb_010.py::test_passes_taint_analysis": true,
+        "test_wf_pb_010.py::test_checks_existing_before_write": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1097,
+      "output_tokens": 736
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: client_record_upsert\nsteps:\n  - id: step_extract_client_identifier\n    op: extract_field\n    params:\n      input: incoming_message\n      field: \"client_identifier\"\n    output: raw_client_identifier\n\n  - id: step_validate_identifier\n    op: validate_schema\n    params:\n      input: raw_client_identifier\n      schema:\n        type: object\n        required:\n          - identifier\n        properties:\n          identifier:\n            type: string\n            minLength: 1\n    output: validated_identifier\n\n  - id: step_apply_dedup_rule\n    op: apply_rule\n    params:\n      rule: \"if channel == 'whatsapp' then dedup_key = 'name'; if channel == 'email' then dedup_key = 'email'\"\n    output: dedup_config\n\n  - id: step_authenticate_system\n    op: authenticate_user\n    params:\n      role: \"system_service\"\n    output: auth_result\n\n  - id: step_lookup_existing_client\n    op: read_database\n    params:\n      table: clients\n      query_field: dedup_config\n    output: raw_existing_client\n\n  - id: step_sanitize_lookup_result\n    op: transform_json\n    params:\n      input: raw_existing_client\n      mapping:\n        client_id: \"$.id\"\n        client_name: \"$.name\"\n        client_email: \"$.email\"\n        exists: \"$.found\"\n    output: existing_client\n\n  - id: step_route_upsert\n    op: route_to_step\n    params:\n      condition: \"existing_client.exists == true\"\n      true_step: step_extract_client_id\n      false_step: step_create_client_record\n\n  - id: step_create_client_record\n    op: write_database\n    params:\n      input: validated_identifier\n      table: clients\n      operation: insert\n    output: new_client_record\n\n  - id: step_sanitize_new_record\n    op: transform_json\n    params:\n      input: new_client_record\n      mapping:\n        id: \"$.id\"\n    output: sanitized_new_record\n\n  - id: step_extract_client_id_from_new\n    op: extract_field\n    params:\n      input: sanitized_new_record\n      field: \"id\"\n    output: new_client_id\n\n  - id: step_route_to_end\n    op: route_to_step\n    params:\n      condition: \"true\"\n      true_step: step_log_upsert_new\n\n  - id: step_extract_client_id\n    op: extract_field\n    params:\n      input: existing_client\n      field: \"client_id\"\n    output: existing_client_id\n\n  - id: step_log_upsert_existing\n    op: log_audit\n    params:\n      input: existing_client_id\n      action: \"client_record_upsert\"\n      message: \"Existing client record found\"\n\n  - id: step_log_upsert_new\n    op: log_audit\n    params:\n      input: new_client_id\n      action: \"client_record_upsert\"\n      message: \"New client record created\"\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"success\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_010.py::test_parses_and_type_checks": false,
+        "test_wf_pb_010.py::test_passes_taint_analysis": true,
+        "test_wf_pb_010.py::test_checks_existing_before_write": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1918,
+      "output_tokens": 835
+    },
+    {
+      "attempt_number": 2,
+      "llm_sketch": "workflow_id: client_record_upsert\nsteps:\n  - id: step_extract_client_identifier\n    op: extract_field\n    params:\n      input: incoming_message\n      field: \"client_identifier\"\n    output: raw_client_identifier\n\n  - id: step_validate_identifier\n    op: validate_schema\n    params:\n      input: raw_client_identifier\n      schema:\n        type: object\n        required:\n          - identifier\n        properties:\n          identifier:\n            type: string\n            minLength: 1\n    output: validated_identifier\n\n  - id: step_apply_dedup_rule\n    op: apply_rule\n    params:\n      rule: \"if channel == 'whatsapp' then dedup_key = 'name'; if channel == 'email' then dedup_key = 'email'\"\n      input: validated_identifier\n    output: dedup_config\n\n  - id: step_authenticate_system\n    op: authenticate_user\n    params:\n      role: \"system_service\"\n    output: auth_result\n\n  - id: step_lookup_existing_client\n    op: read_database\n    params:\n      table: clients\n      query_field: dedup_config\n    output: raw_existing_client\n\n  - id: step_sanitize_lookup_result\n    op: transform_json\n    params:\n      input: raw_existing_client\n      mapping:\n        client_id: \"$.id\"\n        client_name: \"$.name\"\n        client_email: \"$.email\"\n        exists: \"$.found\"\n    output: existing_client\n\n  - id: step_route_upsert\n    op: route_to_step\n    params:\n      condition: \"existing_client.exists == true\"\n      true_step: step_extract_client_id\n      false_step: step_create_client_record\n\n  - id: step_create_client_record\n    op: write_database\n    params:\n      input: validated_identifier\n      table: clients\n      operation: insert\n    output: raw_new_client_record\n\n  - id: step_sanitize_new_record\n    op: transform_json\n    params:\n      input: raw_new_client_record\n      mapping:\n        id: \"$.id\"\n    output: sanitized_new_record\n\n  - id: step_extract_client_id_from_new\n    op: extract_field\n    params:\n      input: sanitized_new_record\n      field: \"id\"\n    output: new_client_id\n\n  - id: step_log_upsert_new\n    op: log_audit\n    params:\n      input: new_client_id\n      action: \"client_record_upsert\"\n      message: \"New client record created\"\n\n  - id: step_route_to_end\n    op: route_to_step\n    params:\n      condition: \"true\"\n      true_step: step_terminate\n\n  - id: step_extract_client_id\n    op: extract_field\n    params:\n      input: existing_client\n      field: \"client_id\"\n    output: existing_client_id\n\n  - id: step_log_upsert_existing\n    op: log_audit\n    params:\n      input: existing_client_id\n      action: \"client_record_upsert\"\n      message: \"Existing client record found\"\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"success\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_010.py::test_parses_and_type_checks": false,
+        "test_wf_pb_010.py::test_passes_taint_analysis": true,
+        "test_wf_pb_010.py::test_checks_existing_before_write": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2017,
+      "output_tokens": 840
+    },
+    {
+      "attempt_number": 3,
+      "llm_sketch": "workflow_id: client_record_upsert\nsteps:\n  - id: step_extract_client_identifier\n    op: extract_field\n    params:\n      input: incoming_message\n      field: \"client_identifier\"\n    output: raw_client_identifier\n\n  - id: step_validate_identifier\n    op: validate_schema\n    params:\n      input: raw_client_identifier\n      schema:\n        type: object\n        required:\n          - identifier\n        properties:\n          identifier:\n            type: string\n            minLength: 1\n    output: validated_identifier\n\n  - id: step_apply_dedup_rule\n    op: apply_rule\n    params:\n      rule: \"if channel == 'whatsapp' then dedup_key = 'name'; if channel == 'email' then dedup_key = 'email'\"\n    output: dedup_config\n\n  - id: step_authenticate_system\n    op: authenticate_user\n    params:\n      role: \"system_service\"\n    output: auth_result\n\n  - id: step_lookup_existing_client\n    op: read_database\n    params:\n      table: clients\n      query_field: dedup_config\n    output: raw_existing_client\n\n  - id: step_sanitize_lookup_result\n    op: transform_json\n    params:\n      input: raw_existing_client\n      mapping:\n        client_id: \"$.id\"\n        client_name: \"$.name\"\n        client_email: \"$.email\"\n        exists: \"$.found\"\n    output: existing_client\n\n  - id: step_route_upsert\n    op: route_to_step\n    params:\n      condition: \"existing_client.exists == true\"\n      true_step: step_extract_client_id\n      false_step: step_create_client_record\n\n  - id: step_create_client_record\n    op: write_database\n    params:\n      input: validated_identifier\n      table: clients\n      operation: insert\n    output: raw_new_client_record\n\n  - id: step_sanitize_new_record\n    op: transform_json\n    params:\n      input: raw_new_client_record\n      mapping:\n        id: \"$.id\"\n    output: sanitized_new_record\n\n  - id: step_extract_client_id_from_new\n    op: extract_field\n    params:\n      input: sanitized_new_record\n      field: \"id\"\n    output: new_client_id\n\n  - id: step_log_upsert_new\n    op: log_audit\n    params:\n      input: new_client_id\n      action: \"client_record_upsert\"\n      message: \"New client record created\"\n\n  - id: step_route_to_end\n    op: route_to_step\n    params:\n      condition: \"true\"\n      true_step: step_terminate\n\n  - id: step_extract_client_id\n    op: extract_field\n    params:\n      input: existing_client\n      field: \"client_id\"\n    output: existing_client_id\n\n  - id: step_log_upsert_existing\n    op: log_audit\n    params:\n      input: existing_client_id\n      action: \"client_record_upsert\"\n      message: \"Existing client record found\"\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"success\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_010.py::test_parses_and_type_checks": false,
+        "test_wf_pb_010.py::test_passes_taint_analysis": true,
+        "test_wf_pb_010.py::test_checks_existing_before_write": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2022,
+      "output_tokens": 833
+    },
+    {
+      "attempt_number": 4,
+      "llm_sketch": "workflow_id: client_record_upsert\nsteps:\n  - id: step_extract_client_identifier\n    op: extract_field\n    params:\n      input: incoming_message\n      field: \"client_identifier\"\n    output: raw_client_identifier\n\n  - id: step_validate_identifier\n    op: validate_schema\n    params:\n      input: raw_client_identifier\n      schema:\n        type: object\n        required:\n          - identifier\n        properties:\n          identifier:\n            type: string\n            minLength: 1\n    output: validated_identifier\n\n  - id: step_apply_dedup_rule\n    op: apply_rule\n    params:\n      rule: \"if channel == 'whatsapp' then dedup_key = 'name'; if channel == 'email' then dedup_key = 'email'\"\n    output: dedup_config\n\n  - id: step_authenticate_system\n    op: authenticate_user\n    params:\n      role: \"system_service\"\n    output: auth_result\n\n  - id: step_lookup_existing_client\n    op: read_database\n    params:\n      table: clients\n      query_field: dedup_config\n    output: raw_existing_client\n\n  - id: step_sanitize_lookup_result\n    op: transform_json\n    params:\n      input: raw_existing_client\n      mapping:\n        client_id: \"$.id\"\n        client_name: \"$.name\"\n        client_email: \"$.email\"\n        exists: \"$.found\"\n    output: existing_client\n\n  - id: step_route_upsert\n    op: route_to_step\n    params:\n      condition: \"existing_client.exists == true\"\n      true_step: step_extract_client_id\n      false_step: step_create_client_record\n\n  - id: step_create_client_record\n    op: write_database\n    params:\n      input: validated_identifier\n      table: clients\n    output: new_client_record\n\n  - id: step_sanitize_new_record\n    op: transform_json\n    params:\n      input: new_client_record\n      mapping:\n        id: \"$.id\"\n    output: sanitized_new_record\n\n  - id: step_extract_client_id_from_new\n    op: extract_field\n    params:\n      input: sanitized_new_record\n      field: \"id\"\n    output: new_client_id\n\n  - id: step_log_upsert_new\n    op: log_audit\n    params:\n      input: new_client_id\n      action: \"client_record_upsert\"\n      message: \"New client record created\"\n\n  - id: step_route_to_end\n    op: route_to_step\n    params:\n      condition: \"true\"\n      true_step: step_terminate\n\n  - id: step_extract_client_id\n    op: extract_field\n    params:\n      input: existing_client\n      field: \"client_id\"\n    output: existing_client_id\n\n  - id: step_log_upsert_existing\n    op: log_audit\n    params:\n      input: existing_client_id\n      action: \"client_record_upsert\"\n      message: \"Existing client record found\"\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"success\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_010.py::test_parses_and_type_checks": false,
+        "test_wf_pb_010.py::test_passes_taint_analysis": true,
+        "test_wf_pb_010.py::test_checks_existing_before_write": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2015,
+      "output_tokens": 824
+    },
+    {
+      "attempt_number": 5,
+      "llm_sketch": "workflow_id: client_record_upsert\nsteps:\n  - id: step_extract_client_identifier\n    op: extract_field\n    params:\n      input: incoming_message\n      field: \"client_identifier\"\n    output: raw_client_identifier\n\n  - id: step_validate_identifier\n    op: validate_schema\n    params:\n      input: raw_client_identifier\n      schema:\n        type: object\n        required:\n          - identifier\n        properties:\n          identifier:\n            type: string\n            minLength: 1\n    output: validated_identifier\n\n  - id: step_apply_dedup_rule\n    op: apply_rule\n    params:\n      rule: \"if channel == 'whatsapp' then dedup_key = 'name'; if channel == 'email' then dedup_key = 'email'\"\n    output: dedup_config\n\n  - id: step_authenticate_system\n    op: authenticate_user\n    params:\n      role: \"system_service\"\n    output: auth_result\n\n  - id: step_lookup_existing_client\n    op: read_database\n    params:\n      table: clients\n      query_field: dedup_config\n    output: raw_existing_client\n\n  - id: step_sanitize_lookup_result\n    op: transform_json\n    params:\n      input: raw_existing_client\n      mapping:\n        client_id: \"$.id\"\n        client_name: \"$.name\"\n        client_email: \"$.email\"\n        exists: \"$.found\"\n    output: existing_client\n\n  - id: step_route_upsert\n    op: route_to_step\n    params:\n      condition: \"existing_client.exists == true\"\n      true_step: step_extract_client_id\n      false_step: step_create_client_record\n\n  - id: step_create_client_record\n    op: write_database\n    params:\n      input: validated_identifier\n      table: clients\n    output: raw_new_client_record\n\n  - id: step_sanitize_new_record\n    op: transform_json\n    params:\n      input: raw_new_client_record\n      mapping:\n        id: \"$.id\"\n    output: sanitized_new_record\n\n  - id: step_extract_client_id_from_new\n    op: extract_field\n    params:\n      input: sanitized_new_record\n      field: \"id\"\n    output: new_client_id\n\n  - id: step_log_upsert_new\n    op: log_audit\n    params:\n      input: new_client_id\n      action: \"client_record_upsert\"\n      message: \"New client record created\"\n\n  - id: step_route_to_end\n    op: route_to_step\n    params:\n      condition: \"true\"\n      true_step: step_terminate\n\n  - id: step_extract_client_id\n    op: extract_field\n    params:\n      input: existing_client\n      field: \"client_id\"\n    output: existing_client_id\n\n  - id: step_log_upsert_existing\n    op: log_audit\n    params:\n      input: existing_client_id\n      action: \"client_record_upsert\"\n      message: \"Existing client record found\"\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"success\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_010.py::test_parses_and_type_checks": false,
+        "test_wf_pb_010.py::test_passes_taint_analysis": true,
+        "test_wf_pb_010.py::test_checks_existing_before_write": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2006,
+      "output_tokens": 828
+    },
+    {
+      "attempt_number": 6,
+      "llm_sketch": "workflow_id: client_record_upsert\nsteps:\n  - id: step_extract_client_identifier\n    op: extract_field\n    params:\n      input: incoming_message\n      field: \"client_identifier\"\n    output: raw_client_identifier\n\n  - id: step_validate_identifier\n    op: validate_schema\n    params:\n      input: raw_client_identifier\n      schema:\n        type: object\n        required:\n          - identifier\n        properties:\n          identifier:\n            type: string\n            minLength: 1\n    output: validated_identifier\n\n  - id: step_apply_dedup_rule\n    op: apply_rule\n    params:\n      rule: \"if channel == 'whatsapp' then dedup_key = 'name'; if channel == 'email' then dedup_key = 'email'\"\n      input: validated_identifier\n    output: dedup_config\n\n  - id: step_authenticate_system\n    op: authenticate_user\n    params:\n      role: \"system_service\"\n    output: auth_result\n\n  - id: step_lookup_existing_client\n    op: read_database\n    params:\n      table: clients\n      query_field: dedup_config\n    output: raw_existing_client\n\n  - id: step_sanitize_lookup_result\n    op: transform_json\n    params:\n      input: raw_existing_client\n      mapping:\n        client_id: \"$.id\"\n        client_name: \"$.name\"\n        client_email: \"$.email\"\n        exists: \"$.found\"\n    output: existing_client\n\n  - id: step_route_upsert\n    op: route_to_step\n    params:\n      condition: \"existing_client.exists == true\"\n      true_step: step_extract_client_id\n      false_step: step_create_client_record\n\n  - id: step_create_client_record\n    op: write_database\n    params:\n      input: validated_identifier\n      table: clients\n    output: created_client_record\n\n  - id: step_sanitize_new_record\n    op: transform_json\n    params:\n      input: created_client_record\n      mapping:\n        client_id: \"$.id\"\n    output: sanitized_new_record\n\n  - id: step_extract_client_id_from_new\n    op: extract_field\n    params:\n      input: sanitized_new_record\n      field: \"client_id\"\n    output: new_client_id\n\n  - id: step_log_upsert_new\n    op: log_audit\n    params:\n      input: new_client_id\n      action: \"client_record_upsert\"\n      message: \"New client record created\"\n\n  - id: step_route_to_end\n    op: route_to_step\n    params:\n      condition: \"true\"\n      true_step: step_terminate\n\n  - id: step_extract_client_id\n    op: extract_field\n    params:\n      input: existing_client\n      field: \"client_id\"\n    output: existing_client_id\n\n  - id: step_log_upsert_existing\n    op: log_audit\n    params:\n      input: existing_client_id\n      action: \"client_record_upsert\"\n      message: \"Existing client record found\"\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"success\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_010.py::test_parses_and_type_checks": false,
+        "test_wf_pb_010.py::test_passes_taint_analysis": true,
+        "test_wf_pb_010.py::test_checks_existing_before_write": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2010,
+      "output_tokens": 835
+    },
+    {
+      "attempt_number": 7,
+      "llm_sketch": "workflow_id: client_record_upsert\nsteps:\n  - id: step_extract_client_identifier\n    op: extract_field\n    params:\n      input: incoming_message\n      field: \"client_identifier\"\n    output: raw_client_identifier\n\n  - id: step_validate_identifier\n    op: validate_schema\n    params:\n      input: raw_client_identifier\n      schema:\n        type: object\n        required:\n          - identifier\n        properties:\n          identifier:\n            type: string\n            minLength: 1\n    output: validated_identifier\n\n  - id: step_apply_dedup_rule\n    op: apply_rule\n    params:\n      rule: \"if channel == 'whatsapp' then dedup_key = 'name'; if channel == 'email' then dedup_key = 'email'\"\n    output: dedup_config\n\n  - id: step_authenticate_system\n    op: authenticate_user\n    params:\n      role: \"system_service\"\n    output: auth_result\n\n  - id: step_lookup_existing_client\n    op: read_database\n    params:\n      table: clients\n      query_field: dedup_config\n    output: raw_existing_client\n\n  - id: step_sanitize_lookup_result\n    op: transform_json\n    params:\n      input: raw_existing_client\n      mapping:\n        client_id: \"$.id\"\n        client_name: \"$.name\"\n        client_email: \"$.email\"\n        exists: \"$.found\"\n    output: existing_client\n\n  - id: step_route_upsert\n    op: route_to_step\n    params:\n      condition: \"existing_client.exists == true\"\n      true_step: step_extract_client_id\n      false_step: step_create_client_record\n\n  - id: step_create_client_record\n    op: write_database\n    params:\n      input: validated_identifier\n      table: clients\n    output: raw_created_client\n\n  - id: step_sanitize_new_record\n    op: transform_json\n    params:\n      input: raw_created_client\n      mapping:\n        client_id: \"$.id\"\n    output: sanitized_new_record\n\n  - id: step_extract_client_id_from_new\n    op: extract_field\n    params:\n      input: sanitized_new_record\n      field: \"client_id\"\n    output: new_client_id\n\n  - id: step_log_upsert_new\n    op: log_audit\n    params:\n      input: new_client_id\n      action: \"client_record_upsert\"\n      message: \"New client record created\"\n\n  - id: step_route_to_end\n    op: route_to_step\n    params:\n      condition: \"true\"\n      true_step: step_terminate\n\n  - id: step_extract_client_id\n    op: extract_field\n    params:\n      input: existing_client\n      field: \"client_id\"\n    output: existing_client_id\n\n  - id: step_log_upsert_existing\n    op: log_audit\n    params:\n      input: existing_client_id\n      action: \"client_record_upsert\"\n      message: \"Existing client record found\"\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"success\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_010.py::test_parses_and_type_checks": false,
+        "test_wf_pb_010.py::test_passes_taint_analysis": true,
+        "test_wf_pb_010.py::test_checks_existing_before_write": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2017,
+      "output_tokens": 828
+    },
+    {
+      "attempt_number": 8,
+      "llm_sketch": "workflow_id: client_record_upsert\nsteps:\n  - id: step_extract_client_identifier\n    op: extract_field\n    params:\n      input: incoming_message\n      field: client_identifier\n    output: raw_client_identifier\n\n  - id: step_validate_identifier\n    op: validate_schema\n    params:\n      input: raw_client_identifier\n      schema:\n        type: string\n        minLength: 1\n    output: validated_identifier\n\n  - id: step_extract_channel\n    op: extract_field\n    params:\n      input: incoming_message\n      field: channel\n    output: raw_channel\n\n  - id: step_validate_channel\n    op: validate_schema\n    params:\n      input: raw_channel\n      schema:\n        type: string\n        enum:\n          - whatsapp\n          - email\n    output: validated_channel\n\n  - id: step_apply_dedup_rule\n    op: apply_rule\n    params:\n      rule: \"if validated_channel == 'whatsapp' then use name; if validated_channel == 'email' then use email\"\n    output: dedup_rule_result\n\n  - id: step_authenticate_system\n    op: authenticate_user\n    params:\n      role: system_service\n    output: auth_result\n\n  - id: step_read_existing_client\n    op: read_database\n    params:\n      table: clients\n      lookup_rule: dedup_rule_result\n      identifier: validated_identifier\n    output: raw_existing_client\n\n  - id: step_transform_existing_client\n    op: transform_json\n    params:\n      input: raw_existing_client\n      mapping:\n        client_id: $.id\n        client_identifier: $.client_identifier\n        found: $.found\n    output: existing_client\n\n  - id: step_extract_existing_client_id\n    op: extract_field\n    params:\n      input: existing_client\n      field: client_id\n    output: existing_client_id\n\n  - id: step_route_existing_or_create\n    op: route_to_step\n    params:\n      condition: \"existing_client.found == true\"\n      true_step: step_log_existing_client\n      false_step: step_transform_new_client_record\n\n  - id: step_log_existing_client\n    op: log_audit\n    params:\n      input: existing_client_id\n      action: client_record_upsert\n      message: Existing client record found\n\n  - id: step_transform_new_client_record\n    op: transform_json\n    params:\n      input: validated_identifier\n      mapping:\n        client_identifier: $\n    output: new_client_record\n\n  - id: step_write_new_client\n    op: write_database\n    params:\n      input: new_client_record\n      table: clients\n    output: write_result\n\n  - id: step_transform_written_client\n    op: transform_json\n    params:\n      input: write_result\n      mapping:\n        client_id: $.id\n    output: created_client\n\n  - id: step_extract_created_client_id\n    op: extract_field\n    params:\n      input: created_client\n      field: client_id\n    output: created_client_id\n\n  - id: step_log_created_client\n    op: log_audit\n    params:\n      input: created_client_id\n      action: client_record_upsert\n      message: New client record created\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: success",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_010.py::test_parses_and_type_checks": false,
+        "test_wf_pb_010.py::test_passes_taint_analysis": true,
+        "test_wf_pb_010.py::test_checks_existing_before_write": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1675,
+      "output_tokens": 710
+    },
+    {
+      "attempt_number": 9,
+      "llm_sketch": "workflow_id: client_record_upsert\nsteps:\n  - id: step_extract_client_identifier\n    op: extract_field\n    params:\n      input: incoming_message\n      field: client_identifier\n    output: raw_client_identifier\n\n  - id: step_validate_identifier\n    op: validate_schema\n    params:\n      input: raw_client_identifier\n      schema:\n        type: string\n        minLength: 1\n    output: validated_identifier\n\n  - id: step_extract_channel\n    op: extract_field\n    params:\n      input: incoming_message\n      field: channel\n    output: raw_channel\n\n  - id: step_validate_channel\n    op: validate_schema\n    params:\n      input: raw_channel\n      schema:\n        type: string\n        enum:\n          - whatsapp\n          - email\n    output: validated_channel\n\n  - id: step_apply_dedup_rule\n    op: apply_rule\n    params:\n      rule: \"if validated_channel == 'whatsapp' then deduplicate by name; if validated_channel == 'email' then deduplicate by email\"\n    output: dedup_rule_result\n\n  - id: step_authenticate_system\n    op: authenticate_user\n    params:\n      role: system_service\n    output: auth_result\n\n  - id: step_read_existing_client\n    op: read_database\n    params:\n      table: clients\n      lookup_rule: dedup_rule_result\n      identifier: validated_identifier\n    output: raw_existing_client\n\n  - id: step_transform_existing_client\n    op: transform_json\n    params:\n      input: raw_existing_client\n      mapping:\n        client_id: $.id\n        client_identifier: $.client_identifier\n        found: $.found\n    output: existing_client\n\n  - id: step_extract_existing_client_id\n    op: extract_field\n    params:\n      input: existing_client\n      field: client_id\n    output: existing_client_id\n\n  - id: step_transform_new_client_record\n    op: transform_json\n    params:\n      input: validated_identifier\n      mapping:\n        client_identifier: $\n    output: new_client_record\n\n  - id: step_write_new_client\n    op: write_database\n    params:\n      input: new_client_record\n      table: clients\n    output: write_result\n\n  - id: step_transform_written_client\n    op: transform_json\n    params:\n      input: write_result\n      mapping:\n        client_id: $.id\n    output: created_client\n\n  - id: step_extract_created_client_id\n    op: extract_field\n    params:\n      input: created_client\n      field: client_id\n    output: created_client_id\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: success",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_010.py::test_parses_and_type_checks": false,
+        "test_wf_pb_010.py::test_passes_taint_analysis": true,
+        "test_wf_pb_010.py::test_checks_existing_before_write": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1724,
+      "output_tokens": 580
+    }
+  ],
+  "complexity": 2,
+  "domain": "insurance_brokerage",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 18501,
+  "total_output_tokens": 7849
+}

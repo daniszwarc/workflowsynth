@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_ae_005",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.4644759586080909,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: post_publication_file_management\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"cms_publisher\"\n    output: auth_result\n\n  - id: step_move_pdf\n    op: call_webhook\n    params:\n      input: auth_result\n      url: \"https://www.googleapis.com/drive/v3/files/move\"\n      method: \"POST\"\n      body:\n        action: \"move\"\n        source_folder: \"pending\"\n        destination_folder: \"completados\"\n        file_type: \"pdf\"\n    output: raw_move_result\n\n  - id: step_validate_move_result\n    op: validate_schema\n    params:\n      input: raw_move_result\n      schema: drive_move_response_schema\n    output: validated_move_result\n\n  - id: step_read_spreadsheet\n    op: read_database\n    params:\n      table: \"excel_category_spreadsheet\"\n      query:\n        status: \"pending\"\n    output: raw_spreadsheet_data\n\n  - id: step_filter_article_row\n    op: filter_records\n    params:\n      input: raw_spreadsheet_data\n      condition: \"article_id == published_article_id\"\n    output: filtered_article_row\n\n  - id: step_transform_article_status\n    op: transform_json\n    params:\n      input: filtered_article_row\n      mapping:\n        status: \"published\"\n        published_date: \"now()\"\n        file_location: \"completados\"\n    output: updated_article_row\n\n  - id: step_write_spreadsheet\n    op: write_database\n    params:\n      input: updated_article_row\n      table: \"excel_category_spreadsheet\"\n    output: write_result\n\n  - id: step_prepare_audit_data\n    op: format_output\n    params:\n      input: validated_move_result\n      format: \"json\"\n      template:\n        event: \"post_publication_file_management\"\n        file_moved: true\n        source_folder: \"pending\"\n        destination_folder: \"completados\"\n        registry_updated: true\n        write_status: \"success\"\n    output: audit_data\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: audit_data\n      event: \"file_moved_and_registry_updated\"\n      severity: \"info\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ae_005.py::test_parses_and_type_checks": true,
+        "test_wf_ae_005.py::test_passes_taint_analysis": true,
+        "test_wf_ae_005.py::test_moves_file": true,
+        "test_wf_ae_005.py::test_updates_registry": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1074,
+      "output_tokens": 598
+    }
+  ],
+  "complexity": 2,
+  "domain": "publishing",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1074,
+  "total_output_tokens": 598
+}

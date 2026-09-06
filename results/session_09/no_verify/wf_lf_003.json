@@ -1,0 +1,57 @@
+{
+  "task_id": "wf_lf_003",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 15.144897375255823,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: tts_playback_sentence_highlighting\nsteps:\n  - id: receive_cleaned_text\n    op: fetch_api\n    params:\n      endpoint: \"/api/tts/cleaned-text-sections\"\n    output: raw_text_sections\n\n  - id: validate_text_sections\n    op: validate_schema\n    params:\n      input: raw_text_sections\n      schema: cleaned_text_sections_schema\n    output: validated_text_sections\n\n  - id: extract_user_config\n    op: fetch_api\n    params:\n      endpoint: \"/api/tts/user-config\"\n    output: raw_user_config\n\n  - id: validate_user_config\n    op: validate_schema\n    params:\n      input: raw_user_config\n      schema: tts_user_config_schema\n    output: validated_user_config\n\n  - id: split_sections_into_sentences\n    op: loop_records\n    params:\n      input: validated_text_sections\n      operation: split_to_sentences\n      delimiter: \"sentence_boundary\"\n    output: sections_with_sentences\n\n  - id: transform_sentences_to_utterances\n    op: transform_json\n    params:\n      input: sections_with_sentences\n      mapping:\n        source_field: \"sentences\"\n        target_structure: \"utterance_queue_items\"\n        include_section_index: true\n        include_sentence_index: true\n    output: utterance_items\n\n  - id: merge_config_with_utterances\n    op: merge_datasets\n    params:\n      input: utterance_items\n      secondary: validated_user_config\n      join_key: \"broadcast_key\"\n      merge_fields:\n        - \"rate\"\n        - \"pitch\"\n        - \"inter_section_pause_ms\"\n    output: configured_utterances\n\n  - id: apply_pause_rule\n    op: apply_rule\n    params:\n      input: configured_utterances\n      rule: \"insert_pause_between_sections\"\n      condition: \"section_index changes\"\n      action: \"insert_silence_utterance_with_duration_from_inter_section_pause_ms\"\n    output: utterance_queue_with_pauses\n\n  - id: format_utterance_queue\n    op: format_output\n    params:\n      input: utterance_queue_with_pauses\n      format: \"json\"\n      template: \"web_speech_api_utterance_queue\"\n    output: formatted_utterance_queue\n\n  - id: authenticate_playback_user\n    op: authenticate_user\n    params:\n      role: \"tts_listener\"\n    output: auth_result\n\n  - id: log_playback_start\n    op: log_audit\n    params:\n      input: formatted_utterance_queue\n      action: \"tts_playback_initiated\"\n      details:\n        total_utterances: \"count(formatted_utterance_queue)\"\n        language: \"fr\"\n    output: audit_entry\n\n  - id: send_utterance_queue_to_client\n    op: call_webhook\n    params:\n      input: formatted_utterance_queue\n      url: \"/client/tts/enqueue-utterances\"\n      method: \"POST\"\n      headers:\n        content_type: \"application/json\"\n    output: enqueue_result\n\n  - id: wait_for_utterance_start_events\n    op: wait_for_condition\n    params:\n      condition: \"utterance_start_event_received == true\"\n      timeout_ms: 30000\n    output: utterance_event\n\n  - id: extract_active_sentence_id\n    op: extract_field\n    params:\n      input: utterance_event\n      field: \"sentence_id\"\n    output: active_sentence_id\n\n  - id: send_highlight_command\n    op: call_webhook\n    params:\n      input: active_sentence_id\n      url: \"/client/tts/highlight-sentence\"\n      method: \"POST\"\n      headers:\n        content_type: \"application/json\"\n      body:\n        sentence_id: \"active_sentence_id\"\n        action: \"highlight_and_scroll_into_view\"\n    output: highlight_result\n\n  - id: loop_remaining_utterances\n    op: loop_records\n    params:\n      input: formatted_utterance_queue\n      iterate_step: wait_for_utterance_start_events\n    output: all_highlight_results\n\n  - id: handle_tts_error\n    op: handle_error\n    params:\n      step: send_utterance_queue_to_client\n      on_error: \"log_and_notify\"\n    output: error_handling_result\n\n  - id: retry_on_failure\n    op: retry_step\n    params:\n      step: send_utterance_queue_to_client\n      retries: 3\n      backoff_ms: 1000\n    output: retry_result\n\n  - id: notify_playback_complete\n    op: notify_user\n    params:\n      input: all_highlight_results\n      message: \"TTS playback of French text is complete.\"\n      channel: \"in_app\"\n    output: notification_result\n\n  - id: log_playback_complete\n    op: log_audit\n    params:\n      input: all_highlight_results\n      action: \"tts_playback_completed\"\n      details:\n        status: \"success\"\n    output: final_audit_entry\n\n  - id: end_workflow\n    op: terminate_workflow\n    params:\n      status: \"completed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_lf_003.py::test_parses_and_type_checks": false,
+        "test_wf_lf_003.py::test_passes_taint_analysis": true,
+        "test_wf_lf_003.py::test_splits_into_sentences": true,
+        "test_wf_lf_003.py::test_applies_pause_rule": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1163,
+      "output_tokens": 1346
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: tts_playback_sentence_highlighting\nsteps:\n  - id: receive_cleaned_text\n    op: fetch_api\n    params:\n      endpoint: \"/api/tts/cleaned-text-sections\"\n    output: raw_text_sections\n\n  - id: validate_text_sections\n    op: validate_schema\n    params:\n      input: raw_text_sections\n      schema: cleaned_text_sections_schema\n    output: validated_text_sections\n\n  - id: extract_user_config\n    op: fetch_api\n    params:\n      endpoint: \"/api/tts/user-config\"\n    output: raw_user_config\n\n  - id: validate_user_config\n    op: validate_schema\n    params:\n      input: raw_user_config\n      schema: tts_user_config_schema\n    output: validated_user_config\n\n  - id: split_sections_into_sentences\n    op: transform_json\n    params:\n      input: validated_text_sections\n      mapping:\n        operation: split_to_sentences\n        delimiter: sentence_boundary\n    output: sections_with_sentences\n\n  - id: transform_sentences_to_utterances\n    op: transform_json\n    params:\n      input: sections_with_sentences\n      mapping:\n        source_field: sentences\n        target_structure: utterance_queue_items\n        include_section_index: true\n        include_sentence_index: true\n    output: utterance_items\n\n  - id: merge_config_with_utterances\n    op: merge_datasets\n    params:\n      input: utterance_items\n      secondary: validated_user_config\n      join_key: broadcast_key\n    output: configured_utterances\n\n  - id: apply_pause_rule\n    op: apply_rule\n    params:\n      rule: insert_pause_between_sections\n      condition: \"section_index changes\"\n      action: insert_silence_utterance\n    output: pause_rule_result\n\n  - id: apply_pauses_to_queue\n    op: transform_json\n    params:\n      input: configured_utterances\n      mapping:\n        apply_pause: true\n        pause_rule: insert_silence_between_sections\n    output: utterance_queue_with_pauses\n\n  - id: format_utterance_queue\n    op: format_output\n    params:\n      input: utterance_queue_with_pauses\n      format: json\n    output: formatted_utterance_queue\n\n  - id: authenticate_playback_user\n    op: authenticate_user\n    params:\n      role: tts_listener\n    output: auth_result\n\n  - id: log_playback_start\n    op: log_audit\n    params:\n      input: formatted_utterance_queue\n      action: tts_playback_initiated\n\n  - id: handle_tts_error\n    op: handle_error\n    params:\n      step: send_utterance_queue_to_client\n      on_error: log_and_notify\n    output: error_handling_result\n\n  - id: retry_on_failure\n    op: retry_step\n    params:\n      step: send_utterance_queue_to_client\n      retries: 3\n      backoff_ms: 1000\n    output: retry_result\n\n  - id: send_utterance_queue_to_client\n    op: call_webhook\n    params:\n      input: formatted_utterance_queue\n      url: \"/client/tts/enqueue-utterances\"\n      method: POST\n    output: enqueue_result\n\n  - id: loop_remaining_utterances\n    op: loop_records\n    params:\n      input: formatted_utterance_queue\n    output: all_highlight_results\n\n  - id: wait_for_utterance_start_events\n    op: wait_for_condition\n    params:\n      condition: \"utterance_start_event_received == true\"\n      timeout_ms: 30000\n    output: utterance_event\n\n  - id: extract_active_sentence_id\n    op: extract_field\n    params:\n      input: utterance_event\n      field: sentence_id\n    output: active_sentence_id\n\n  - id: send_highlight_command\n    op: call_webhook\n    params:\n      input: active_sentence_id\n      url: \"/client/tts/highlight-sentence\"\n      method: POST\n    output: highlight_result\n\n  - id: notify_playback_complete\n    op: notify_user\n    params:\n      input: all_highlight_results\n      message: \"TTS playback of French text is complete.\"\n      channel: in_app\n    output: notification_result\n\n  - id: log_playback_complete\n    op: log_audit\n    params:\n      input: all_highlight_results\n      action: tts_playback_completed\n\n  - id: end_workflow\n    op: terminate_workflow\n    params:\n      status: completed",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_lf_003.py::test_parses_and_type_checks": true,
+        "test_wf_lf_003.py::test_passes_taint_analysis": true,
+        "test_wf_lf_003.py::test_splits_into_sentences": true,
+        "test_wf_lf_003.py::test_applies_pause_rule": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 2595,
+      "output_tokens": 1182
+    }
+  ],
+  "complexity": 3,
+  "domain": "personal_tool",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 3758,
+  "total_output_tokens": 2528
+}

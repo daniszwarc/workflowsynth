@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_pb_006",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.5215314999222755,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: ticket_producer_assignment\nsteps:\n  - id: step_authenticate_manager\n    op: authenticate_user\n    params:\n      role: \"manager\"\n    output: auth_result\n\n  - id: step_receive_assignment_request\n    op: fetch_api\n    params:\n      endpoint: \"/api/assignments/request\"\n    output: raw_assignment_request\n\n  - id: step_validate_request_schema\n    op: validate_schema\n    params:\n      input: raw_assignment_request\n      schema: assignment_request_schema\n    output: validated_request\n\n  - id: step_extract_ticket_id\n    op: extract_field\n    params:\n      input: validated_request\n      field: \"ticket_id\"\n    output: ticket_id\n\n  - id: step_extract_producer_id\n    op: extract_field\n    params:\n      input: validated_request\n      field: \"producer_id\"\n    output: producer_id\n\n  - id: step_read_ticket\n    op: read_database\n    params:\n      table: \"tickets\"\n      filter:\n        id: ticket_id\n    output: raw_ticket\n\n  - id: step_validate_ticket_schema\n    op: validate_schema\n    params:\n      input: raw_ticket\n      schema: ticket_schema\n    output: validated_ticket\n\n  - id: step_check_unassigned\n    op: apply_rule\n    params:\n      rule: \"validated_ticket.assigned_to IS NULL\"\n      on_false: \"step_terminate_already_assigned\"\n    output: unassigned_check\n\n  - id: step_read_producer\n    op: read_database\n    params:\n      table: \"producers\"\n      filter:\n        id: producer_id\n    output: raw_producer\n\n  - id: step_validate_producer_schema\n    op: validate_schema\n    params:\n      input: raw_producer\n      schema: producer_schema\n    output: validated_producer\n\n  - id: step_check_producer_active\n    op: apply_rule\n    params:\n      rule: \"validated_producer.status == 'active'\"\n      on_false: \"step_terminate_inactive_producer\"\n    output: active_check\n\n  - id: step_build_ticket_update\n    op: transform_json\n    params:\n      input: validated_ticket\n      mapping:\n        assigned_to: producer_id\n        status: \"pendiente\"\n    output: ticket_update_payload\n\n  - id: step_update_ticket\n    op: write_database\n    params:\n      input: ticket_update_payload\n      table: \"tickets\"\n      operation: \"update\"\n      filter:\n        id: ticket_id\n    output: update_result\n\n  - id: step_build_history_entry\n    op: transform_json\n    params:\n      input: validated_request\n      mapping:\n        ticket_id: ticket_id\n        action: \"assigned\"\n        assigned_to: producer_id\n        new_status: \"pendiente\"\n        performed_by: auth_result\n    output: history_entry\n\n  - id: step_write_ticket_history\n    op: write_database\n    params:\n      input: history_entry\n      table: \"ticket_history\"\n      operation: \"insert\"\n    output: history_write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: history_entry\n      event: \"ticket_assigned\"\n    output: audit_log_result\n\n  - id: step_build_notification\n    op: transform_json\n    params:\n      input: validated_request\n      mapping:\n        recipient: producer_id\n        message: \"A new ticket has been assigned to you.\"\n        ticket_id: ticket_id\n    output: notification_payload\n\n  - id: step_notify_producer\n    op: notify_user\n    params:\n      input: notification_payload\n      channel: \"dashboard\"\n    output: notify_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"Ticket successfully assigned to producer.\"\n\n  - id: step_terminate_already_assigned\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"Ticket is already assigned. Only unassigned tickets can be assigned via this workflow.\"\n\n  - id: step_terminate_inactive_producer\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"Selected producer is not active.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_006.py::test_parses_and_type_checks": true,
+        "test_wf_pb_006.py::test_passes_taint_analysis": true,
+        "test_wf_pb_006.py::test_notifies_producer": true,
+        "test_wf_pb_006.py::test_logs_assignment": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1144,
+      "output_tokens": 1088
+    }
+  ],
+  "complexity": 2,
+  "domain": "insurance_brokerage",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1144,
+  "total_output_tokens": 1088
+}

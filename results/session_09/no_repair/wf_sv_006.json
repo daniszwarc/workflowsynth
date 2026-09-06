@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_sv_006",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 0.5178748751059175,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: full_email_support_pipeline\nsteps:\n  - id: authenticate_gmail_agent\n    op: authenticate_user\n    params:\n      role: \"gmail_support_agent\"\n    output: auth_result\n\n  - id: poll_inbox\n    op: wait_for_condition\n    params:\n      condition: \"new_unread_email_in_inbox\"\n      poll_interval_minutes: 5\n    output: inbox_trigger\n\n  - id: fetch_unread_emails\n    op: fetch_api\n    params:\n      endpoint: \"/gmail/api/messages?q=is:unread\"\n    output: raw_emails\n\n  - id: validate_raw_emails\n    op: validate_schema\n    params:\n      input: raw_emails\n      schema: gmail_message_schema\n    output: validated_emails\n\n  - id: extract_email_fields\n    op: extract_field\n    params:\n      input: validated_emails\n      fields:\n        - \"body\"\n        - \"threadId\"\n        - \"senderAddress\"\n    output: email_fields\n\n  - id: fetch_thread_history\n    op: fetch_api\n    params:\n      endpoint: \"/gmail/api/threads/{threadId}\"\n      thread_id_source: email_fields\n    output: raw_thread\n\n  - id: validate_thread\n    op: validate_schema\n    params:\n      input: raw_thread\n      schema: gmail_thread_schema\n    output: validated_thread\n\n  - id: build_thread_context\n    op: transform_json\n    params:\n      input: validated_thread\n      mapping:\n        label_sender_type: true\n        categorize_messages_by: \"sender_role\"\n        output_format: \"thread_history_with_labels\"\n    output: thread_context\n\n  - id: classify_email\n    op: apply_rule\n    params:\n      rule: \"classify_email_type\"\n      input_fields:\n        email_body: email_fields\n        thread_context: thread_context\n      categories:\n        - \"customer_support_request\"\n        - \"internal_email\"\n        - \"other\"\n    output: classification_result\n\n  - id: route_on_classification\n    op: route_to_step\n    params:\n      condition: \"classification_result == 'customer_support_request'\"\n      true_step: search_knowledge_bases\n      false_step: log_skip_non_support\n\n  - id: log_skip_non_support\n    op: log_audit\n    params:\n      input: email_fields\n      event: \"email_skipped_not_customer_support\"\n      details:\n        classification: classification_result\n    output: skip_log_result\n\n  - id: terminate_non_support\n    op: terminate_workflow\n    params:\n      status: \"skipped_non_support_email\"\n\n  - id: search_knowledge_bases\n    op: parallel_execute\n    params:\n      branches:\n        - step: search_customer_support_docs\n        - step: search_club_documents\n        - step: search_previous_email_responses\n    output: parallel_search_trigger\n\n  - id: search_customer_support_docs\n    op: fetch_api\n    params:\n      endpoint: \"/knowledge/api/search/customerSupportDocs\"\n      query_source: email_fields\n    output: raw_support_docs\n\n  - id: search_club_documents\n    op: fetch_api\n    params:\n      endpoint: \"/knowledge/api/search/clubDocuments\"\n      query_source: email_fields\n    output: raw_club_docs\n\n  - id: search_previous_email_responses\n    op: fetch_api\n    params:\n      endpoint: \"/knowledge/api/search/previousEmailResponses\"\n      query_source: email_fields\n    output: raw_previous_responses\n\n  - id: validate_support_docs\n    op: validate_schema\n    params:\n      input: raw_support_docs\n      schema: knowledge_base_result_schema\n    output: valid_support_docs\n\n  - id: validate_club_docs\n    op: validate_schema\n    params:\n      input: raw_club_docs\n      schema: knowledge_base_result_schema\n    output: valid_club_docs\n\n  - id: validate_previous_responses\n    op: validate_schema\n    params:\n      input: raw_previous_responses\n      schema: knowledge_base_result_schema\n    output: valid_previous_responses\n\n  - id: merge_kb_support_and_club\n    op: merge_datasets\n    params:\n      input: valid_support_docs\n      secondary: valid_club_docs\n      key: \"topic\"\n    output: merged_support_club\n\n  - id: merge_all_knowledge\n    op: merge_datasets\n    params:\n      input: merged_support_club\n      secondary: valid_previous_responses\n      key: \"topic\"\n    output: all_knowledge_results\n\n  - id: detect_language_and_season\n    op: apply_rule\n    params:\n      rule: \"detect_language_and_season_mapping\"\n      input_fields:\n        email_body: email_fields\n      language_options:\n        - \"EN\"\n        - \"FR\"\n        - \"ES\"\n      season_mapping:\n        fall: \"Winter (Oct-Apr)\"\n        spring: \"Summer (May-Sep)\"\n    output: language_season_context\n\n  - id: generate_draft_response\n    op: transform_json\n    params:\n      input: all_knowledge_results\n      mapping:\n        thread_context: thread_context\n        email_fields: email_fields\n        language: language_season_context\n        instructions: \"generate_response_from_knowledge_base_only\"\n        response_language_match: true\n        season_context: language_season_context\n    output: draft_response_content\n\n  - id: format_draft_for_gmail\n    op: format_output\n    params:\n      input: draft_response_content\n      format: \"gmail_draft_json\"\n      include_fields:\n        - \"to\"\n        - \"threadId\"\n        - \"subject\"\n        - \"body_html\"\n        - \"language\"\n    output: formatted_draft\n\n  - id: create_gmail_draft\n    op: call_webhook\n    params:\n      input: formatted_draft\n      url: \"https://gmail.googleapis.com/gmail/v1/users/me/drafts\"\n      method: \"POST\"\n      content_type: \"application/json\"\n      note: \"Creates draft only - does not send\"\n    output: draft_creation_result\n\n  - id: validate_draft_result\n    op: validate_schema\n    params:\n      input: draft_creation_result\n      schema: gmail_draft_response_schema\n    output: validated_draft_result\n\n  - id: log_draft_creation\n    op: log_audit\n    params:\n      input: validated_draft_result\n      event: \"gmail_draft_created\"\n      details:\n        thread_id: email_fields\n        sender: email_fields\n        language: language_season_context\n        draft_id: validated_draft_result\n    output: audit_log_result\n\n  - id: terminate_success\n    op: terminate_workflow\n    params:\n      status: \"draft_created_successfully\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_sv_006.py::test_parses_and_type_checks": true,
+        "test_wf_sv_006.py::test_passes_taint_analysis": true,
+        "test_wf_sv_006.py::test_searches_all_knowledge_bases": false,
+        "test_wf_sv_006.py::test_has_classification": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1271,
+      "output_tokens": 1761
+    }
+  ],
+  "complexity": 4,
+  "domain": "community_sports",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1271,
+  "total_output_tokens": 1761
+}

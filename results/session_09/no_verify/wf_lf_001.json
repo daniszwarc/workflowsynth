@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_lf_001",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.5399449169635773,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: pdf_text_extraction_and_structure_detection\nsteps:\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      role: \"academic_reader\"\n    output: auth_result\n\n  - id: step_receive_pdf\n    op: fetch_api\n    params:\n      endpoint: \"/client/pdf/selected_file\"\n      mode: \"client_side\"\n    output: raw_pdf_data\n\n  - id: step_validate_pdf\n    op: validate_schema\n    params:\n      input: raw_pdf_data\n      schema: pdf_file_schema\n    output: validated_pdf\n\n  - id: step_iterate_pages\n    op: loop_records\n    params:\n      input: validated_pdf\n      iterator: \"pages\"\n    output: page_collection\n\n  - id: step_extract_text_items\n    op: extract_field\n    params:\n      input: page_collection\n      field: \"text_items_with_font_size\"\n    output: raw_text_items\n\n  - id: step_validate_text_items\n    op: validate_schema\n    params:\n      input: raw_text_items\n      schema: text_items_schema\n    output: validated_text_items\n\n  - id: step_compute_median_font_size\n    op: aggregate_data\n    params:\n      input: validated_text_items\n      group_by: \"all\"\n      operation: \"median\"\n      field: \"font_size\"\n    output: median_font_size\n\n  - id: step_merge_text_with_median\n    op: merge_datasets\n    params:\n      input: validated_text_items\n      secondary: median_font_size\n      key: \"constant\"\n    output: text_items_with_baseline\n\n  - id: step_apply_heading_rule\n    op: apply_rule\n    params:\n      rule: \"font_size_ratio_above_median_threshold\"\n      threshold: 1.3\n      input_ref: text_items_with_baseline\n    output: heading_classification\n\n  - id: step_filter_headings\n    op: filter_records\n    params:\n      input: text_items_with_baseline\n      condition: \"font_size > median_font_size * 1.3\"\n    output: detected_headings\n\n  - id: step_filter_body_text\n    op: filter_records\n    params:\n      input: text_items_with_baseline\n      condition: \"font_size <= median_font_size * 1.3\"\n    output: body_text\n\n  - id: step_transform_structured_output\n    op: transform_json\n    params:\n      input: detected_headings\n      mapping:\n        headings: \"detected_headings\"\n        body: \"body_text\"\n        classification: \"heading_classification\"\n      secondary_inputs:\n        body_text: body_text\n        heading_classification: heading_classification\n    output: structured_document\n\n  - id: step_format_result\n    op: format_output\n    params:\n      input: structured_document\n      format: \"json\"\n      locale: \"fr_FR\"\n    output: final_output\n\n  - id: step_log_extraction\n    op: log_audit\n    params:\n      input: final_output\n      action: \"pdf_text_extraction_completed\"\n      detail: \"Client-side PDF text extraction and heading structure detection\"\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: final_output\n      message: \"Extraction du texte et d\u00e9tection des titres termin\u00e9es avec succ\u00e8s.\"\n      channel: \"browser_ui\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_lf_001.py::test_parses_and_type_checks": true,
+        "test_wf_lf_001.py::test_passes_taint_analysis": true,
+        "test_wf_lf_001.py::test_applies_heading_rule": true,
+        "test_wf_lf_001.py::test_aggregates_font_sizes": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1136,
+      "output_tokens": 883
+    }
+  ],
+  "complexity": 2,
+  "domain": "personal_tool",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1136,
+  "total_output_tokens": 883
+}

@@ -1,0 +1,195 @@
+{
+  "task_id": "wf_btp_001",
+  "condition": "no_verify",
+  "success": false,
+  "attempts_used": 10,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 56.11470312438905,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: medical_pdf_upload_and_auto_naming\nsteps:\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/documents/upload\"\n    output: raw_upload\n\n  - id: step_authenticate_admin\n    op: authenticate_user\n    params:\n      role: \"admin\"\n    output: auth_result\n\n  - id: step_validate_pdf\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema:\n        type: \"pdf\"\n        max_size_mb: 50\n    output: validated_pdf\n\n  - id: step_send_to_vision_api\n    op: call_webhook\n    params:\n      input: validated_pdf\n      url: \"/ai/vision/generate-filename\"\n      method: \"POST\"\n    output: raw_vision_response\n\n  - id: step_extract_filename\n    op: extract_field\n    params:\n      input: raw_vision_response\n      field: \"standardized_filename\"\n    output: generated_filename\n\n  - id: step_transform_document\n    op: transform_json\n    params:\n      input: validated_pdf\n      mapping:\n        filename: generated_filename\n        content: \"$.document_content\"\n        metadata: \"$.metadata\"\n    output: named_document\n\n  - id: step_encrypt_content\n    op: encrypt_field\n    params:\n      input: named_document\n      field: \"content\"\n      algorithm: \"AES-256\"\n    output: encrypted_document\n\n  - id: step_write_to_store\n    op: write_database\n    params:\n      input: encrypted_document\n      table: \"medical_document_store\"\n    output: write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: encrypted_document\n      action: \"pdf_upload\"\n      details:\n        user: auth_result\n        filename: generated_filename\n        status: write_result\n    output: audit_entry",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_btp_001.py::test_parses_and_type_checks": false,
+        "test_wf_btp_001.py::test_passes_taint_analysis": true,
+        "test_wf_btp_001.py::test_auth_before_upload": true,
+        "test_wf_btp_001.py::test_encrypts_before_storage": true,
+        "test_wf_btp_001.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1159,
+      "output_tokens": 492
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: medical_pdf_upload_and_auto_naming\nsteps:\n  - id: step_authenticate_admin\n    op: authenticate_user\n    params:\n      role: \"admin\"\n    output: auth_result\n\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/documents/upload\"\n    output: raw_upload\n\n  - id: step_validate_pdf\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema:\n        type: \"pdf\"\n        max_size_mb: 50\n    output: validated_pdf\n\n  - id: step_send_to_vision_api\n    op: call_webhook\n    params:\n      input: validated_pdf\n      url: \"/ai/vision/generate-filename\"\n      method: \"POST\"\n    output: raw_vision_response\n\n  - id: step_extract_filename\n    op: extract_field\n    params:\n      input: raw_vision_response\n      field: \"standardized_filename\"\n    output: generated_filename\n\n  - id: step_transform_document\n    op: transform_json\n    params:\n      input: validated_pdf\n      mapping:\n        filename: \"generated_filename\"\n        content: \"$.document_content\"\n        metadata: \"$.metadata\"\n    output: named_document\n\n  - id: step_encrypt_content\n    op: encrypt_field\n    params:\n      input: named_document\n      field: \"content\"\n      algorithm: \"AES-256\"\n    output: encrypted_document\n\n  - id: step_write_to_store\n    op: write_database\n    params:\n      input: encrypted_document\n      table: \"medical_document_store\"\n    output: write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: encrypted_document\n      action: \"pdf_upload\"\n      details:\n        user: \"auth_result\"\n        filename: \"generated_filename\"\n        status: \"write_result\"\n    output: audit_entry",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_btp_001.py::test_parses_and_type_checks": false,
+        "test_wf_btp_001.py::test_passes_taint_analysis": true,
+        "test_wf_btp_001.py::test_auth_before_upload": true,
+        "test_wf_btp_001.py::test_encrypts_before_storage": true,
+        "test_wf_btp_001.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1737,
+      "output_tokens": 500
+    },
+    {
+      "attempt_number": 2,
+      "llm_sketch": "workflow_id: medical_pdf_upload_and_auto_naming\nsteps:\n  - id: step_authenticate_admin\n    op: authenticate_user\n    params:\n      role: \"admin\"\n    output: auth_result\n\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/documents/upload\"\n    output: raw_upload\n\n  - id: step_validate_pdf\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema:\n        type: \"pdf\"\n        max_size_mb: 50\n    output: validated_pdf\n\n  - id: step_send_to_vision_api\n    op: call_webhook\n    params:\n      input: validated_pdf\n      url: \"https://ai-platform.internal/ai/vision/generate-filename\"\n      method: \"POST\"\n    output: raw_vision_response\n\n  - id: step_validate_vision_response\n    op: validate_schema\n    params:\n      input: raw_vision_response\n      schema:\n        type: \"object\"\n        required:\n          - \"standardized_filename\"\n    output: validated_vision_response\n\n  - id: step_extract_filename\n    op: extract_field\n    params:\n      input: validated_vision_response\n      field: \"standardized_filename\"\n    output: generated_filename\n\n  - id: step_transform_document\n    op: transform_json\n    params:\n      input: validated_pdf\n      mapping:\n        filename: \"generated_filename\"\n        content: \"$.document_content\"\n        metadata: \"$.metadata\"\n    output: named_document\n\n  - id: step_encrypt_content\n    op: encrypt_field\n    params:\n      input: named_document\n      field: \"content\"\n      algorithm: \"AES-256\"\n    output: encrypted_document\n\n  - id: step_write_to_store\n    op: write_database\n    params:\n      input: encrypted_document\n      table: \"medical_document_store\"\n    output: write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: write_result\n      action: \"pdf_upload\"\n      details:\n        user: \"auth_result\"\n        filename: \"generated_filename\"\n        status: \"success\"\n    output: audit_entry",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_btp_001.py::test_parses_and_type_checks": false,
+        "test_wf_btp_001.py::test_passes_taint_analysis": true,
+        "test_wf_btp_001.py::test_auth_before_upload": true,
+        "test_wf_btp_001.py::test_encrypts_before_storage": true,
+        "test_wf_btp_001.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1745,
+      "output_tokens": 571
+    },
+    {
+      "attempt_number": 3,
+      "llm_sketch": "workflow_id: medical_pdf_upload_and_auto_naming\nsteps:\n  - id: step_authenticate_admin\n    op: authenticate_user\n    params:\n      role: \"admin\"\n    output: auth_result\n\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/documents/upload\"\n    output: raw_upload\n\n  - id: step_validate_pdf\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema:\n        type: \"pdf\"\n        max_size_mb: 50\n    output: validated_pdf\n\n  - id: step_send_to_vision_api\n    op: call_webhook\n    params:\n      input: validated_pdf\n      url: \"https://ai-platform.internal/ai/vision/generate-filename\"\n      method: \"POST\"\n    output: raw_vision_response\n\n  - id: step_validate_vision_response\n    op: validate_schema\n    params:\n      input: raw_vision_response\n      schema:\n        type: \"object\"\n        required:\n          - \"standardized_filename\"\n    output: validated_vision_response\n\n  - id: step_extract_filename\n    op: extract_field\n    params:\n      input: validated_vision_response\n      field: \"standardized_filename\"\n    output: generated_filename\n\n  - id: step_transform_document\n    op: transform_json\n    params:\n      input: validated_pdf\n      mapping:\n        filename: \"generated_filename\"\n        content: \"$.document_content\"\n        metadata: \"$.metadata\"\n    output: named_document\n\n  - id: step_encrypt_content\n    op: encrypt_field\n    params:\n      input: named_document\n      field: \"content\"\n      algorithm: \"AES-256\"\n    output: encrypted_document\n\n  - id: step_write_to_store\n    op: write_database\n    params:\n      input: encrypted_document\n      table: \"medical_document_store\"\n    output: write_result\n\n  - id: step_extract_write_info\n    op: extract_field\n    params:\n      input: write_result\n      field: \"record_id\"\n    output: sanitized_write_info\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: sanitized_write_info\n      action: \"pdf_upload\"\n      details:\n        user: \"auth_result\"\n        filename: \"generated_filename\"\n        status: \"success\"\n    output: audit_entry",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_btp_001.py::test_parses_and_type_checks": false,
+        "test_wf_btp_001.py::test_passes_taint_analysis": true,
+        "test_wf_btp_001.py::test_auth_before_upload": true,
+        "test_wf_btp_001.py::test_encrypts_before_storage": true,
+        "test_wf_btp_001.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1816,
+      "output_tokens": 623
+    },
+    {
+      "attempt_number": 4,
+      "llm_sketch": "workflow_id: medical_pdf_upload_and_auto_naming\nsteps:\n  - id: step_authenticate_admin\n    op: authenticate_user\n    params:\n      role: \"admin\"\n    output: auth_result\n\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/documents/upload\"\n    output: raw_upload\n\n  - id: step_validate_pdf\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema:\n        type: \"pdf\"\n        max_size_mb: 50\n    output: validated_pdf\n\n  - id: step_send_to_vision_api\n    op: call_webhook\n    params:\n      input: validated_pdf\n      url: \"https://ai-platform.internal/ai/vision/generate-filename\"\n      method: \"POST\"\n    output: raw_vision_response\n\n  - id: step_validate_vision_response\n    op: validate_schema\n    params:\n      input: raw_vision_response\n      schema:\n        type: \"object\"\n        required:\n          - \"standardized_filename\"\n    output: validated_vision_response\n\n  - id: step_extract_filename\n    op: extract_field\n    params:\n      input: validated_vision_response\n      field: \"standardized_filename\"\n    output: generated_filename\n\n  - id: step_transform_document\n    op: transform_json\n    params:\n      input: validated_pdf\n      mapping:\n        filename: \"generated_filename\"\n        content: \"$.document_content\"\n        metadata: \"$.metadata\"\n    output: named_document\n\n  - id: step_encrypt_content\n    op: encrypt_field\n    params:\n      input: named_document\n      field: \"content\"\n      algorithm: \"AES-256\"\n    output: encrypted_document\n\n  - id: step_write_to_store\n    op: write_database\n    params:\n      input: encrypted_document\n      table: \"medical_document_store\"\n    output: write_result\n\n  - id: step_extract_write_info\n    op: extract_field\n    params:\n      input: write_result\n      field: \"record_id\"\n    output: sanitized_write_info\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: sanitized_write_info\n      action: \"pdf_upload\"\n      user: \"auth_result\"\n      filename: \"generated_filename\"\n      status: \"success\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_btp_001.py::test_parses_and_type_checks": false,
+        "test_wf_btp_001.py::test_passes_taint_analysis": true,
+        "test_wf_btp_001.py::test_auth_before_upload": true,
+        "test_wf_btp_001.py::test_encrypts_before_storage": true,
+        "test_wf_btp_001.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1868,
+      "output_tokens": 612
+    },
+    {
+      "attempt_number": 5,
+      "llm_sketch": "workflow_id: medical_pdf_upload_and_auto_naming\nsteps:\n  - id: step_authenticate_admin\n    op: authenticate_user\n    params:\n      role: \"admin\"\n    output: auth_result\n\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/documents/upload\"\n    output: raw_upload\n\n  - id: step_validate_pdf\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema:\n        type: \"pdf\"\n        max_size_mb: 50\n    output: validated_pdf\n\n  - id: step_send_to_vision_api\n    op: call_webhook\n    params:\n      input: validated_pdf\n      url: \"https://ai-platform.internal/ai/vision/generate-filename\"\n      method: \"POST\"\n    output: raw_vision_response\n\n  - id: step_validate_vision_response\n    op: validate_schema\n    params:\n      input: raw_vision_response\n      schema:\n        type: \"object\"\n        required:\n          - \"standardized_filename\"\n    output: validated_vision_response\n\n  - id: step_extract_filename\n    op: extract_field\n    params:\n      input: validated_vision_response\n      field: \"standardized_filename\"\n    output: generated_filename\n\n  - id: step_transform_document\n    op: transform_json\n    params:\n      input: validated_pdf\n      mapping:\n        filename: \"generated_filename\"\n        content: \"$.document_content\"\n        metadata: \"$.metadata\"\n    output: named_document\n\n  - id: step_encrypt_content\n    op: encrypt_field\n    params:\n      input: named_document\n      field: \"content\"\n      algorithm: \"AES-256\"\n    output: encrypted_document\n\n  - id: step_write_to_store\n    op: write_database\n    params:\n      input: encrypted_document\n      table: \"medical_document_store\"\n    output: write_result\n\n  - id: step_extract_write_info\n    op: extract_field\n    params:\n      input: write_result\n      field: \"record_id\"\n    output: sanitized_write_info\n\n  - id: step_format_audit_entry\n    op: transform_json\n    params:\n      input: sanitized_write_info\n      mapping:\n        action: \"pdf_upload\"\n        user: \"auth_result\"\n        filename: \"generated_filename\"\n        record_id: \"$.record_id\"\n        status: \"success\"\n    output: audit_entry\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: audit_entry\n      action: \"pdf_upload\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_btp_001.py::test_parses_and_type_checks": false,
+        "test_wf_btp_001.py::test_passes_taint_analysis": true,
+        "test_wf_btp_001.py::test_auth_before_upload": true,
+        "test_wf_btp_001.py::test_encrypts_before_storage": true,
+        "test_wf_btp_001.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1857,
+      "output_tokens": 674
+    },
+    {
+      "attempt_number": 6,
+      "llm_sketch": "workflow_id: medical_pdf_upload_and_auto_naming\nsteps:\n  - id: step_authenticate_admin\n    op: authenticate_user\n    params:\n      role: \"admin\"\n    output: auth_result\n\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/documents/upload\"\n    output: raw_upload\n\n  - id: step_validate_pdf\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema:\n        type: \"pdf\"\n        max_size_mb: 50\n    output: validated_pdf\n\n  - id: step_send_to_vision_api\n    op: call_webhook\n    params:\n      input: validated_pdf\n      url: \"https://ai-platform.internal/ai/vision/generate-filename\"\n      method: \"POST\"\n    output: raw_vision_response\n\n  - id: step_validate_vision_response\n    op: validate_schema\n    params:\n      input: raw_vision_response\n      schema:\n        type: \"object\"\n        required:\n          - \"standardized_filename\"\n    output: validated_vision_response\n\n  - id: step_extract_filename\n    op: extract_field\n    params:\n      input: validated_vision_response\n      field: \"standardized_filename\"\n    output: generated_filename\n\n  - id: step_transform_document\n    op: transform_json\n    params:\n      input: validated_pdf\n      mapping:\n        filename: \"generated_filename\"\n        content: \"$.document_content\"\n        metadata: \"$.metadata\"\n    output: named_document\n\n  - id: step_encrypt_content\n    op: encrypt_field\n    params:\n      input: named_document\n      field: \"content\"\n      algorithm: \"AES-256\"\n    output: encrypted_document\n\n  - id: step_write_to_store\n    op: write_database\n    params:\n      input: encrypted_document\n      table: \"medical_document_store\"\n    output: write_result\n\n  - id: step_sanitize_write_result\n    op: transform_json\n    params:\n      input: write_result\n      mapping:\n        action: \"pdf_upload\"\n        user: \"auth_result.user_id\"\n        filename: \"generated_filename\"\n        record_id: \"$.record_id\"\n        status: \"success\"\n    output: audit_entry\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: audit_entry\n      action: \"pdf_upload\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_btp_001.py::test_parses_and_type_checks": false,
+        "test_wf_btp_001.py::test_passes_taint_analysis": true,
+        "test_wf_btp_001.py::test_auth_before_upload": true,
+        "test_wf_btp_001.py::test_encrypts_before_storage": true,
+        "test_wf_btp_001.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1919,
+      "output_tokens": 627
+    },
+    {
+      "attempt_number": 7,
+      "llm_sketch": "workflow_id: medical_pdf_upload_and_auto_naming\nsteps:\n  - id: step_authenticate_admin\n    op: authenticate_user\n    params:\n      role: \"admin\"\n    output: auth_result\n\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/documents/upload\"\n    output: raw_upload\n\n  - id: step_validate_pdf\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema:\n        type: \"pdf\"\n        max_size_mb: 50\n    output: validated_pdf\n\n  - id: step_send_to_vision_api\n    op: call_webhook\n    params:\n      input: validated_pdf\n      url: \"https://ai-platform.internal/ai/vision/generate-filename\"\n      method: \"POST\"\n    output: raw_vision_response\n\n  - id: step_validate_vision_response\n    op: validate_schema\n    params:\n      input: raw_vision_response\n      schema:\n        type: \"object\"\n        required:\n          - \"standardized_filename\"\n    output: validated_vision_response\n\n  - id: step_extract_filename\n    op: extract_field\n    params:\n      input: validated_vision_response\n      field: \"standardized_filename\"\n    output: generated_filename\n\n  - id: step_transform_document\n    op: transform_json\n    params:\n      input: validated_pdf\n      mapping:\n        filename: \"generated_filename\"\n        content: \"$.document_content\"\n        metadata: \"$.metadata\"\n    output: named_document\n\n  - id: step_encrypt_content\n    op: encrypt_field\n    params:\n      input: named_document\n      field: \"content\"\n      algorithm: \"AES-256\"\n    output: encrypted_document\n\n  - id: step_write_to_store\n    op: write_database\n    params:\n      input: encrypted_document\n      table: \"medical_document_store\"\n    output: write_result\n\n  - id: step_prepare_audit_entry\n    op: transform_json\n    params:\n      input: encrypted_document\n      mapping:\n        action: \"pdf_upload\"\n        user: \"auth_result.user_id\"\n        filename: \"generated_filename\"\n        status: \"success\"\n    output: audit_entry\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: audit_entry\n      action: \"pdf_upload\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_btp_001.py::test_parses_and_type_checks": false,
+        "test_wf_btp_001.py::test_passes_taint_analysis": true,
+        "test_wf_btp_001.py::test_auth_before_upload": true,
+        "test_wf_btp_001.py::test_encrypts_before_storage": true,
+        "test_wf_btp_001.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1872,
+      "output_tokens": 614
+    },
+    {
+      "attempt_number": 8,
+      "llm_sketch": "workflow_id: medical_pdf_upload_and_auto_naming\nsteps:\n  - id: step_authenticate_admin\n    op: authenticate_user\n    params:\n      role: admin\n    output: auth_result\n\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: /api/documents/upload\n    output: raw_upload\n\n  - id: step_validate_pdf\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema: medical_pdf_upload_schema\n    output: validated_pdf\n\n  - id: step_send_to_vision_api\n    op: call_webhook\n    params:\n      input: validated_pdf\n      url: https://ai-platform.internal/ai/vision/generate-filename\n      method: POST\n    output: raw_vision_response\n\n  - id: step_validate_vision_response\n    op: validate_schema\n    params:\n      input: raw_vision_response\n      schema: vision_filename_response_schema\n    output: validated_vision_response\n\n  - id: step_extract_filename\n    op: extract_field\n    params:\n      input: validated_vision_response\n      field: standardized_filename\n    output: generated_filename\n\n  - id: step_transform_document\n    op: transform_json\n    params:\n      input: validated_pdf\n      mapping:\n        filename: generated_filename\n        content: document_content\n        metadata: metadata\n    output: named_document\n\n  - id: step_encrypt_content\n    op: encrypt_field\n    params:\n      input: named_document\n      field: content\n      algorithm: AES-256\n    output: encrypted_document\n\n  - id: step_write_to_store\n    op: write_database\n    params:\n      input: encrypted_document\n      table: medical_document_store\n    output: write_result\n\n  - id: step_prepare_audit_entry\n    op: transform_json\n    params:\n      input: encrypted_document\n      mapping:\n        action: pdf_upload\n        user_id: auth_result\n        filename: generated_filename\n        status: success\n    output: audit_entry\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: audit_entry\n      action: pdf_upload",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_btp_001.py::test_parses_and_type_checks": false,
+        "test_wf_btp_001.py::test_passes_taint_analysis": true,
+        "test_wf_btp_001.py::test_auth_before_upload": true,
+        "test_wf_btp_001.py::test_encrypts_before_storage": true,
+        "test_wf_btp_001.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1577,
+      "output_tokens": 466
+    },
+    {
+      "attempt_number": 9,
+      "llm_sketch": "workflow_id: medical_pdf_upload_and_auto_naming\nsteps:\n  - id: step_authenticate_admin\n    op: authenticate_user\n    params:\n      role: admin\n    output: auth_result\n\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: /api/documents/upload\n    output: raw_upload\n\n  - id: step_validate_pdf\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema: medical_pdf_upload_schema\n    output: validated_pdf\n\n  - id: step_call_vision_api\n    op: call_webhook\n    params:\n      input: validated_pdf\n      url: https://ai-platform.internal/ai/vision/generate-filename\n      method: POST\n    output: raw_vision_response\n\n  - id: step_validate_vision_response\n    op: validate_schema\n    params:\n      input: raw_vision_response\n      schema: vision_filename_response_schema\n    output: validated_vision_response\n\n  - id: step_extract_filename\n    op: extract_field\n    params:\n      input: validated_vision_response\n      field: standardized_filename\n    output: generated_filename_record\n\n  - id: step_prepare_named_document\n    op: transform_json\n    params:\n      input: validated_pdf\n      mapping:\n        filename:\n          from: generated_filename_record.standardized_filename\n        content:\n          from: document_content\n        metadata:\n          from: metadata\n    output: named_document\n\n  - id: step_encrypt_content\n    op: encrypt_field\n    params:\n      input: named_document\n      field: content\n      algorithm: AES-256\n    output: encrypted_document\n\n  - id: step_write_to_store\n    op: write_database\n    params:\n      input: encrypted_document\n      table: medical_document_store\n    output: write_result\n\n  - id: step_prepare_audit_entry\n    op: transform_json\n    params:\n      input: encrypted_document\n      mapping:\n        action:\n          value: pdf_upload\n        user_auth:\n          from: auth_result\n        filename:\n          from: filename\n        status:\n          value: success\n    output: audit_entry\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: audit_entry\n      action: pdf_upload",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_btp_001.py::test_parses_and_type_checks": false,
+        "test_wf_btp_001.py::test_passes_taint_analysis": true,
+        "test_wf_btp_001.py::test_auth_before_upload": true,
+        "test_wf_btp_001.py::test_encrypts_before_storage": true,
+        "test_wf_btp_001.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1538,
+      "output_tokens": 491
+    }
+  ],
+  "complexity": 3,
+  "domain": "clinical_ai",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 17088,
+  "total_output_tokens": 5670
+}

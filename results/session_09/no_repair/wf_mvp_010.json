@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_mvp_010",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 2,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "type_error",
+  "synthesis_time_seconds": 0.003936999477446079,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: post_install_geocoding_service_partner_lookup\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"installation_registrar\"\n    output: auth_result\n\n  - id: step_receive_registration\n    op: fetch_api\n    params:\n      endpoint: \"/api/registrations/post-install\"\n    output: raw_registration\n\n  - id: step_validate_registration\n    op: validate_schema\n    params:\n      input: raw_registration\n      schema: installation_registration_schema\n    output: validated_registration\n\n  - id: step_extract_address\n    op: extract_field\n    params:\n      input: validated_registration\n      field: \"installation_address\"\n    output: installation_address\n\n  - id: step_geocode_address\n    op: call_webhook\n    params:\n      input: installation_address\n      url: \"https://maps.example.com/api/geocode\"\n      method: \"POST\"\n    output: raw_geocode_response\n\n  - id: step_extract_coordinates\n    op: extract_field\n    params:\n      input: raw_geocode_response\n      field: \"coordinates\"\n    output: coordinates\n\n  - id: step_read_service_partners\n    op: read_database\n    params:\n      table: \"authorized_service_partners\"\n      filter: \"status = 'active'\"\n    output: raw_service_partners\n\n  - id: step_validate_partners\n    op: validate_schema\n    params:\n      input: raw_service_partners\n      schema: service_partner_schema\n    output: validated_partners\n\n  - id: step_apply_haversine_rule\n    op: loop_records\n    params:\n      input: validated_partners\n      step: step_compute_distance\n    output: partners_with_distance\n\n  - id: step_compute_distance\n    op: apply_rule\n    params:\n      rule: \"haversine_distance\"\n      installation_coordinates: coordinates\n      partner_input: validated_partners\n    output: partner_distance_result\n\n  - id: step_filter_within_threshold\n    op: filter_records\n    params:\n      input: partners_with_distance\n      condition: \"distance_km <= max_distance_threshold\"\n    output: nearby_partners\n\n  - id: step_aggregate_nearest\n    op: aggregate_data\n    params:\n      input: nearby_partners\n      group_by: \"partner_id\"\n      operation: \"min\"\n      field: \"distance_km\"\n    output: nearest_partner\n\n  - id: step_format_result\n    op: format_output\n    params:\n      input: nearest_partner\n      format: \"json\"\n      template: \"service_partner_details\"\n    output: formatted_partner_details\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_partner_details\n      event: \"post_install_service_partner_lookup\"\n      registration: validated_registration\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: formatted_partner_details\n      recipient: \"installation_registrar\"\n      message: \"Nearest authorized service partner identified for installation site.\"\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      output: formatted_partner_details",
+      "dsl_type_errors": [
+        "Step 'step_filter_within_threshold': op 'filter_records' requires input of type 'records' but 'partners_with_distance' has type 'none'. Make sure the step producing 'partners_with_distance' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database).",
+        "Step 'step_format_result': op 'format_output' requires input of type 'records' but 'nearest_partner' has type 'record'. Make sure the step producing 'nearest_partner' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1141,
+      "output_tokens": 815
+    }
+  ],
+  "complexity": 4,
+  "domain": "manufacturing",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1141,
+  "total_output_tokens": 815
+}

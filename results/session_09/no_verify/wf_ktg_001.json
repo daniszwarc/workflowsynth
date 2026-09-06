@@ -1,0 +1,59 @@
+{
+  "task_id": "wf_ktg_001",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 16.19874058291316,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: claim_claimant_intake\nsteps:\n  - id: receive_intake_form\n    op: fetch_api\n    params:\n      endpoint: \"/api/intake/claimant-form\"\n    output: raw_intake_form\n\n  - id: authenticate_case_staff\n    op: authenticate_user\n    params:\n      role: \"case_staff\"\n    output: auth_result\n\n  - id: validate_intake_fields\n    op: validate_schema\n    params:\n      input: raw_intake_form\n      schema: claimant_intake_schema\n    output: validated_intake\n\n  - id: extract_tenant_id\n    op: extract_field\n    params:\n      input: validated_intake\n      field: \"client_database_id\"\n    output: tenant_id\n\n  - id: apply_tenant_branching\n    op: apply_rule\n    params:\n      rule: \"select_field_list_by_tenant\"\n      tenant_id: tenant_id\n    output: tenant_field_config\n\n  - id: transform_intake_for_tenant\n    op: transform_json\n    params:\n      input: validated_intake\n      mapping: tenant_field_config\n    output: tenant_shaped_intake\n\n  - id: fetch_max_claimant_id\n    op: read_database\n    params:\n      table: \"claimants\"\n      query: \"SELECT MAX(claimant_id) AS max_id\"\n    output: raw_max_claimant_id\n\n  - id: sanitize_max_claimant_id\n    op: extract_field\n    params:\n      input: raw_max_claimant_id\n      field: \"max_id\"\n    output: current_max_id\n\n  - id: compute_next_claimant_id\n    op: transform_json\n    params:\n      input: current_max_id\n      mapping:\n        next_claimant_id: \"current_max_id + 1\"\n    output: next_claimant_id\n\n  - id: merge_claimant_record\n    op: merge_datasets\n    params:\n      input_left: tenant_shaped_intake\n      input_right: next_claimant_id\n      key: \"_synthetic\"\n    output: claimant_record\n\n  - id: handle_global_error\n    op: handle_error\n    params:\n      monitored_steps:\n        - insert_claimant_record\n        - insert_case_stub\n        - insert_icd_placeholders\n        - insert_rtw_placeholders\n        - insert_tickler_followup\n      on_error: error_notify_staff\n\n  - id: insert_claimant_record\n    op: write_database\n    params:\n      input: claimant_record\n      table: \"claimants\"\n    output: claimant_write_result\n\n  - id: build_case_stub\n    op: transform_json\n    params:\n      input: claimant_record\n      mapping:\n        claimant_id: \"next_claimant_id\"\n        case_type: \"workers_comp\"\n        status: \"open\"\n    output: case_stub\n\n  - id: insert_case_stub\n    op: write_database\n    params:\n      input: case_stub\n      table: \"wc_cases\"\n    output: case_write_result\n\n  - id: build_icd_placeholders\n    op: transform_json\n    params:\n      input: claimant_record\n      mapping:\n        claimant_id: \"next_claimant_id\"\n        icd_code: null\n        description: \"Pending\"\n    output: icd_placeholders\n\n  - id: insert_icd_placeholders\n    op: write_database\n    params:\n      input: icd_placeholders\n      table: \"icd_codes\"\n    output: icd_write_result\n\n  - id: build_rtw_placeholders\n    op: transform_json\n    params:\n      input: claimant_record\n      mapping:\n        claimant_id: \"next_claimant_id\"\n        rtw_status: \"pending\"\n        target_date: null\n    output: rtw_placeholders\n\n  - id: insert_rtw_placeholders\n    op: write_database\n    params:\n      input: rtw_placeholders\n      table: \"return_to_work\"\n    output: rtw_write_result\n\n  - id: log_new_patient_activity\n    op: log_audit\n    params:\n      input: claimant_record\n      event: \"New Patient Set Up\"\n      details:\n        claimant_id: \"next_claimant_id\"\n        submitted_by: auth_result\n\n  - id: build_tickler_followup\n    op: transform_json\n    params:\n      input: claimant_record\n      mapping:\n        claimant_id: \"next_claimant_id\"\n        followup_type: \"default_intake\"\n        status: \"pending\"\n        days_out: 30\n    output: tickler_record\n\n  - id: insert_tickler_followup\n    op: write_database\n    params:\n      input: tickler_record\n      table: \"tickler_followups\"\n    output: tickler_write_result\n\n  - id: error_notify_staff\n    op: notify_user\n    params:\n      input: validated_intake\n      recipient: \"internal_staff\"\n      method: \"email\"\n      subject: \"Claimant Intake Failure - Full Form Dump\"\n      body: \"The claimant intake process failed. Attached is the full form submission for review.\"\n\n  - id: complete_workflow\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Claimant intake and tickler follow-up successfully created.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ktg_001.py::test_parses_and_type_checks": false,
+        "test_wf_ktg_001.py::test_passes_taint_analysis": true,
+        "test_wf_ktg_001.py::test_applies_tenant_branching": true,
+        "test_wf_ktg_001.py::test_writes_multiple_tables": true,
+        "test_wf_ktg_001.py::test_logs_activity": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1207,
+      "output_tokens": 1418
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: claim_claimant_intake\nsteps:\n  - id: receive_intake_form\n    op: fetch_api\n    params:\n      endpoint: \"/api/intake/claimant-form\"\n    output: raw_intake_form\n\n  - id: authenticate_case_staff\n    op: authenticate_user\n    params:\n      role: \"case_staff\"\n    output: auth_result\n\n  - id: validate_intake_fields\n    op: validate_schema\n    params:\n      input: raw_intake_form\n      schema: claimant_intake_schema\n    output: validated_intake\n\n  - id: extract_tenant_id\n    op: extract_field\n    params:\n      input: validated_intake\n      field: \"client_database_id\"\n    output: tenant_id\n\n  - id: apply_tenant_branching\n    op: apply_rule\n    params:\n      rule: \"select_field_list_by_tenant\"\n      input: tenant_id\n    output: tenant_field_config\n\n  - id: transform_intake_for_tenant\n    op: transform_json\n    params:\n      input: validated_intake\n      mapping: tenant_field_config\n    output: tenant_shaped_intake\n\n  - id: fetch_max_claimant_id\n    op: read_database\n    params:\n      table: \"claimants\"\n      query: \"SELECT MAX(claimant_id) AS max_id\"\n    output: raw_max_claimant_id\n\n  - id: sanitize_max_claimant_id\n    op: extract_field\n    params:\n      input: raw_max_claimant_id\n      field: \"max_id\"\n    output: current_max_id\n\n  - id: compute_next_claimant_id\n    op: transform_json\n    params:\n      input: current_max_id\n      mapping:\n        next_claimant_id: \"current_max_id + 1\"\n    output: next_claimant_id\n\n  - id: merge_claimant_record\n    op: merge_datasets\n    params:\n      input: tenant_shaped_intake\n      input_right: next_claimant_id\n      key: \"_synthetic\"\n    output: claimant_record\n\n  - id: handle_global_error\n    op: handle_error\n    params:\n      monitored_steps:\n        - insert_claimant_record\n        - insert_case_stub\n        - insert_icd_placeholders\n        - insert_rtw_placeholders\n        - insert_tickler_followup\n      on_error: error_notify_staff\n\n  - id: insert_claimant_record\n    op: write_database\n    params:\n      input: claimant_record\n      table: \"claimants\"\n    output: claimant_write_result\n\n  - id: build_case_stub\n    op: transform_json\n    params:\n      input: claimant_record\n      mapping:\n        claimant_id: \"next_claimant_id\"\n        case_type: \"workers_comp\"\n        status: \"open\"\n    output: case_stub\n\n  - id: insert_case_stub\n    op: write_database\n    params:\n      input: case_stub\n      table: \"wc_cases\"\n    output: case_write_result\n\n  - id: build_icd_placeholders\n    op: transform_json\n    params:\n      input: claimant_record\n      mapping:\n        claimant_id: \"next_claimant_id\"\n        icd_code: \"null\"\n        description: \"Pending\"\n    output: icd_placeholders\n\n  - id: insert_icd_placeholders\n    op: write_database\n    params:\n      input: icd_placeholders\n      table: \"icd_codes\"\n    output: icd_write_result\n\n  - id: build_rtw_placeholders\n    op: transform_json\n    params:\n      input: claimant_record\n      mapping:\n        claimant_id: \"next_claimant_id\"\n        rtw_status: \"pending\"\n        target_date: \"null\"\n    output: rtw_placeholders\n\n  - id: insert_rtw_placeholders\n    op: write_database\n    params:\n      input: rtw_placeholders\n      table: \"return_to_work\"\n    output: rtw_write_result\n\n  - id: log_new_patient_activity\n    op: log_audit\n    params:\n      input: claimant_record\n      event: \"New Patient Set Up\"\n      details:\n        claimant_id: \"next_claimant_id\"\n        submitted_by: \"auth_result\"\n\n  - id: build_tickler_followup\n    op: transform_json\n    params:\n      input: claimant_record\n      mapping:\n        claimant_id: \"next_claimant_id\"\n        followup_type: \"default_intake\"\n        status: \"pending\"\n        days_out: 30\n    output: tickler_record\n\n  - id: insert_tickler_followup\n    op: write_database\n    params:\n      input: tickler_record\n      table: \"tickler_followups\"\n    output: tickler_write_result\n\n  - id: error_notify_staff\n    op: notify_user\n    params:\n      input: validated_intake\n      recipient: \"internal_staff\"\n      method: \"email\"\n      subject: \"Claimant Intake Failure - Full Form Dump\"\n      body: \"The claimant intake process failed. Attached is the full form submission for review.\"\n\n  - id: complete_workflow\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Claimant intake and tickler follow-up successfully created.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ktg_001.py::test_parses_and_type_checks": true,
+        "test_wf_ktg_001.py::test_passes_taint_analysis": true,
+        "test_wf_ktg_001.py::test_applies_tenant_branching": true,
+        "test_wf_ktg_001.py::test_writes_multiple_tables": true,
+        "test_wf_ktg_001.py::test_logs_activity": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 2711,
+      "output_tokens": 1420
+    }
+  ],
+  "complexity": 4,
+  "domain": "workers_compensation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 3918,
+  "total_output_tokens": 2838
+}

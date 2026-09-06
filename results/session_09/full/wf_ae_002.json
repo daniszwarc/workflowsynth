@@ -1,0 +1,54 @@
+{
+  "task_id": "wf_ae_002",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 13.024567999877036,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: article_category_matching\nsteps:\n  - id: authenticate_drive_access\n    op: authenticate_user\n    params:\n      role: \"editorial_pipeline\"\n    output: auth_result\n\n  - id: fetch_category_spreadsheet\n    op: fetch_api\n    params:\n      endpoint: \"/integrations/google-drive/category-spreadsheet\"\n    output: raw_spreadsheet\n\n  - id: validate_spreadsheet_schema\n    op: validate_schema\n    params:\n      input: raw_spreadsheet\n      schema: category_spreadsheet_schema\n    output: validated_spreadsheet\n\n  - id: read_extracted_article\n    op: read_database\n    params:\n      table: extracted_articles\n      filter: \"status = 'pending_category'\"\n    output: raw_article\n\n  - id: validate_article_schema\n    op: validate_schema\n    params:\n      input: raw_article\n      schema: extracted_article_schema\n    output: validated_article\n\n  - id: extract_article_title\n    op: extract_field\n    params:\n      input: validated_article\n      field: \"title\"\n    output: article_title\n\n  - id: normalise_article_title\n    op: transform_json\n    params:\n      input: article_title\n      mapping:\n        normalised_title: \"lowercase(strip_accents(strip_non_alphanumeric(value)))\"\n    output: normalised_article_title\n\n  - id: normalise_spreadsheet_titles\n    op: loop_records\n    params:\n      input: validated_spreadsheet\n      step: normalise_single_spreadsheet_row\n    output: normalised_spreadsheet\n\n  - id: normalise_single_spreadsheet_row\n    op: transform_json\n    params:\n      input: validated_spreadsheet\n      mapping:\n        normalised_title: \"lowercase(strip_accents(strip_non_alphanumeric(title)))\"\n        category: \"category\"\n        section: \"section\"\n        original_title: \"title\"\n    output: normalised_row\n\n  - id: apply_fuzzy_match_rule\n    op: apply_rule\n    params:\n      rule: \"fuzzy_match\"\n      article_title: normalised_article_title\n      candidates: normalised_spreadsheet\n      match_field: \"normalised_title\"\n      threshold: 0.85\n    output: match_result\n\n  - id: check_match_found\n    op: route_to_step\n    params:\n      condition: \"match_result.matched == true\"\n      true_step: extract_matched_category\n      false_step: apply_default_category\n\n  - id: extract_matched_category\n    op: extract_field\n    params:\n      input: match_result\n      field: \"matched_row\"\n    output: matched_category_data\n\n  - id: build_matched_assignment\n    op: transform_json\n    params:\n      input: matched_category_data\n      mapping:\n        article_id: \"validated_article.id\"\n        category: \"category\"\n        section: \"section\"\n        needs_review: false\n    output: category_assignment\n\n  - id: route_to_write_matched\n    op: route_to_step\n    params:\n      condition: \"true\"\n      true_step: write_category_assignment\n      false_step: write_category_assignment\n\n  - id: apply_default_category\n    op: apply_rule\n    params:\n      rule: \"assign_defaults\"\n      defaults:\n        category: \"Ciencia economica\"\n        section: \"Dossier\"\n        needs_review: true\n      article_id: validated_article\n    output: default_result\n\n  - id: build_default_assignment\n    op: transform_json\n    params:\n      input: default_result\n      mapping:\n        article_id: \"validated_article.id\"\n        category: \"defaults.category\"\n        section: \"defaults.section\"\n        needs_review: true\n    output: category_assignment\n\n  - id: notify_editorial_review\n    op: notify_user\n    params:\n      input: category_assignment\n      recipient: \"editorial_team\"\n      message: \"Article requires manual category review \u2014 no fuzzy match found.\"\n    output: review_notification_result\n\n  - id: write_category_assignment\n    op: write_database\n    params:\n      input: category_assignment\n      table: article_categories\n    output: write_result\n\n  - id: log_category_assignment\n    op: log_audit\n    params:\n      input: category_assignment\n      action: \"category_assigned\"\n      details: \"Article category assignment completed\"\n    output: audit_log_result\n\n  - id: end_workflow\n    op: terminate_workflow\n    params:\n      status: \"completed\"",
+      "dsl_type_errors": [
+        "Step 'build_default_assignment': op 'transform_json' requires input of type 'records' but 'default_result' has type 'boolean'. Make sure the step producing 'default_result' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1174,
+      "output_tokens": 1156
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: article_category_matching\nsteps:\n  - id: authenticate_drive_access\n    op: authenticate_user\n    params:\n      role: \"editorial_pipeline\"\n    output: auth_result\n\n  - id: fetch_category_spreadsheet\n    op: fetch_api\n    params:\n      endpoint: \"/integrations/google-drive/category-spreadsheet\"\n    output: raw_spreadsheet\n\n  - id: validate_spreadsheet_schema\n    op: validate_schema\n    params:\n      input: raw_spreadsheet\n      schema: category_spreadsheet_schema\n    output: validated_spreadsheet\n\n  - id: read_extracted_article\n    op: read_database\n    params:\n      table: extracted_articles\n      filter: \"status = 'pending_category'\"\n    output: raw_article\n\n  - id: validate_article_schema\n    op: validate_schema\n    params:\n      input: raw_article\n      schema: extracted_article_schema\n    output: validated_article\n\n  - id: extract_article_title\n    op: extract_field\n    params:\n      input: validated_article\n      field: \"title\"\n    output: article_title\n\n  - id: normalise_article_title\n    op: transform_json\n    params:\n      input: article_title\n      mapping:\n        normalised_title: \"lowercase(strip_accents(strip_non_alphanumeric(value)))\"\n    output: normalised_article_title\n\n  - id: normalise_spreadsheet_titles\n    op: loop_records\n    params:\n      input: validated_spreadsheet\n      step: normalise_single_spreadsheet_row\n    output: normalised_spreadsheet\n\n  - id: normalise_single_spreadsheet_row\n    op: transform_json\n    params:\n      input: validated_spreadsheet\n      mapping:\n        normalised_title: \"lowercase(strip_accents(strip_non_alphanumeric(title)))\"\n        category: \"category\"\n        section: \"section\"\n        original_title: \"title\"\n    output: normalised_row\n\n  - id: apply_fuzzy_match_rule\n    op: apply_rule\n    params:\n      rule: \"fuzzy_match\"\n      article_title: normalised_article_title\n      candidates: normalised_spreadsheet\n      match_field: \"normalised_title\"\n      threshold: 0.85\n    output: match_result\n\n  - id: check_match_found\n    op: route_to_step\n    params:\n      condition: \"match_result.matched == true\"\n      true_step: extract_matched_category\n      false_step: build_default_records\n\n  - id: extract_matched_category\n    op: extract_field\n    params:\n      input: match_result\n      field: \"matched_row\"\n    output: matched_category_data\n\n  - id: build_matched_assignment\n    op: transform_json\n    params:\n      input: matched_category_data\n      mapping:\n        article_id: \"validated_article.id\"\n        category: \"category\"\n        section: \"section\"\n        needs_review: false\n    output: category_assignment\n\n  - id: route_to_write_matched\n    op: route_to_step\n    params:\n      condition: \"true\"\n      true_step: write_category_assignment\n      false_step: write_category_assignment\n\n  - id: build_default_records\n    op: fetch_api\n    params:\n      endpoint: \"/config/defaults/category-assignment\"\n    output: raw_default_data\n\n  - id: validate_default_data\n    op: validate_schema\n    params:\n      input: raw_default_data\n      schema: default_category_schema\n    output: validated_default_data\n\n  - id: build_default_assignment\n    op: transform_json\n    params:\n      input: validated_default_data\n      mapping:\n        article_id: \"validated_article.id\"\n        category: \"Ciencia economica\"\n        section: \"Dossier\"\n        needs_review: true\n    output: category_assignment\n\n  - id: notify_editorial_review\n    op: notify_user\n    params:\n      input: category_assignment\n      recipient: \"editorial_team\"\n      message: \"Article requires manual category review \u2014 no fuzzy match found.\"\n    output: review_notification_result\n\n  - id: write_category_assignment\n    op: write_database\n    params:\n      input: category_assignment\n      table: article_categories\n    output: write_result\n\n  - id: log_category_assignment\n    op: log_audit\n    params:\n      input: category_assignment\n      action: \"category_assigned\"\n      details: \"Article category assignment completed\"\n    output: audit_log_result\n\n  - id: end_workflow\n    op: terminate_workflow\n    params:\n      status: \"completed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ae_002.py::test_parses_and_type_checks": true,
+        "test_wf_ae_002.py::test_passes_taint_analysis": true,
+        "test_wf_ae_002.py::test_reads_spreadsheet": true,
+        "test_wf_ae_002.py::test_applies_matching_rule": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 2476,
+      "output_tokens": 1174
+    }
+  ],
+  "complexity": 2,
+  "domain": "publishing",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 3650,
+  "total_output_tokens": 2330
+}
