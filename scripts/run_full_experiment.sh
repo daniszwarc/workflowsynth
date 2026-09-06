@@ -3,6 +3,10 @@
 # Dataset A sample (60 tasks) + Dataset B (60 tasks), all conditions
 # Estimated cost: ~$55 USD
 
+cd "$(dirname "$0")/.."
+export PYTHONPATH="$PWD"
+PYTHON=python3.11
+
 DATASET_A="datasets/dataset_a"
 DATASET_B="datasets/dataset_b"
 RESULTS="results/session_09"
@@ -10,7 +14,7 @@ SAMPLE=$(cat scripts/dataset_a_sample.txt | tr '\n' ' ')
 BUDGET=55
 
 check_spend() {
-  python3 -c "
+  $PYTHON -c "
 import json, glob
 files = glob.glob('results/session_09/**/*.json', recursive=True)
 if not files:
@@ -32,7 +36,7 @@ echo ""
 # Dataset A -- condition=full (Batch API)
 echo "--- Dataset A: condition=full ---"
 check_spend
-python scripts/run_evaluation.py \
+$PYTHON scripts/run_evaluation.py \
   --condition full \
   --dataset $DATASET_A \
   --results $RESULTS \
@@ -43,7 +47,7 @@ python scripts/run_evaluation.py \
 # Dataset A -- condition=no_repair (single attempt, no batch needed)
 echo "--- Dataset A: condition=no_repair ---"
 check_spend
-python scripts/run_evaluation.py \
+$PYTHON scripts/run_evaluation.py \
   --condition no_repair \
   --dataset $DATASET_A \
   --results $RESULTS \
@@ -54,7 +58,7 @@ python scripts/run_evaluation.py \
 # Dataset A -- condition=no_verify
 echo "--- Dataset A: condition=no_verify ---"
 check_spend
-python scripts/run_evaluation.py \
+$PYTHON scripts/run_evaluation.py \
   --condition no_verify \
   --dataset $DATASET_A \
   --results $RESULTS \
@@ -65,7 +69,7 @@ python scripts/run_evaluation.py \
 # Dataset A -- condition=no_taint
 echo "--- Dataset A: condition=no_taint ---"
 check_spend
-python scripts/run_evaluation.py \
+$PYTHON scripts/run_evaluation.py \
   --condition no_taint \
   --dataset $DATASET_A \
   --results $RESULTS \
@@ -76,7 +80,7 @@ python scripts/run_evaluation.py \
 # Dataset A -- PureLLM baseline
 echo "--- Dataset A: baseline_pure_llm ---"
 check_spend
-python scripts/run_evaluation.py \
+$PYTHON scripts/run_evaluation.py \
   --condition baseline_pure_llm \
   --dataset $DATASET_A \
   --results $RESULTS \
@@ -86,7 +90,7 @@ python scripts/run_evaluation.py \
 # Dataset A -- LangChain baseline
 echo "--- Dataset A: baseline_langchain ---"
 check_spend
-python scripts/run_evaluation.py \
+$PYTHON scripts/run_evaluation.py \
   --condition baseline_langchain \
   --dataset $DATASET_A \
   --results $RESULTS \
@@ -96,7 +100,7 @@ python scripts/run_evaluation.py \
 # Dataset B -- condition=full (Batch API)
 echo "--- Dataset B: condition=full ---"
 check_spend
-python scripts/run_evaluation.py \
+$PYTHON scripts/run_evaluation.py \
   --condition full \
   --dataset $DATASET_B \
   --results $RESULTS \
@@ -106,7 +110,7 @@ python scripts/run_evaluation.py \
 # Dataset B -- condition=no_repair
 echo "--- Dataset B: condition=no_repair ---"
 check_spend
-python scripts/run_evaluation.py \
+$PYTHON scripts/run_evaluation.py \
   --condition no_repair \
   --dataset $DATASET_B \
   --results $RESULTS \
@@ -116,7 +120,7 @@ python scripts/run_evaluation.py \
 # Dataset B -- PureLLM baseline
 echo "--- Dataset B: baseline_pure_llm ---"
 check_spend
-python scripts/run_evaluation.py \
+$PYTHON scripts/run_evaluation.py \
   --condition baseline_pure_llm \
   --dataset $DATASET_B \
   --results $RESULTS \
