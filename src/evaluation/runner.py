@@ -353,15 +353,15 @@ class EvaluationRunner:
 
         batch = client.messages.batches.create(
             requests=[
-                anthropic.types.MessageCreateParamsNonStreaming(
-                    custom_id=task_id,
-                    params={
+                {
+                    "custom_id": task_id,
+                    "params": {
                         "model": "claude-opus-4-6",
                         "max_tokens": 2048,
                         "system": system_prompt,
                         "messages": messages,
                     },
-                )
+                }
                 for task_id, system_prompt, messages in first_attempt_payloads
             ]
         )
