@@ -42,6 +42,7 @@ FAILURE_CATEGORIES = (
     "timeout",
     "success",
     "error",
+    "agent_error",
 )
 
 DEFAULT_MAX_ATTEMPTS = 10
