@@ -228,3 +228,73 @@ def test_evaluation_runner_rejects_unknown_condition(fake_dataset, tmp_path):
             results_dir=str(tmp_path / "results"),
             condition="not_a_real_condition",
         )
+
+
+# --- run_dataset per-task exception isolation --------------------------------
+
+def test_run_dataset_continues_past_task_that_raises(fake_dataset, tmp_path, monkeypatch):
+    runner = EvaluationRunner(
+        dataset_path=str(fake_dataset),
+        results_dir=str(tmp_path / "results"),
+        condition="full",
+    )
+
+    def fake_run_single(task_id):
+        if task_id == "wf_x_001":
+            raise RuntimeError("boom")
+        return make_result(task_id=task_id, domain="clinical_ai", complexity=4, has_security_constraint=True)
+
+    monkeypatch.setattr(runner, "run_single", fake_run_single)
+
+    summary = runner.run_dataset()
+
+    assert summary.total_tasks == 2
+
+
+def test_run_dataset_failed_task_has_error_category_and_message(fake_dataset, tmp_path, monkeypatch):
+    runner = EvaluationRunner(
+        dataset_path=str(fake_dataset),
+        results_dir=str(tmp_path / "results"),
+        condition="full",
+    )
+
+    def fake_run_single(task_id):
+        if task_id == "wf_x_001":
+            raise RuntimeError("boom")
+        return make_result(task_id=task_id)
+
+    monkeypatch.setattr(runner, "run_single", fake_run_single)
+
+    summary = runner.run_dataset()
+    failed = next(r for r in summary.results if r.task_id == "wf_x_001")
+
+    assert failed.success is False
+    assert failed.failure_category == "error"
+    assert failed.error_message == "boom"
+    assert failed.attempts_used == 0
+
+    persisted = json.loads((tmp_path / "results" / "full" / "wf_x_001.json").read_text())
+    assert persisted["failure_category"] == "error"
+    assert persisted["error_message"] == "boom"
+
+
+def test_run_dataset_subsequent_tasks_still_complete_normally(fake_dataset, tmp_path, monkeypatch):
+    runner = EvaluationRunner(
+        dataset_path=str(fake_dataset),
+        results_dir=str(tmp_path / "results"),
+        condition="full",
+    )
+
+    def fake_run_single(task_id):
+        if task_id == "wf_x_001":
+            raise RuntimeError("boom")
+        return make_result(task_id=task_id)
+
+    monkeypatch.setattr(runner, "run_single", fake_run_single)
+
+    summary = runner.run_dataset()
+    ok_task = next(r for r in summary.results if r.task_id == "wf_x_002")
+
+    assert ok_task.success is True
+    assert ok_task.failure_category == "success"
+    assert ok_task.error_message == ""
