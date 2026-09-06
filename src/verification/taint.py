@@ -107,6 +107,20 @@ def _process_step(
     Mutates both tainted_vars and violations in place.
     """
     input_var = step.params.get("input")
+
+    if input_var is not None and not isinstance(input_var, str):
+        violations.append(TaintViolation(
+            step_id=step.id,
+            op=step.op,
+            tainted_var=repr(input_var),
+            taint_origin="",
+            message=(
+                f"Step '{step.id}': params.input must be a string variable name, "
+                f"got {type(input_var).__name__}"
+            )
+        ))
+        input_var = None
+
     input_is_tainted = input_var is not None and input_var in tainted_vars
 
     # --- Sink check (highest priority -- check before anything else) ---------

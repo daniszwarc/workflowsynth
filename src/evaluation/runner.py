@@ -41,6 +41,7 @@ FAILURE_CATEGORIES = (
     "test_failure",
     "timeout",
     "success",
+    "error",
 )
 
 DEFAULT_MAX_ATTEMPTS = 10
@@ -65,6 +66,7 @@ class TaskResult:
     complexity: int = 0
     domain: str = ""
     has_security_constraint: bool = False
+    error_message: str = ""
 
 
 @dataclass
@@ -231,10 +233,10 @@ class EvaluationRunner:
 
         if max_workers <= 1:
             for task_id in ids:
-                results.append(self.run_single(task_id))
+                results.append(self._run_single_safe(task_id))
         else:
             with ThreadPoolExecutor(max_workers=max_workers) as pool:
-                futures = {pool.submit(self.run_single, tid): tid for tid in ids}
+                futures = {pool.submit(self._run_single_safe, tid): tid for tid in ids}
                 for future in as_completed(futures):
                     results.append(future.result())
 
@@ -251,6 +253,31 @@ class EvaluationRunner:
             by_domain=_by_domain(results),
             results=results,
         )
+
+    def _run_single_safe(self, task_id: str) -> TaskResult:
+        """
+        Wraps run_single() so an unhandled exception on one task cannot
+        abort the rest of the batch. On exception, builds a failed
+        TaskResult, persists it, logs to stderr, and returns it.
+        """
+        try:
+            return self.run_single(task_id)
+        except Exception as exc:
+            print(f"error: task {task_id!r} raised an unhandled exception: {exc}", file=sys.stderr)
+            meta = self.index.get(task_id, {})
+            result = TaskResult(
+                task_id=task_id,
+                condition=self.condition,
+                success=False,
+                attempts_used=0,
+                failure_category="error",
+                error_message=str(exc),
+                complexity=meta.get("complexity", 0),
+                domain=meta.get("domain", ""),
+                has_security_constraint=meta.get("has_security_constraint", False),
+            )
+            self._persist(result)
+            return result
 
     def run_single(self, task_id: str) -> TaskResult:
         """Runs the full synthesis + verification + test loop for one task."""

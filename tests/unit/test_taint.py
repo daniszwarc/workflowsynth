@@ -332,6 +332,46 @@ steps:
     assert violations[0].tainted_var == "partner_data"
 
 
+def test_non_string_input_dict_produces_violation_not_typeerror():
+    """
+    Malformed LLM output can set params.input to a dict instead of a
+    string variable name. This must produce a TaintViolation, not raise
+    TypeError: unhashable type: 'dict'.
+    """
+    yaml = """
+workflow_id: t
+steps:
+  - id: s1
+    op: write_database
+    params:
+      input: {nested: dict}
+      table: t
+"""
+    ast = _parse(yaml)
+    violations = taint_analysis(ast)
+    assert len(violations) == 1
+    assert violations[0].step_id == "s1"
+    assert "must be a string variable name" in violations[0].message
+
+
+def test_non_string_input_list_produces_violation_not_typeerror():
+    """Same as above, but params.input is a list instead of a dict."""
+    yaml = """
+workflow_id: t
+steps:
+  - id: s1
+    op: write_database
+    params:
+      input: ["list", "value"]
+      table: t
+"""
+    ast = _parse(yaml)
+    violations = taint_analysis(ast)
+    assert len(violations) == 1
+    assert violations[0].step_id == "s1"
+    assert "must be a string variable name" in violations[0].message
+
+
 def test_no_taint_without_output():
     """
     A source step with no declared output produces no named tainted variable.
