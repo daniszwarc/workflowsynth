@@ -1,0 +1,33 @@
+workflow_id: wf_tool_012
+# domain: api_integration
+# complexity: 4
+# has_security_constraint: false
+# primitive_count: 4
+# source: ToolLLM benchmark -- error-tolerant orchestration task -- inspired by ToolLLM
+steps:
+  - id: call_primary_operation_api
+    op: fetch_api
+    params:
+      endpoint: "/tools/operation"
+    output: operation_result
+
+  - id: retry_on_transient_failure
+    op: retry_step
+    params:
+      input: "operation_result"
+      max_retries: 3
+
+  - id: handle_persistent_error
+    op: handle_error
+    params:
+      input: "operation_result"
+      on_error: "flag_unrecoverable"
+    output: error_flag
+
+  - id: route_to_fallback
+    op: route_to_step
+    params:
+      input: "error_flag"
+      condition: "error_flag = true"
+      branch_true: "fallback_path"
+      branch_false: "success_path"

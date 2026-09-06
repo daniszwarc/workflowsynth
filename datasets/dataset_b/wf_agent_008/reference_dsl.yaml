@@ -1,0 +1,28 @@
+workflow_id: wf_agent_008
+# domain: agent_tasks
+# complexity: 3
+# has_security_constraint: false
+# primitive_count: 3
+# source: AgentBench benchmark -- task routing task -- inspired by AgentBench
+steps:
+  - id: classify_task
+    op: apply_rule
+    params:
+      input: "task_payload"
+      rule: "task_classification"
+    output: task_classification
+
+  - id: apply_routing_rule
+    op: apply_rule
+    params:
+      input: "task_classification"
+      rule: "subworkflow_routing"
+    output: routing_decision
+
+  - id: route_to_subworkflow
+    op: route_to_step
+    params:
+      input: "routing_decision"
+      condition: "routing_decision = true"
+      branch_true: "subworkflow_a"
+      branch_false: "subworkflow_b"

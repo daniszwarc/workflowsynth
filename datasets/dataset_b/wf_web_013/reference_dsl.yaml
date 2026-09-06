@@ -1,0 +1,47 @@
+workflow_id: wf_web_013
+# domain: web_automation
+# complexity: 4
+# has_security_constraint: false
+# primitive_count: 6
+# source: WebArena benchmark -- forum moderation task -- inspired by WebArena
+steps:
+  - id: fetch_reported_thread
+    op: fetch_api
+    params:
+      endpoint: "/forums/reports"
+    output: report_data
+
+  - id: validate_report_data
+    op: validate_schema
+    params:
+      input: "report_data"
+      schema: "report_schema"
+    output: validated_report
+
+  - id: classify_severity
+    op: apply_rule
+    params:
+      input: "validated_report"
+      rule: "escalation_rule"
+    output: severity_flag
+
+  - id: route_by_severity
+    op: route_to_step
+    params:
+      input: "severity_flag"
+      condition: "severity_flag = true"
+      branch_true: "senior_escalation"
+      branch_false: "standard_queue"
+
+  - id: notify_senior_moderator
+    op: notify_user
+    params:
+      input: "severity_flag"
+      recipient: "senior_moderator"
+      message: "Thread escalated"
+
+  - id: log_moderation_decision
+    op: log_audit
+    params:
+      input: "severity_flag"
+      action: "moderation_routed"

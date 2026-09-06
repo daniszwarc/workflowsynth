@@ -1,0 +1,27 @@
+workflow_id: wf_gaia_011
+# domain: general_ai
+# complexity: 3
+# has_security_constraint: false
+# primitive_count: 3
+# source: GAIA benchmark -- level 2/3 reasoning task -- inspired by GAIA
+steps:
+  - id: fetch_item
+    op: fetch_api
+    params:
+      endpoint: "/items/pending"
+    output: item_data
+
+  - id: classify_item
+    op: apply_rule
+    params:
+      input: "item_data"
+      rule: "classification_rule"
+    output: classification
+
+  - id: route_by_classification
+    op: route_to_step
+    params:
+      input: "classification"
+      condition: "classification = true"
+      branch_true: "handle_category_a"
+      branch_false: "handle_category_b"

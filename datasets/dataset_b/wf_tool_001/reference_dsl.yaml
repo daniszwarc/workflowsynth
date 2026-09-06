@@ -1,0 +1,19 @@
+workflow_id: wf_tool_001
+# domain: api_integration
+# complexity: 1
+# has_security_constraint: false
+# primitive_count: 2
+# source: ToolLLM benchmark -- single-API task -- inspired by ToolLLM
+steps:
+  - id: call_weather_api
+    op: fetch_api
+    params:
+      endpoint: "/tools/weather"
+    output: weather_data
+
+  - id: format_weather_output
+    op: format_output
+    params:
+      input: "weather_data"
+      template: "display_format"
+    output: formatted_weather

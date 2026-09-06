@@ -1,0 +1,19 @@
+workflow_id: wf_gaia_005
+# domain: general_ai
+# complexity: 1
+# has_security_constraint: false
+# primitive_count: 2
+# source: GAIA benchmark -- level 1 tool-use task -- inspired by GAIA
+steps:
+  - id: fetch_news
+    op: fetch_api
+    params:
+      endpoint: "/news/feed"
+    output: news_items
+
+  - id: extract_headlines
+    op: extract_field
+    params:
+      input: "news_items"
+      field: "headline"
+    output: headlines

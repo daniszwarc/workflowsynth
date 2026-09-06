@@ -1,0 +1,33 @@
+workflow_id: wf_web_011
+# domain: web_automation
+# complexity: 3
+# has_security_constraint: false
+# primitive_count: 4
+# source: WebArena benchmark -- inventory task -- inspired by WebArena
+steps:
+  - id: fetch_stock_level
+    op: fetch_api
+    params:
+      endpoint: "/inventory/stock"
+    output: stock_data
+
+  - id: validate_stock_data
+    op: validate_schema
+    params:
+      input: "stock_data"
+      schema: "inventory_schema"
+    output: validated_stock
+
+  - id: apply_threshold_rule
+    op: apply_rule
+    params:
+      input: "validated_stock"
+      rule: "low_stock_threshold"
+    output: low_stock_flag
+
+  - id: notify_inventory_team
+    op: notify_user
+    params:
+      input: "low_stock_flag"
+      recipient: "inventory_team"
+      message: "Stock running low"

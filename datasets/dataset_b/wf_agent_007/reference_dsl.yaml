@@ -1,0 +1,46 @@
+workflow_id: wf_agent_007
+# domain: agent_tasks
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: AgentBench benchmark -- database task -- inspired by AgentBench
+steps:
+  - id: read_current_record
+    op: read_database
+    params:
+      table: "records"
+      filter: "id = request.id"
+    output: current_record
+
+  - id: validate_update_request
+    op: validate_schema
+    params:
+      input: "current_record"
+      schema: "update_schema"
+    output: validated_change
+
+  - id: transform_change
+    op: transform_json
+    params:
+      input: "validated_change"
+      transformation: "to_storage_format"
+    output: storage_change
+
+  - id: authenticate_update_service
+    op: authenticate_user
+    params:
+      role: "update_service"
+    output: auth_result
+
+  - id: write_change
+    op: write_database
+    params:
+      input: "storage_change"
+      table: "records"
+    output: write_result
+
+  - id: log_update
+    op: log_audit
+    params:
+      input: "write_result"
+      action: "record_updated"

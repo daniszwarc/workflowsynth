@@ -1,0 +1,47 @@
+workflow_id: wf_web_014
+# domain: web_automation
+# complexity: 4
+# has_security_constraint: false
+# primitive_count: 6
+# source: WebArena benchmark -- content publishing task -- inspired by WebArena
+steps:
+  - id: fetch_draft_content
+    op: fetch_api
+    params:
+      endpoint: "/cms/drafts/pending"
+    output: draft_content
+
+  - id: validate_draft
+    op: validate_schema
+    params:
+      input: "draft_content"
+      schema: "editorial_schema"
+    output: validated_draft
+
+  - id: apply_approval_rule
+    op: apply_rule
+    params:
+      input: "validated_draft"
+      rule: "editorial_approval"
+    output: approval_decision
+
+  - id: route_by_approval
+    op: route_to_step
+    params:
+      input: "approval_decision"
+      condition: "approval_decision = true"
+      branch_true: "publish_subworkflow"
+      branch_false: "revision_queue"
+
+  - id: delegate_publishing
+    op: call_subworkflow
+    params:
+      input: "validated_draft"
+      workflow: "publish_content"
+    output: publish_result
+
+  - id: log_publishing_decision
+    op: log_audit
+    params:
+      input: "approval_decision"
+      action: "publishing_decision_logged"

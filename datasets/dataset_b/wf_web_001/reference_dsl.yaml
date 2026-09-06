@@ -1,0 +1,12 @@
+workflow_id: wf_web_001
+# domain: web_automation
+# complexity: 1
+# has_security_constraint: false
+# primitive_count: 1
+# source: WebArena benchmark -- e-commerce browsing task -- inspired by WebArena
+steps:
+  - id: fetch_listing
+    op: fetch_api
+    params:
+      endpoint: "/ecommerce/listing"
+    output: product_listing

@@ -1,0 +1,65 @@
+workflow_id: wf_gaia_014
+# domain: general_ai
+# complexity: 4
+# has_security_constraint: true
+# primitive_count: 9
+# source: GAIA benchmark -- level 3 security-constrained task -- inspired by GAIA
+steps:
+  - id: authenticate_pipeline
+    op: authenticate_user
+    params:
+      role: "pipeline_service"
+    output: auth_result
+
+  - id: fetch_sensitive_source_a
+    op: fetch_api
+    params:
+      endpoint: "/sensitive/sources/a"
+    output: sensitive_a
+
+  - id: fetch_sensitive_source_b
+    op: fetch_api
+    params:
+      endpoint: "/sensitive/sources/b"
+    output: sensitive_b
+
+  - id: merge_sensitive
+    op: merge_datasets
+    params:
+      input: "sensitive_a"
+      secondary: "sensitive_b"
+    output: merged_sensitive
+
+  - id: validate_sensitive
+    op: validate_schema
+    params:
+      input: "merged_sensitive"
+      schema: "sensitive_data_schema"
+    output: validated_sensitive
+
+  - id: extract_sensitive_fields
+    op: extract_field
+    params:
+      input: "validated_sensitive"
+      field: "pii"
+    output: sensitive_fields
+
+  - id: encrypt_sensitive
+    op: encrypt_field
+    params:
+      input: "sensitive_fields"
+      field: "pii"
+    output: encrypted_sensitive
+
+  - id: store_encrypted
+    op: write_database
+    params:
+      input: "encrypted_sensitive"
+      table: "secure_pipeline_records"
+    output: stored_record
+
+  - id: log_storage
+    op: log_audit
+    params:
+      input: "stored_record"
+      action: "secure_pipeline_store"

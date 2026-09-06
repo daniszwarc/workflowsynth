@@ -1,0 +1,32 @@
+workflow_id: wf_tool_011
+# domain: api_integration
+# complexity: 3
+# has_security_constraint: false
+# primitive_count: 4
+# source: ToolLLM benchmark -- data enrichment task -- inspired by ToolLLM
+steps:
+  - id: fetch_primary_record
+    op: fetch_api
+    params:
+      endpoint: "/tools/primary"
+    output: primary_record
+
+  - id: fetch_enrichment_data
+    op: fetch_api
+    params:
+      endpoint: "/tools/secondary"
+    output: enrichment_data
+
+  - id: merge_enrichment
+    op: merge_datasets
+    params:
+      input: "primary_record"
+      secondary: "enrichment_data"
+    output: enriched_record
+
+  - id: validate_enriched_result
+    op: validate_schema
+    params:
+      input: "enriched_record"
+      schema: "enriched_record_schema"
+    output: validated_enriched_record

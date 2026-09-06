@@ -1,0 +1,19 @@
+workflow_id: wf_tool_003
+# domain: api_integration
+# complexity: 1
+# has_security_constraint: false
+# primitive_count: 2
+# source: ToolLLM benchmark -- single-API task -- inspired by ToolLLM
+steps:
+  - id: call_geocoding_api
+    op: fetch_api
+    params:
+      endpoint: "/tools/geocode"
+    output: geocode_response
+
+  - id: extract_coordinates
+    op: extract_field
+    params:
+      input: "geocode_response"
+      field: "coordinates"
+    output: coordinates

@@ -1,0 +1,27 @@
+workflow_id: wf_agent_010
+# domain: agent_tasks
+# complexity: 3
+# has_security_constraint: false
+# primitive_count: 3
+# source: AgentBench benchmark -- config-driven task -- inspired by AgentBench
+steps:
+  - id: read_job_config
+    op: fetch_api
+    params:
+      endpoint: "/config/job"
+    output: job_config
+
+  - id: apply_configured_rule
+    op: apply_rule
+    params:
+      input: "job_config"
+      rule: "configured_rule"
+    output: rule_outcome
+
+  - id: route_configured_branch
+    op: route_to_step
+    params:
+      input: "rule_outcome"
+      condition: "rule_outcome = true"
+      branch_true: "branch_a"
+      branch_false: "branch_b"

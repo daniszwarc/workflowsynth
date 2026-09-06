@@ -1,0 +1,60 @@
+workflow_id: wf_tool_014
+# domain: api_integration
+# complexity: 4
+# has_security_constraint: true
+# primitive_count: 8
+# source: ToolLLM benchmark -- real-time pipeline task -- inspired by ToolLLM
+steps:
+  - id: ingest_realtime_event
+    op: fetch_api
+    params:
+      endpoint: "/tools/realtime/ingest"
+    output: raw_event
+
+  - id: validate_realtime_event
+    op: validate_schema
+    params:
+      input: "raw_event"
+      schema: "realtime_schema"
+    output: validated_event
+
+  - id: transform_realtime_event
+    op: transform_json
+    params:
+      input: "validated_event"
+      transformation: "to_internal_representation"
+    output: transformed_event
+
+  - id: classify_event
+    op: apply_rule
+    params:
+      input: "transformed_event"
+      rule: "routing_classification"
+    output: event_classification
+
+  - id: route_classified_event
+    op: route_to_step
+    params:
+      input: "event_classification"
+      condition: "event_classification = true"
+      branch_true: "priority_pipeline"
+      branch_false: "standard_pipeline"
+
+  - id: authenticate_pipeline_writer_rt
+    op: authenticate_user
+    params:
+      role: "pipeline_service"
+    output: auth_result
+
+  - id: store_classified_event
+    op: write_database
+    params:
+      input: "transformed_event"
+      table: "realtime_events"
+    output: event_record
+
+  - id: log_pipeline_run_rt
+    op: log_audit
+    params:
+      input: "event_record"
+      action: "realtime_pipeline_run"

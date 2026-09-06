@@ -1,0 +1,26 @@
+workflow_id: wf_tool_006
+# domain: api_integration
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 3
+# source: ToolLLM benchmark -- API filtering task -- inspired by ToolLLM
+steps:
+  - id: call_monitoring_api
+    op: fetch_api
+    params:
+      endpoint: "/tools/monitor"
+    output: raw_records
+
+  - id: filter_relevant_records
+    op: filter_records
+    params:
+      input: "raw_records"
+      criteria: "relevance_rule"
+    output: relevant_records
+
+  - id: notify_about_records
+    op: notify_user
+    params:
+      input: "relevant_records"
+      recipient: "monitoring_team"
+      message: "New relevant records found"

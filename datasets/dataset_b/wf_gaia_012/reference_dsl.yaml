@@ -1,0 +1,38 @@
+workflow_id: wf_gaia_012
+# domain: general_ai
+# complexity: 3
+# has_security_constraint: false
+# primitive_count: 5
+# source: GAIA benchmark -- level 3 multi-source task -- inspired by GAIA
+steps:
+  - id: fetch_source_1
+    op: fetch_api
+    params:
+      endpoint: "/sources/1"
+    output: source_1
+
+  - id: fetch_source_2
+    op: fetch_api
+    params:
+      endpoint: "/sources/2"
+    output: source_2
+
+  - id: fetch_source_3
+    op: fetch_api
+    params:
+      endpoint: "/sources/3"
+    output: source_3
+
+  - id: aggregate_sources
+    op: aggregate_data
+    params:
+      input: "source_1"
+      secondary: "source_2"
+      tertiary: "source_3"
+    output: consolidated_view
+
+  - id: handle_aggregation_error
+    op: handle_error
+    params:
+      input: "consolidated_view"
+      on_error: "return_partial"

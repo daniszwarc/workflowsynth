@@ -1,0 +1,46 @@
+workflow_id: wf_gaia_010
+# domain: general_ai
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: GAIA benchmark -- level 2/3 research task -- inspired by GAIA
+steps:
+  - id: fetch_research_data
+    op: fetch_api
+    params:
+      endpoint: "/research/sources"
+    output: raw_research
+
+  - id: validate_research_data
+    op: validate_schema
+    params:
+      input: "raw_research"
+      schema: "research_schema"
+    output: validated_research
+
+  - id: transform_report
+    op: transform_json
+    params:
+      input: "validated_research"
+      transformation: "to_report_format"
+    output: report_data
+
+  - id: authenticate_research_service
+    op: authenticate_user
+    params:
+      role: "research_service"
+    output: auth_result
+
+  - id: store_report
+    op: write_database
+    params:
+      input: "report_data"
+      table: "research_reports"
+    output: report_record
+
+  - id: notify_requester
+    op: notify_user
+    params:
+      input: "report_record"
+      recipient: "requester"
+      message: "Research report ready"

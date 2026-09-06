@@ -1,0 +1,34 @@
+workflow_id: wf_agent_012
+# domain: agent_tasks
+# complexity: 4
+# has_security_constraint: false
+# primitive_count: 4
+# source: AgentBench benchmark -- multi-agent coordination task -- inspired by AgentBench
+steps:
+  - id: classify_for_delegation
+    op: apply_rule
+    params:
+      input: "task_context"
+      rule: "delegation_classification"
+    output: delegation_target
+
+  - id: delegate_to_subworkflow
+    op: call_subworkflow
+    params:
+      input: "delegation_target"
+      workflow: "specialised_handler"
+    output: subworkflow_result
+
+  - id: merge_with_context
+    op: merge_datasets
+    params:
+      input: "subworkflow_result"
+      secondary: "task_context"
+    output: synthesised_data
+
+  - id: format_final_answer
+    op: format_output
+    params:
+      input: "synthesised_data"
+      template: "final_answer_format"
+    output: final_answer

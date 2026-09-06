@@ -1,0 +1,24 @@
+workflow_id: wf_tool_007
+# domain: api_integration
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 3
+# source: ToolLLM benchmark -- paginated API task -- inspired by ToolLLM
+steps:
+  - id: authenticate_api_client
+    op: authenticate_user
+    params:
+      role: "api_client"
+    output: auth_result
+
+  - id: fetch_paginated_data
+    op: fetch_api
+    params:
+      endpoint: "/tools/paginated"
+    output: paginated_data
+
+  - id: aggregate_paginated_data
+    op: aggregate_data
+    params:
+      input: "paginated_data"
+    output: summary

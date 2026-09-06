@@ -1,0 +1,19 @@
+workflow_id: wf_agent_001
+# domain: agent_tasks
+# complexity: 1
+# has_security_constraint: false
+# primitive_count: 2
+# source: AgentBench benchmark -- OS-style task -- inspired by AgentBench
+steps:
+  - id: read_config_file
+    op: fetch_api
+    params:
+      endpoint: "/config/service"
+    output: raw_config
+
+  - id: validate_config
+    op: validate_schema
+    params:
+      input: "raw_config"
+      schema: "service_config_schema"
+    output: validated_config

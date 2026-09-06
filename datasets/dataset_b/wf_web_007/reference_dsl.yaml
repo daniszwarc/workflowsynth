@@ -1,0 +1,33 @@
+workflow_id: wf_web_007
+# domain: web_automation
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 4
+# source: WebArena benchmark -- account management task -- inspired by WebArena
+steps:
+  - id: authenticate_user_session
+    op: authenticate_user
+    params:
+      role: "site_member"
+    output: auth_result
+
+  - id: fetch_current_profile
+    op: read_database
+    params:
+      table: "profiles"
+      filter: "user_id = session.user_id"
+    output: current_profile
+
+  - id: validate_profile_changes
+    op: validate_schema
+    params:
+      input: "current_profile"
+      schema: "profile_schema"
+    output: validated_profile
+
+  - id: update_profile
+    op: write_database
+    params:
+      input: "validated_profile"
+      table: "profiles"
+    output: updated_profile

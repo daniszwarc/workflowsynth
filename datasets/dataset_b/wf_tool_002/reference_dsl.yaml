@@ -1,0 +1,25 @@
+workflow_id: wf_tool_002
+# domain: api_integration
+# complexity: 1
+# has_security_constraint: false
+# primitive_count: 3
+# source: ToolLLM benchmark -- single-API task -- inspired by ToolLLM
+steps:
+  - id: call_currency_api
+    op: fetch_api
+    params:
+      endpoint: "/tools/currency/convert"
+    output: conversion_result
+
+  - id: extract_converted_amount
+    op: extract_field
+    params:
+      input: "conversion_result"
+      field: "converted_amount"
+    output: converted_amount
+
+  - id: log_conversion
+    op: log_audit
+    params:
+      input: "converted_amount"
+      action: "currency_converted"

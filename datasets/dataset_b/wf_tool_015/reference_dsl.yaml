@@ -1,0 +1,86 @@
+workflow_id: wf_tool_015
+# domain: api_integration
+# complexity: 5
+# has_security_constraint: true
+# primitive_count: 12
+# source: ToolLLM benchmark -- full API integration task -- inspired by ToolLLM
+steps:
+  - id: authenticate_integration_service
+    op: authenticate_user
+    params:
+      role: "integration_service"
+    output: auth_result
+
+  - id: fetch_source_one
+    op: fetch_api
+    params:
+      endpoint: "/tools/integration/one"
+    output: source_one_data
+
+  - id: fetch_source_two
+    op: fetch_api
+    params:
+      endpoint: "/tools/integration/two"
+    output: source_two_data
+
+  - id: fetch_source_three
+    op: fetch_api
+    params:
+      endpoint: "/tools/integration/three"
+    output: source_three_data
+
+  - id: fetch_source_four
+    op: fetch_api
+    params:
+      endpoint: "/tools/integration/four"
+    output: source_four_data
+
+  - id: merge_four_sources
+    op: merge_datasets
+    params:
+      input: "source_one_data"
+      secondary: "source_two_data"
+      tertiary: "source_three_data"
+      quaternary: "source_four_data"
+    output: merged_integration_data
+
+  - id: validate_merged_integration
+    op: validate_schema
+    params:
+      input: "merged_integration_data"
+      schema: "integration_schema"
+    output: validated_integration_data
+
+  - id: extract_sensitive_fields_int
+    op: extract_field
+    params:
+      input: "validated_integration_data"
+      field: "sensitive_fields"
+    output: sensitive_fields_int
+
+  - id: encrypt_integration_data
+    op: encrypt_field
+    params:
+      input: "sensitive_fields_int"
+      field: "sensitive_fields"
+    output: encrypted_integration_data
+
+  - id: store_integration_result
+    op: write_database
+    params:
+      input: "encrypted_integration_data"
+      table: "integration_results"
+    output: integration_record
+
+  - id: notify_integration_owner
+    op: notify_user
+    params:
+      input: "integration_record"
+      recipient: "integration_owner"
+      message: "Integration run completed"
+
+  - id: log_integration_run
+    op: log_audit
+    params:
+      input: "integration_record"
+      action: "full_integration_run"

@@ -1,0 +1,46 @@
+workflow_id: wf_web_008
+# domain: web_automation
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: WebArena benchmark -- e-commerce checkout task -- inspired by WebArena
+steps:
+  - id: fetch_cart
+    op: fetch_api
+    params:
+      endpoint: "/ecommerce/cart"
+    output: cart_contents
+
+  - id: validate_cart
+    op: validate_schema
+    params:
+      input: "cart_contents"
+      schema: "checkout_schema"
+    output: validated_cart
+
+  - id: apply_promo_rule
+    op: apply_rule
+    params:
+      input: "validated_cart"
+      rule: "promo_code_rule"
+    output: priced_cart
+
+  - id: authenticate_shopper
+    op: authenticate_user
+    params:
+      role: "shopper"
+    output: auth_result
+
+  - id: process_order
+    op: write_database
+    params:
+      input: "priced_cart"
+      table: "orders"
+    output: order_record
+
+  - id: notify_customer
+    op: notify_user
+    params:
+      input: "order_record"
+      recipient: "customer"
+      message: "Order placed"

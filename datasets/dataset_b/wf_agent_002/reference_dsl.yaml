@@ -1,0 +1,19 @@
+workflow_id: wf_agent_002
+# domain: agent_tasks
+# complexity: 1
+# has_security_constraint: false
+# primitive_count: 2
+# source: AgentBench benchmark -- database task -- inspired by AgentBench
+steps:
+  - id: query_table
+    op: read_database
+    params:
+      table: "status_records"
+      filter: "active = true"
+    output: records
+
+  - id: aggregate_summary
+    op: aggregate_data
+    params:
+      input: "records"
+    output: summary

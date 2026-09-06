@@ -1,0 +1,54 @@
+workflow_id: wf_tool_010
+# domain: api_integration
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 7
+# source: ToolLLM benchmark -- webhook ingestion task -- inspired by ToolLLM
+steps:
+  - id: receive_webhook
+    op: fetch_api
+    params:
+      endpoint: "/webhooks/ingest"
+    output: webhook_payload
+
+  - id: validate_webhook
+    op: validate_schema
+    params:
+      input: "webhook_payload"
+      schema: "webhook_schema"
+    output: validated_payload
+
+  - id: transform_to_event
+    op: transform_json
+    params:
+      input: "validated_payload"
+      transformation: "to_internal_event"
+    output: event_data
+
+  - id: route_by_event_type
+    op: route_to_step
+    params:
+      input: "event_data"
+      condition: "event_type = 'priority'"
+      branch_true: "priority_handler"
+      branch_false: "standard_handler"
+
+  - id: authenticate_ingestion_service
+    op: authenticate_user
+    params:
+      role: "ingestion_service"
+    output: auth_result
+
+  - id: store_event
+    op: write_database
+    params:
+      input: "event_data"
+      table: "ingested_events"
+    output: event_record
+
+  - id: confirm_receipt
+    op: call_webhook
+    params:
+      input: "event_record"
+      url: "https://sender.example.com/confirm"
+    output: confirmation_result

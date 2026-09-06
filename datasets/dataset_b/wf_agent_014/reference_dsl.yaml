@@ -1,0 +1,78 @@
+workflow_id: wf_agent_014
+# domain: agent_tasks
+# complexity: 5
+# has_security_constraint: true
+# primitive_count: 11
+# source: AgentBench benchmark -- full agent pipeline task -- inspired by AgentBench
+steps:
+  - id: read_agent_config
+    op: fetch_api
+    params:
+      endpoint: "/config/agent"
+    output: agent_config
+
+  - id: authenticate_agent_service
+    op: authenticate_user
+    params:
+      role: "agent_service"
+    output: auth_result
+
+  - id: fetch_agent_source_one
+    op: fetch_api
+    params:
+      endpoint: "/agent/sources/one"
+    output: agent_source_one
+
+  - id: fetch_agent_source_two
+    op: fetch_api
+    params:
+      endpoint: "/agent/sources/two"
+    output: agent_source_two
+
+  - id: fetch_agent_source_three
+    op: fetch_api
+    params:
+      endpoint: "/agent/sources/three"
+    output: agent_source_three
+
+  - id: classify_agent_context
+    op: apply_rule
+    params:
+      input: "agent_source_one"
+      rule: "context_classification"
+    output: agent_classification
+
+  - id: route_agent_execution
+    op: route_to_step
+    params:
+      input: "agent_classification"
+      condition: "agent_classification = true"
+      branch_true: "path_a"
+      branch_false: "path_b"
+
+  - id: transform_agent_result
+    op: transform_json
+    params:
+      input: "agent_source_two"
+      transformation: "to_storage_format"
+    output: agent_storage_data
+
+  - id: validate_agent_result
+    op: validate_schema
+    params:
+      input: "agent_storage_data"
+      schema: "agent_result_schema"
+    output: validated_agent_result
+
+  - id: store_agent_result
+    op: write_database
+    params:
+      input: "validated_agent_result"
+      table: "agent_results"
+    output: agent_write_result
+
+  - id: log_agent_run
+    op: log_audit
+    params:
+      input: "agent_write_result"
+      action: "agent_run_completed"

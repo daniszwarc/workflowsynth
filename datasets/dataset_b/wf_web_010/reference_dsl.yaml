@@ -1,0 +1,46 @@
+workflow_id: wf_web_010
+# domain: web_automation
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: WebArena benchmark -- account registration task -- inspired by WebArena
+steps:
+  - id: receive_registration
+    op: fetch_api
+    params:
+      endpoint: "/accounts/register"
+    output: registration_payload
+
+  - id: validate_registration
+    op: validate_schema
+    params:
+      input: "registration_payload"
+      schema: "registration_schema"
+    output: validated_registration
+
+  - id: check_duplicate
+    op: apply_rule
+    params:
+      input: "validated_registration"
+      rule: "duplicate_email_check"
+    output: duplicate_check_result
+
+  - id: authenticate_registration_service
+    op: authenticate_user
+    params:
+      role: "registration_service"
+    output: auth_result
+
+  - id: create_account
+    op: write_database
+    params:
+      input: "duplicate_check_result"
+      table: "accounts"
+    output: account_record
+
+  - id: send_welcome_email
+    op: notify_user
+    params:
+      input: "account_record"
+      recipient: "new_user"
+      message: "Welcome"

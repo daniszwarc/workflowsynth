@@ -1,0 +1,40 @@
+workflow_id: wf_gaia_008
+# domain: general_ai
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: GAIA benchmark -- level 2 multi-tool task -- inspired by GAIA
+steps:
+  - id: read_pending
+    op: read_database
+    params:
+      table: "pending_records"
+      filter: "status = 'pending'"
+    output: pending_records
+
+  - id: authenticate_processor
+    op: authenticate_user
+    params:
+      role: "processing_service"
+    output: auth_result
+
+  - id: validate_pending_records
+    op: validate_schema
+    params:
+      input: "pending_records"
+      schema: "pending_record_schema"
+    output: validated_records
+
+  - id: apply_business_rule
+    op: apply_rule
+    params:
+      input: "validated_records"
+      rule: "outcome_determination"
+    output: rule_outcome
+
+  - id: write_outcome
+    op: write_database
+    params:
+      input: "rule_outcome"
+      table: "processed_records"
+    output: processed_record
