@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_sv_005",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.4577457495033741,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: non_customer_support_email_routing\nsteps:\n  - id: fetch_classification_result\n    op: fetch_api\n    params:\n      endpoint: \"/api/email/classification\"\n    output: raw_classification\n\n  - id: validate_classification\n    op: validate_schema\n    params:\n      input: raw_classification\n      schema: email_classification_schema\n    output: validated_classification\n\n  - id: extract_support_flag\n    op: extract_field\n    params:\n      input: validated_classification\n      field: \"customerSupport\"\n    output: support_flag\n\n  - id: apply_skip_rule\n    op: apply_rule\n    params:\n      rule: \"customerSupport == false OR sender_domain == '@club.example.com'\"\n      input: support_flag\n    output: skip_decision\n\n  - id: route_on_decision\n    op: route_to_step\n    params:\n      condition: \"skip_decision == true\"\n      target: log_skipped_email\n      fallback: terminate_no_action\n\n  - id: log_skipped_email\n    op: log_audit\n    params:\n      input: validated_classification\n      action: \"email_skipped\"\n      reason: \"Email classified as non-customer-support; no draft created\"\n    output: audit_result\n\n  - id: terminate_skipped\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Non-customer-support email logged and skipped successfully\"\n\n  - id: terminate_no_action\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Email did not match skip criteria; no action taken\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_sv_005.py::test_parses_and_type_checks": true,
+        "test_wf_sv_005.py::test_passes_taint_analysis": true,
+        "test_wf_sv_005.py::test_has_routing_rule": true,
+        "test_wf_sv_005.py::test_logs_skip": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1082,
+      "output_tokens": 407
+    }
+  ],
+  "complexity": 1,
+  "domain": "community_sports",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1082,
+  "total_output_tokens": 407
+}

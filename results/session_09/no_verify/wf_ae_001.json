@@ -1,0 +1,57 @@
+{
+  "task_id": "wf_ae_001",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 13.856577416881919,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: pdf_article_extraction_via_ai_vision\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"automation_service_account\"\n    output: auth_result\n\n  - id: step_search_drive\n    op: fetch_api\n    params:\n      endpoint: \"/api/google-drive/search\"\n      query:\n        folder: \"pending_articles\"\n        mime_type: \"application/pdf\"\n    output: raw_pdf_list\n\n  - id: step_validate_pdf_list\n    op: validate_schema\n    params:\n      input: raw_pdf_list\n      schema: pdf_file_list_schema\n    output: validated_pdf_list\n\n  - id: step_loop_pdfs\n    op: loop_records\n    params:\n      input: validated_pdf_list\n      steps:\n        - download_pdf\n        - send_to_vision_api\n        - parse_ai_response\n        - sanitize_quotes\n        - validate_extracted_fields\n        - ensure_lead_not_empty\n        - handle_format_routing\n        - write_article\n        - log_extraction\n    output: loop_result\n\n  - id: download_pdf\n    op: fetch_api\n    params:\n      endpoint: \"/api/google-drive/download\"\n      file_id_from: validated_pdf_list\n    output: raw_pdf_binary\n\n  - id: send_to_vision_api\n    op: call_webhook\n    params:\n      input: raw_pdf_binary\n      url: \"https://ai-vision.example.com/extract\"\n      method: \"POST\"\n      headers:\n        Content-Type: \"application/pdf\"\n      body_template:\n        prompt: \"Extract structured article content: title, author, section, lead, body, highlighted_quotes, sidebars. If the document contains multiple book reviews, set es_multiple to true and return an array of articles.\"\n    output: raw_ai_response\n\n  - id: parse_ai_response\n    op: transform_json\n    params:\n      input: raw_ai_response\n      mapping:\n        strip_markdown_fences: true\n        parse_json_body: true\n    output: parsed_ai_content\n\n  - id: sanitize_quotes\n    op: transform_json\n    params:\n      input: parsed_ai_content\n      mapping:\n        replace_double_quotes_in_values: true\n        replacement_char: \"'\"\n    output: sanitized_content\n\n  - id: validate_extracted_fields\n    op: validate_schema\n    params:\n      input: sanitized_content\n      schema:\n        required_fields:\n          - title\n          - section\n          - content\n        conditional:\n          when_es_multiple_true:\n            type: array\n            items_required:\n              - title\n              - section\n              - content\n    output: validated_content\n\n  - id: ensure_lead_not_empty\n    op: apply_rule\n    params:\n      input: validated_content\n      rule: \"lead_field_must_not_be_empty\"\n      fallback: \"If lead is empty, derive from first 150 characters of content body\"\n    output: content_with_lead\n\n  - id: handle_format_routing\n    op: route_to_step\n    params:\n      condition: \"content_with_lead.es_multiple == true\"\n      true_step: process_multiple_reviews\n      false_step: write_article\n\n  - id: process_multiple_reviews\n    op: loop_records\n    params:\n      input: content_with_lead\n      steps:\n        - write_article\n        - log_extraction\n    output: multi_review_result\n\n  - id: write_article\n    op: write_database\n    params:\n      input: content_with_lead\n      table: extracted_articles\n      columns:\n        - title\n        - author\n        - section\n        - lead\n        - body\n        - highlighted_quotes\n        - sidebars\n        - es_multiple\n    output: write_result\n\n  - id: log_extraction\n    op: log_audit\n    params:\n      input: content_with_lead\n      event: \"article_extracted_from_pdf\"\n      details:\n        title_field: \"content_with_lead.title\"\n        section_field: \"content_with_lead.section\"\n        es_multiple: \"content_with_lead.es_multiple\"\n    output: audit_result\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: notify_admin\n    output: error_handle_result\n\n  - id: notify_admin\n    op: notify_user\n    params:\n      input: error_handle_result\n      recipient: \"admin@economics-magazine.com\"\n      channel: \"email\"\n      message: \"PDF article extraction workflow encountered an error. Please review the audit log.\"\n    output: notify_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ae_001.py::test_parses_and_type_checks": true,
+        "test_wf_ae_001.py::test_passes_taint_analysis": false,
+        "test_wf_ae_001.py::test_has_ai_extraction": true,
+        "test_wf_ae_001.py::test_has_validation": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1158,
+      "output_tokens": 1211
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: pdf_article_extraction_via_ai_vision\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"automation_service_account\"\n    output: auth_result\n\n  - id: step_search_drive\n    op: fetch_api\n    params:\n      endpoint: \"/api/google-drive/search\"\n      query:\n        folder: \"pending_articles\"\n        mime_type: \"application/pdf\"\n    output: raw_pdf_list\n\n  - id: step_validate_pdf_list\n    op: validate_schema\n    params:\n      input: raw_pdf_list\n      schema: pdf_file_list_schema\n    output: validated_pdf_list\n\n  - id: step_loop_pdfs\n    op: loop_records\n    params:\n      input: validated_pdf_list\n      steps:\n        - download_pdf\n        - filter_pdf_binary\n        - send_to_vision_api\n        - parse_ai_response\n        - sanitize_quotes\n        - validate_extracted_fields\n        - ensure_lead_not_empty\n        - handle_format_routing\n        - write_article\n        - log_extraction\n    output: loop_result\n\n  - id: download_pdf\n    op: fetch_api\n    params:\n      endpoint: \"/api/google-drive/download\"\n      file_id_from: validated_pdf_list\n    output: raw_pdf_binary\n\n  - id: filter_pdf_binary\n    op: filter_records\n    params:\n      input: raw_pdf_binary\n      condition: \"mime_type == 'application/pdf'\"\n    output: filtered_pdf_binary\n\n  - id: send_to_vision_api\n    op: call_webhook\n    params:\n      input: filtered_pdf_binary\n      url: \"https://ai-vision.example.com/extract\"\n      method: \"POST\"\n      headers:\n        Content-Type: \"application/pdf\"\n      body_template:\n        prompt: \"Extract structured article content: title, author, section, lead, body, highlighted_quotes, sidebars. If the document contains multiple book reviews, set es_multiple to true and return an array of articles.\"\n    output: raw_ai_response\n\n  - id: parse_ai_response\n    op: transform_json\n    params:\n      input: raw_ai_response\n      mapping:\n        strip_markdown_fences: true\n        parse_json_body: true\n    output: parsed_ai_content\n\n  - id: sanitize_quotes\n    op: transform_json\n    params:\n      input: parsed_ai_content\n      mapping:\n        replace_double_quotes_in_values: true\n        replacement_char: \"'\"\n    output: sanitized_content\n\n  - id: validate_extracted_fields\n    op: validate_schema\n    params:\n      input: sanitized_content\n      schema:\n        required_fields:\n          - title\n          - section\n          - content\n        conditional:\n          when_es_multiple_true:\n            type: array\n            items_required:\n              - title\n              - section\n              - content\n    output: validated_content\n\n  - id: ensure_lead_not_empty\n    op: apply_rule\n    params:\n      input: validated_content\n      rule: \"lead_field_must_not_be_empty\"\n      fallback: \"If lead is empty, derive from first 150 characters of content body\"\n    output: content_with_lead\n\n  - id: handle_format_routing\n    op: route_to_step\n    params:\n      condition: \"content_with_lead.es_multiple == true\"\n      true_step: process_multiple_reviews\n      false_step: write_article\n\n  - id: process_multiple_reviews\n    op: loop_records\n    params:\n      input: content_with_lead\n      steps:\n        - write_article\n        - log_extraction\n    output: multi_review_result\n\n  - id: write_article\n    op: write_database\n    params:\n      input: content_with_lead\n      table: extracted_articles\n      columns:\n        - title\n        - author\n        - section\n        - lead\n        - body\n        - highlighted_quotes\n        - sidebars\n        - es_multiple\n    output: write_result\n\n  - id: log_extraction\n    op: log_audit\n    params:\n      input: content_with_lead\n      event: \"article_extracted_from_pdf\"\n      details:\n        title_field: \"content_with_lead.title\"\n        section_field: \"content_with_lead.section\"\n        es_multiple: \"content_with_lead.es_multiple\"\n    output: audit_result\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: notify_admin\n    output: error_handle_result\n\n  - id: notify_admin\n    op: notify_user\n    params:\n      input: error_handle_result\n      recipient: \"admin@economics-magazine.com\"\n      channel: \"email\"\n      message: \"PDF article extraction workflow encountered an error. Please review the audit log.\"\n    output: notify_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ae_001.py::test_parses_and_type_checks": true,
+        "test_wf_ae_001.py::test_passes_taint_analysis": true,
+        "test_wf_ae_001.py::test_has_ai_extraction": true,
+        "test_wf_ae_001.py::test_has_validation": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 2452,
+      "output_tokens": 1273
+    }
+  ],
+  "complexity": 2,
+  "domain": "publishing",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 3610,
+  "total_output_tokens": 2484
+}

@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_ft_008",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.4659767923876643,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: body_weight_measurement_logging\nsteps:\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: step_receive_measurement\n    op: fetch_api\n    params:\n      endpoint: \"/api/weight/measurement\"\n      method: \"POST\"\n    output: raw_measurement\n\n  - id: step_validate_schema\n    op: validate_schema\n    params:\n      input: raw_measurement\n      schema: weight_measurement_schema\n      required_fields:\n        - user_id\n        - weight_kg\n        - date\n        - time\n    output: schema_validated_measurement\n\n  - id: step_filter_plausible_range\n    op: filter_records\n    params:\n      input: schema_validated_measurement\n      condition: \"weight_kg >= 30 AND weight_kg <= 300\"\n    output: plausible_measurement\n\n  - id: step_check_plausible\n    op: apply_rule\n    params:\n      rule: \"plausible_measurement is not empty\"\n      on_false: step_terminate_implausible\n    output: plausibility_check\n\n  - id: step_read_existing_daily\n    op: read_database\n    params:\n      table: weight_measurements\n      filter: \"user_id = plausible_measurement.user_id AND date = plausible_measurement.date\"\n    output: existing_daily_records\n\n  - id: step_validate_existing\n    op: validate_schema\n    params:\n      input: existing_daily_records\n      schema: existing_records_schema\n    output: validated_existing_records\n\n  - id: step_check_duplicate\n    op: apply_rule\n    params:\n      rule: \"validated_existing_records count == 0\"\n      on_false: step_notify_duplicate\n    output: duplicate_check\n\n  - id: step_transform_measurement\n    op: transform_json\n    params:\n      input: plausible_measurement\n      mapping:\n        user_id: \"user_id\"\n        weight_kg: \"weight_kg\"\n        measured_at: \"date + time\"\n        created_at: \"now()\"\n    output: transformed_measurement\n\n  - id: step_write_measurement\n    op: write_database\n    params:\n      input: transformed_measurement\n      table: weight_measurements\n    output: write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: transformed_measurement\n      action: \"weight_measurement_logged\"\n      details: \"Body weight measurement stored successfully\"\n    output: audit_result\n\n  - id: step_notify_success\n    op: notify_user\n    params:\n      input: transformed_measurement\n      message: \"Your weight measurement has been logged successfully.\"\n    output: success_notification\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n\n  - id: step_notify_duplicate\n    op: notify_user\n    params:\n      input: plausible_measurement\n      message: \"A measurement already exists for today. Only one measurement per day is recommended.\"\n    output: duplicate_notification\n\n  - id: step_terminate_duplicate\n    op: terminate_workflow\n    params:\n      status: \"completed_with_warning\"\n      reason: \"duplicate_daily_measurement\"\n\n  - id: step_terminate_implausible\n    op: terminate_workflow\n    params:\n      status: \"rejected\"\n      reason: \"measurement_outside_plausible_range_30_300_kg\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_008.py::test_parses_and_type_checks": true,
+        "test_wf_ft_008.py::test_passes_taint_analysis": true,
+        "test_wf_ft_008.py::test_validates_measurement": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1060,
+      "output_tokens": 872
+    }
+  ],
+  "complexity": 1,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1060,
+  "total_output_tokens": 872
+}

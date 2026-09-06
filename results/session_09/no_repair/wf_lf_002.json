@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_lf_002",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.4469915833324194,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: llm_text_cleanup_via_fastapi_proxy\nsteps:\n  - id: receive_extracted_text\n    op: fetch_api\n    params:\n      endpoint: \"/api/pwa/extracted-text\"\n      method: \"POST\"\n    output: raw_request\n\n  - id: validate_request_origin\n    op: validate_schema\n    params:\n      input: raw_request\n      schema:\n        type: object\n        required:\n          - origin\n          - text\n        properties:\n          origin:\n            type: string\n            enum:\n              - \"https://<github-pages-app>.github.io\"\n          text:\n            type: string\n            minLength: 1\n    output: validated_request\n\n  - id: extract_text_body\n    op: extract_field\n    params:\n      input: validated_request\n      field: \"text\"\n    output: extracted_text\n\n  - id: authenticate_proxy_service\n    op: authenticate_user\n    params:\n      role: \"proxy_service\"\n      description: \"Authenticate the backend proxy before calling external LLM API\"\n    output: auth_result\n\n  - id: prepare_llm_payload\n    op: transform_json\n    params:\n      input: extracted_text\n      mapping:\n        model: \"gpt-4\"\n        messages:\n          - role: \"system\"\n            content: >\n              Tu es un assistant de nettoyage de texte fran\u00e7ais. Supprime les num\u00e9ros de page,\n              les en-t\u00eates courants, les notes de bas de page et les artefacts de c\u00e9sure.\n              Retourne uniquement le texte nettoy\u00e9, sans explication.\n          - role: \"user\"\n            content: \"{{input}}\"\n    output: llm_request_payload\n\n  - id: call_llm_api\n    op: call_webhook\n    params:\n      input: llm_request_payload\n      url: \"https://api.openai.com/v1/chat/completions\"\n      method: \"POST\"\n      headers:\n        Content-Type: \"application/json\"\n    output: raw_llm_response\n\n  - id: validate_llm_response\n    op: validate_schema\n    params:\n      input: raw_llm_response\n      schema:\n        type: object\n        required:\n          - choices\n        properties:\n          choices:\n            type: array\n            minItems: 1\n            items:\n              type: object\n              required:\n                - message\n              properties:\n                message:\n                  type: object\n                  required:\n                    - content\n                  properties:\n                    content:\n                      type: string\n    output: validated_llm_response\n\n  - id: extract_cleaned_text\n    op: extract_field\n    params:\n      input: validated_llm_response\n      field: \"choices[0].message.content\"\n    output: cleaned_text\n\n  - id: handle_llm_error\n    op: handle_error\n    params:\n      monitored_steps:\n        - call_llm_api\n        - validate_llm_response\n      on_error: error_retry\n\n  - id: error_retry\n    op: retry_step\n    params:\n      step: call_llm_api\n      max_retries: 2\n      backoff_seconds: 3\n\n  - id: format_response_for_pwa\n    op: format_output\n    params:\n      input: cleaned_text\n      format: \"json\"\n      template:\n        cleaned_text: \"{{input}}\"\n        status: \"success\"\n    output: pwa_response\n\n  - id: log_cleanup_request\n    op: log_audit\n    params:\n      input: pwa_response\n      event: \"llm_text_cleanup_completed\"\n      details: \"Text cleanup proxy request processed successfully\"\n\n  - id: notify_pwa_frontend\n    op: notify_user\n    params:\n      input: pwa_response\n      channel: \"http_response\"\n      message: \"Cleaned text ready for TTS playback\"\n\n  - id: end_workflow\n    op: terminate_workflow\n    params:\n      status: \"success\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_lf_002.py::test_parses_and_type_checks": true,
+        "test_wf_lf_002.py::test_passes_taint_analysis": true,
+        "test_wf_lf_002.py::test_validates_cors_origin": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1149,
+      "output_tokens": 1011
+    }
+  ],
+  "complexity": 2,
+  "domain": "personal_tool",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1149,
+  "total_output_tokens": 1011
+}

@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_cpl_009",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.4640689995139837,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: attachment_upload_workflow\nsteps:\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      role: \"requester\"\n    output: auth_result\n\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/attachments/upload\"\n      method: \"POST\"\n    output: raw_upload_data\n\n  - id: step_validate_upload_schema\n    op: validate_schema\n    params:\n      input: raw_upload_data\n      schema: attachment_upload_schema\n      rules:\n        - field: file_type\n          allowed: [\"pdf\", \"png\", \"jpg\", \"jpeg\", \"doc\", \"docx\", \"xlsx\", \"csv\"]\n        - field: file_size\n          max_bytes: 10485760\n    output: validated_upload\n\n  - id: step_extract_request_id\n    op: extract_field\n    params:\n      input: validated_upload\n      field: \"parent_request_id\"\n    output: parent_request_id\n\n  - id: step_verify_parent_request\n    op: read_database\n    params:\n      table: requests\n      filter:\n        id: parent_request_id\n    output: raw_parent_request\n\n  - id: step_validate_parent_request\n    op: validate_schema\n    params:\n      input: raw_parent_request\n      schema: existing_request_schema\n    output: validated_parent_request\n\n  - id: step_check_parent_exists\n    op: apply_rule\n    params:\n      rule: \"parent_request_exists\"\n      condition: \"validated_parent_request.record_count > 0\"\n    output: parent_exists_result\n\n  - id: step_route_on_parent\n    op: route_to_step\n    params:\n      condition: \"parent_exists_result == true\"\n      true_step: step_extract_file_data\n      false_step: step_terminate_no_parent\n\n  - id: step_terminate_no_parent\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"Parent request does not exist\"\n\n  - id: step_extract_file_data\n    op: extract_field\n    params:\n      input: validated_upload\n      field: \"file_payload\"\n    output: file_data\n\n  - id: step_encrypt_file\n    op: encrypt_field\n    params:\n      input: file_data\n      algorithm: \"AES-256\"\n    output: encrypted_file\n\n  - id: step_store_attachment\n    op: call_webhook\n    params:\n      input: encrypted_file\n      url: \"/storage/attachments/upload\"\n      method: \"POST\"\n    output: raw_storage_response\n\n  - id: step_validate_storage_response\n    op: validate_schema\n    params:\n      input: raw_storage_response\n      schema: storage_response_schema\n    output: validated_storage_response\n\n  - id: step_transform_attachment_record\n    op: transform_json\n    params:\n      input: validated_storage_response\n      mapping:\n        storage_path: \"validated_storage_response.file_path\"\n        file_name: \"validated_upload.file_name\"\n        file_type: \"validated_upload.file_type\"\n        file_size: \"validated_upload.file_size\"\n        parent_request_id: \"parent_request_id\"\n        uploaded_by: \"auth_result.user_id\"\n    output: attachment_record\n\n  - id: step_write_attachment\n    op: write_database\n    params:\n      input: attachment_record\n      table: attachments\n    output: write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: attachment_record\n      action: \"attachment_uploaded\"\n      details:\n        parent_request_id: \"parent_request_id\"\n        user: \"auth_result.user_id\"\n    output: audit_result\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: attachment_record\n      recipient: \"auth_result.user_id\"\n      message: \"Your attachment has been uploaded successfully.\"\n    output: notification_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      reason: \"Attachment uploaded and linked to request\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_cpl_009.py::test_parses_and_type_checks": true,
+        "test_wf_cpl_009.py::test_passes_taint_analysis": true,
+        "test_wf_cpl_009.py::test_validates_before_storing": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1070,
+      "output_tokens": 1073
+    }
+  ],
+  "complexity": 2,
+  "domain": "sports_media",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1070,
+  "total_output_tokens": 1073
+}

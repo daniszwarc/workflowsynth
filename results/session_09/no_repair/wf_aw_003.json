@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_aw_003",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.5208643339574337,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: business_rule_extraction_from_process_document\nsteps:\n  - id: step_authenticate_pipeline\n    op: authenticate_user\n    params:\n      role: \"pipeline_service\"\n      description: \"Authenticate the upload pipeline service\"\n    output: auth_result\n\n  - id: step_receive_document\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge-base/uploaded-document\"\n      timeout: 300\n    output: raw_document\n\n  - id: step_validate_document\n    op: validate_schema\n    params:\n      input: raw_document\n      schema: process_document_schema\n    output: validated_document\n\n  - id: step_extract_text\n    op: extract_field\n    params:\n      input: validated_document\n      field: \"document_text\"\n    output: document_text\n\n  - id: step_call_llm_extract_rules\n    op: call_webhook\n    params:\n      input: document_text\n      url: \"/langgraph/extract-business-rules\"\n      method: \"POST\"\n      timeout: 300\n      description: \"Call LLM via LangGraph to identify and extract individual business rules\"\n    output: raw_extracted_rules\n\n  - id: step_validate_extracted_rules\n    op: validate_schema\n    params:\n      input: raw_extracted_rules\n      schema: extracted_business_rules_schema\n      description: \"Validate structure of extracted rules array\"\n    output: validated_rules\n\n  - id: step_add_pending_status\n    op: transform_json\n    params:\n      input: validated_rules\n      mapping:\n        status: \"pending_review\"\n        searchable: false\n      description: \"Set each rule status to pending_review and mark as not searchable\"\n    output: rules_with_status\n\n  - id: step_handle_store_errors\n    op: handle_error\n    params:\n      on_error: step_terminate_on_failure\n      steps:\n        - step_store_rules\n        - step_generate_embeddings\n        - step_store_embeddings\n\n  - id: step_store_rules\n    op: loop_records\n    params:\n      input: rules_with_status\n      step: step_write_single_rule\n    output: stored_rules\n\n  - id: step_write_single_rule\n    op: write_database\n    params:\n      input: rules_with_status\n      table: business_rules\n      description: \"Store each rule individually with status pending_review\"\n    output: write_rules_result\n\n  - id: step_generate_embeddings\n    op: call_webhook\n    params:\n      input: rules_with_status\n      url: \"/api/embeddings/generate\"\n      method: \"POST\"\n      config:\n        dimensions: 4096\n      timeout: 300\n      description: \"Generate 4096-dimension embeddings for each rule\"\n    output: raw_embeddings\n\n  - id: step_validate_embeddings\n    op: validate_schema\n    params:\n      input: raw_embeddings\n      schema: embeddings_response_schema\n      description: \"Validate embedding response structure and dimensionality\"\n    output: validated_embeddings\n\n  - id: step_merge_rules_embeddings\n    op: merge_datasets\n    params:\n      input: stored_rules\n      secondary: validated_embeddings\n      join_key: \"rule_id\"\n      description: \"Link embeddings to their corresponding rules\"\n    output: rules_with_embeddings\n\n  - id: step_store_embeddings\n    op: write_database\n    params:\n      input: rules_with_embeddings\n      table: rule_embeddings_pgvector\n      config:\n        dimensions: 4096\n      description: \"Store embeddings in pgvector table linked to each rule\"\n    output: write_embeddings_result\n\n  - id: step_notify_validators\n    op: notify_user\n    params:\n      input: rules_with_status\n      recipient: \"validator_group\"\n      template: \"new_rules_pending_review\"\n      message: \"New business rules extracted and pending review\"\n    output: notification_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: rules_with_status\n      action: \"business_rules_extracted\"\n      details:\n        source: \"process_document_upload\"\n        rule_count: \"{{rules_with_status.length}}\"\n        status: \"pending_review\"\n    output: audit_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"Business rules extracted, stored, embedded, and flagged for review\"\n\n  - id: step_terminate_on_failure\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"Workflow failed during rule storage or embedding generation\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_aw_003.py::test_parses_and_type_checks": true,
+        "test_wf_aw_003.py::test_passes_taint_analysis": true,
+        "test_wf_aw_003.py::test_stores_pending_review": true,
+        "test_wf_aw_003.py::test_generates_embeddings": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1170,
+      "output_tokens": 1180
+    }
+  ],
+  "complexity": 4,
+  "domain": "enterprise_knowledge",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1170,
+  "total_output_tokens": 1180
+}

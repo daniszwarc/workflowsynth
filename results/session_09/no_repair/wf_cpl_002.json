@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_cpl_002",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.5202435003593564,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: league_management\nsteps:\n  - id: step_receive_league_form\n    op: fetch_api\n    params:\n      endpoint: \"/api/leagues/form-submission\"\n    output: raw_league_form\n\n  - id: step_validate_league_form\n    op: validate_schema\n    params:\n      input: raw_league_form\n      schema: league_form_schema\n    output: validated_league_form\n\n  - id: step_authenticate_admin\n    op: authenticate_user\n    params:\n      role: \"admin\"\n    output: auth_result\n\n  - id: step_extract_league_name\n    op: extract_field\n    params:\n      input: validated_league_form\n      field: \"league_name\"\n    output: league_name\n\n  - id: step_check_existing_league\n    op: read_database\n    params:\n      table: leagues\n      query_field: \"name\"\n      query_value: league_name\n    output: existing_league_records\n\n  - id: step_filter_existing\n    op: filter_records\n    params:\n      input: existing_league_records\n      condition: \"record_count > 0\"\n    output: duplicate_check_result\n\n  - id: step_apply_uniqueness_rule\n    op: apply_rule\n    params:\n      rule: \"if duplicate exists and operation is create then reject; if duplicate exists with different id and operation is update then reject\"\n      input_check: duplicate_check_result\n      form_data: validated_league_form\n    output: uniqueness_decision\n\n  - id: step_route_on_uniqueness\n    op: route_to_step\n    params:\n      condition: \"uniqueness_decision.rejected == true\"\n      true_step: step_notify_duplicate\n      false_step: step_determine_operation\n    output: route_result\n\n  - id: step_notify_duplicate\n    op: notify_user\n    params:\n      input: validated_league_form\n      recipient: \"admin\"\n      message: \"League name already exists. Please choose a unique name.\"\n    output: duplicate_notification\n\n  - id: step_terminate_duplicate\n    op: terminate_workflow\n    params:\n      status: \"rejected\"\n      reason: \"Duplicate league name\"\n\n  - id: step_determine_operation\n    op: apply_rule\n    params:\n      rule: \"if league_id present then update else insert\"\n      form_data: validated_league_form\n    output: operation_type\n\n  - id: step_extract_league_id\n    op: extract_field\n    params:\n      input: validated_league_form\n      field: \"league_id\"\n    output: league_id\n\n  - id: step_route_on_operation\n    op: route_to_step\n    params:\n      condition: \"operation_type.action == 'update'\"\n      true_step: step_check_active_references\n      false_step: step_write_league\n\n  - id: step_check_active_references\n    op: read_database\n    params:\n      table: teams\n      query_field: \"league_id\"\n      query_value: league_id\n    output: raw_active_references\n\n  - id: step_filter_active_references\n    op: filter_records\n    params:\n      input: raw_active_references\n      condition: \"status == 'active'\"\n    output: active_references\n\n  - id: step_transform_league_data\n    op: transform_json\n    params:\n      input: validated_league_form\n      mapping:\n        name: \"league_name\"\n        display_properties: \"display_config\"\n        updated_by: \"admin_user_id\"\n    output: transformed_league_data\n\n  - id: step_write_league\n    op: write_database\n    params:\n      input: transformed_league_data\n      table: leagues\n      operation: \"upsert\"\n    output: write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: transformed_league_data\n      action: \"league_upsert\"\n      performed_by: auth_result\n      result: write_result\n    output: audit_entry\n\n  - id: step_notify_admin_success\n    op: notify_user\n    params:\n      input: transformed_league_data\n      recipient: \"admin\"\n      message: \"League has been successfully created or updated.\"\n    output: success_notification\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      reason: \"League record successfully saved\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_cpl_002.py::test_parses_and_type_checks": true,
+        "test_wf_cpl_002.py::test_passes_taint_analysis": true,
+        "test_wf_cpl_002.py::test_writes_league": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1054,
+      "output_tokens": 1109
+    }
+  ],
+  "complexity": 1,
+  "domain": "sports_media",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1054,
+  "total_output_tokens": 1109
+}

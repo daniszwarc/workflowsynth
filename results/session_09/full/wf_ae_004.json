@@ -1,0 +1,56 @@
+{
+  "task_id": "wf_ae_004",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 2,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 10.695446582511067,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: cms_article_publication\nsteps:\n  - id: fetch_csrf_token\n    op: fetch_api\n    params:\n      endpoint: \"/session/token\"\n      method: GET\n    output: raw_csrf_token\n\n  - id: extract_csrf_token\n    op: extract_field\n    params:\n      input: raw_csrf_token\n      field: \"csrf_token\"\n    output: csrf_token\n\n  - id: authenticate_publisher\n    op: authenticate_user\n    params:\n      role: \"publisher\"\n    output: auth_result\n\n  - id: validate_article_payload\n    op: validate_schema\n    params:\n      input: article_payload\n      schema: cms_article_schema\n    output: validated_article\n\n  - id: extract_content_sections\n    op: extract_field\n    params:\n      input: validated_article\n      field: \"content_sections\"\n    output: content_sections\n\n  - id: create_paragraph_blocks\n    op: loop_records\n    params:\n      input: content_sections\n      step: create_single_paragraph_block\n    output: paragraph_block_responses\n\n  - id: create_single_paragraph_block\n    op: call_webhook\n    params:\n      input: content_sections\n      url: \"/jsonapi/node/article/paragraph\"\n      method: POST\n      headers:\n        Content-Type: \"application/vnd.api+json\"\n        X-CSRF-Token: csrf_token\n    output: raw_paragraph_response\n\n  - id: validate_paragraph_responses\n    op: validate_schema\n    params:\n      input: paragraph_block_responses\n      schema: paragraph_block_response_schema\n    output: validated_paragraph_responses\n\n  - id: extract_block_uuids\n    op: transform_json\n    params:\n      input: validated_paragraph_responses\n      mapping:\n        block_uuids: \"$[*].data.id\"\n    output: block_uuids\n\n  - id: build_article_node_payload\n    op: transform_json\n    params:\n      input: validated_article\n      mapping:\n        title: \"$.title\"\n        metadata: \"$.metadata\"\n        field_content_blocks: block_uuids\n    output: article_node_payload\n\n  - id: create_article_node\n    op: call_webhook\n    params:\n      input: article_node_payload\n      url: \"/jsonapi/node/article\"\n      method: POST\n      headers:\n        Content-Type: \"application/vnd.api+json\"\n        X-CSRF-Token: csrf_token\n    output: raw_article_node_response\n\n  - id: validate_article_node_response\n    op: validate_schema\n    params:\n      input: raw_article_node_response\n      schema: cms_article_node_response_schema\n    output: validated_article_node\n\n  - id: extract_node_id\n    op: extract_field\n    params:\n      input: validated_article_node\n      field: \"data.id\"\n    output: article_node_id\n\n  - id: build_audit_entry\n    op: transform_json\n    params:\n      input: validated_article_node\n      mapping:\n        article_title: \"$.data.attributes.title\"\n        node_id: \"$.data.id\"\n        timestamp: \"$.meta.created\"\n    output: audit_entry\n\n  - id: log_publication_audit\n    op: log_audit\n    params:\n      input: audit_entry\n      action: \"article_published\"\n      details:\n        description: \"CMS article node created with paragraph block references\"",
+      "dsl_type_errors": [
+        "Step 'validate_article_payload' (op: validate_schema): input 'article_payload' is not defined. Available outputs at this point: ['auth_result', 'csrf_token', 'raw_csrf_token']. Make sure the step that produces 'article_payload' comes before this step and declares 'output: article_payload'.",
+        "Step 'validate_paragraph_responses': op 'validate_schema' requires input of type 'records' but 'paragraph_block_responses' has type 'none'. Make sure the step producing 'paragraph_block_responses' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1182,
+      "output_tokens": 874
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: cms_article_publication\nsteps:\n  - id: fetch_csrf_token\n    op: fetch_api\n    params:\n      endpoint: \"/session/token\"\n      method: GET\n    output: raw_csrf_token\n\n  - id: extract_csrf_token\n    op: extract_field\n    params:\n      input: raw_csrf_token\n      field: \"csrf_token\"\n    output: csrf_token\n\n  - id: authenticate_publisher\n    op: authenticate_user\n    params:\n      role: \"publisher\"\n    output: auth_result\n\n  - id: fetch_article_payload\n    op: fetch_api\n    params:\n      endpoint: \"/api/articles/pending\"\n    output: raw_article_payload\n\n  - id: validate_article_payload\n    op: validate_schema\n    params:\n      input: raw_article_payload\n      schema: cms_article_schema\n    output: validated_article\n\n  - id: extract_content_sections\n    op: extract_field\n    params:\n      input: validated_article\n      field: \"content_sections\"\n    output: content_sections\n\n  - id: create_paragraph_blocks\n    op: loop_records\n    params:\n      input: content_sections\n      step: create_single_paragraph_block\n    output: loop_result\n\n  - id: create_single_paragraph_block\n    op: call_webhook\n    params:\n      input: content_sections\n      url: \"/jsonapi/node/article/paragraph\"\n      method: POST\n      headers:\n        Content-Type: \"application/vnd.api+json\"\n        X-CSRF-Token: csrf_token\n    output: raw_paragraph_response\n\n  - id: fetch_paragraph_blocks\n    op: fetch_api\n    params:\n      endpoint: \"/jsonapi/node/article/paragraph?filter[article_id]=current\"\n    output: raw_paragraph_block_responses\n\n  - id: validate_paragraph_responses\n    op: validate_schema\n    params:\n      input: raw_paragraph_block_responses\n      schema: paragraph_block_response_schema\n    output: validated_paragraph_responses\n\n  - id: extract_block_uuids\n    op: transform_json\n    params:\n      input: validated_paragraph_responses\n      mapping:\n        block_uuids: \"$[*].data.id\"\n    output: block_uuids\n\n  - id: build_article_node_payload\n    op: transform_json\n    params:\n      input: validated_article\n      mapping:\n        title: \"$.title\"\n        metadata: \"$.metadata\"\n        field_content_blocks: block_uuids\n    output: article_node_payload\n\n  - id: create_article_node\n    op: call_webhook\n    params:\n      input: article_node_payload\n      url: \"/jsonapi/node/article\"\n      method: POST\n      headers:\n        Content-Type: \"application/vnd.api+json\"\n        X-CSRF-Token: csrf_token\n    output: raw_article_node_response\n\n  - id: validate_article_node_response\n    op: validate_schema\n    params:\n      input: raw_article_node_response\n      schema: cms_article_node_response_schema\n    output: validated_article_node\n\n  - id: extract_node_id\n    op: extract_field\n    params:\n      input: validated_article_node\n      field: \"data.id\"\n    output: article_node_id\n\n  - id: build_audit_entry\n    op: transform_json\n    params:\n      input: validated_article_node\n      mapping:\n        article_title: \"$.data.attributes.title\"\n        node_id: \"$.data.id\"\n        timestamp: \"$.meta.created\"\n    output: audit_entry\n\n  - id: log_publication_audit\n    op: log_audit\n    params:\n      input: audit_entry\n      action: \"article_published\"\n      details:\n        description: \"CMS article node created with paragraph block references\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ae_004.py::test_parses_and_type_checks": true,
+        "test_wf_ae_004.py::test_passes_taint_analysis": true,
+        "test_wf_ae_004.py::test_csrf_before_post": true,
+        "test_wf_ae_004.py::test_auth_before_publish": true,
+        "test_wf_ae_004.py::test_has_audit_log": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 2287,
+      "output_tokens": 971
+    }
+  ],
+  "complexity": 3,
+  "domain": "publishing",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 3469,
+  "total_output_tokens": 1845
+}

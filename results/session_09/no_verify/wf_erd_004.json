@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_erd_004",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6312022926285863,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: timesheet_daily_entry\nsteps:\n  - id: step_receive_cell_update\n    op: fetch_api\n    params:\n      endpoint: \"/api/timesheet/cell-update\"\n    output: raw_cell_update\n\n  - id: step_authenticate_worker\n    op: authenticate_user\n    params:\n      role: \"field_worker\"\n    output: auth_result\n\n  - id: step_extract_composite_key\n    op: extract_field\n    params:\n      input: raw_cell_update\n      field: \"composite_key\"\n    output: raw_composite_key\n\n  - id: step_parse_composite_key\n    op: transform_json\n    params:\n      input: raw_composite_key\n      mapping:\n        worker_id: \"split('_')[0]\"\n        patient_id: \"split('_')[1]\"\n        date: \"split('_')[2]\"\n        entry_type: \"split('_')[3]\"\n    output: parsed_key\n\n  - id: step_extract_new_value\n    op: extract_field\n    params:\n      input: raw_cell_update\n      field: \"new_value\"\n    output: raw_new_value\n\n  - id: step_validate_new_value\n    op: validate_schema\n    params:\n      input: raw_new_value\n      schema: \"timesheet_value_schema\"\n    output: validated_value\n\n  - id: step_check_ownership\n    op: apply_rule\n    params:\n      rule: \"parsed_key.worker_id == auth_result.user_id\"\n      on_false: \"step_terminate_unauthorized\"\n    output: ownership_check\n\n  - id: step_route_ownership\n    op: route_to_step\n    params:\n      condition: \"ownership_check.result == false\"\n      target: step_terminate_unauthorized\n\n  - id: step_read_timesheet_header\n    op: read_database\n    params:\n      table: \"timesheet_headers\"\n      query:\n        worker_id: \"parsed_key.worker_id\"\n        date: \"parsed_key.date\"\n    output: raw_timesheet_header\n\n  - id: step_validate_timesheet_header\n    op: validate_schema\n    params:\n      input: raw_timesheet_header\n      schema: \"timesheet_header_schema\"\n    output: validated_timesheet_header\n\n  - id: step_check_draft_status\n    op: apply_rule\n    params:\n      rule: \"validated_timesheet_header.status == 1\"\n      on_false: \"step_terminate_not_draft\"\n    output: draft_check\n\n  - id: step_route_draft_status\n    op: route_to_step\n    params:\n      condition: \"draft_check.result == false\"\n      target: step_terminate_not_draft\n\n  - id: step_build_update_record\n    op: transform_json\n    params:\n      input: validated_value\n      mapping:\n        worker_id: \"parsed_key.worker_id\"\n        patient_id: \"parsed_key.patient_id\"\n        date: \"parsed_key.date\"\n        entry_type: \"parsed_key.entry_type\"\n        value: \"validated_value.value\"\n    output: update_record\n\n  - id: step_write_timesheet_detail\n    op: write_database\n    params:\n      input: update_record\n      table: \"timesheet_details\"\n      mode: \"upsert\"\n      key:\n        - worker_id\n        - patient_id\n        - date\n        - entry_type\n    output: write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: update_record\n      action: \"timesheet_cell_updated\"\n      actor: \"auth_result.user_id\"\n    output: audit_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"Timesheet detail updated successfully.\"\n\n  - id: step_terminate_unauthorized\n    op: terminate_workflow\n    params:\n      status: \"error\"\n      message: \"Worker can only edit their own timesheet entries.\"\n\n  - id: step_terminate_not_draft\n    op: terminate_workflow\n    params:\n      status: \"error\"\n      message: \"Timesheet is not in draft status. Edits not allowed.\"\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      target: step_terminate_error\n\n  - id: step_terminate_error\n    op: terminate_workflow\n    params:\n      status: \"error\"\n      message: \"An unexpected error occurred during timesheet update.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_erd_004.py::test_parses_and_type_checks": true,
+        "test_wf_erd_004.py::test_passes_taint_analysis": true,
+        "test_wf_erd_004.py::test_parses_composite_key": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1112,
+      "output_tokens": 1151
+    }
+  ],
+  "complexity": 2,
+  "domain": "healthcare_billing",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1112,
+  "total_output_tokens": 1151
+}

@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_ktg_002",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.4648107923567295,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: case_tickler_followup_management\nsteps:\n  - id: receive_tickler_request\n    op: fetch_api\n    params:\n      endpoint: \"/api/tickler/request\"\n    output: raw_tickler_request\n\n  - id: authenticate_case_manager\n    op: authenticate_user\n    params:\n      role: \"case_manager\"\n    output: auth_result\n\n  - id: validate_tickler_fields\n    op: validate_schema\n    params:\n      input: raw_tickler_request\n      schema: tickler_schema\n    output: validated_tickler\n\n  - id: extract_action_type\n    op: extract_field\n    params:\n      input: validated_tickler\n      field: \"action_type\"\n    output: action_type\n\n  - id: route_by_action\n    op: route_to_step\n    params:\n      condition: \"action_type in ['create', 'update', 'complete']\"\n      on_create: upsert_tickler_record\n      on_update: upsert_tickler_record\n      on_complete: upsert_tickler_record\n      on_default: handle_invalid_action\n\n  - id: handle_invalid_action\n    op: handle_error\n    params:\n      error_type: \"invalid_action_type\"\n      message: \"Tickler action type is not recognized\"\n    output: error_result\n\n  - id: terminate_on_invalid\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"Invalid tickler action type\"\n\n  - id: upsert_tickler_record\n    op: write_database\n    params:\n      input: validated_tickler\n      table: ticklers\n      operation: \"upsert\"\n      primary_key: \"uuid\"\n      transaction: true\n      rollback_on_failure: true\n    output: write_result\n\n  - id: handle_write_error\n    op: handle_error\n    params:\n      error_type: \"database_write_failure\"\n      message: \"Failed to upsert tickler record; transaction rolled back\"\n    output: write_error_result\n\n  - id: retry_upsert\n    op: retry_step\n    params:\n      step: upsert_tickler_record\n      max_retries: 3\n      backoff: \"exponential\"\n    output: retry_result\n\n  - id: prepare_audit_entry\n    op: transform_json\n    params:\n      input: validated_tickler\n      mapping:\n        tickler_uuid: \"$.uuid\"\n        action: \"$.action_type\"\n        case_manager_id: \"$.assigned_case_manager\"\n        claim_id: \"$.claim_id\"\n        timestamp: \"$.request_timestamp\"\n    output: audit_entry\n\n  - id: log_tickler_action\n    op: log_audit\n    params:\n      input: audit_entry\n      event: \"tickler_action\"\n      details: \"Tickler create/update/complete action recorded\"\n\n  - id: notify_case_manager\n    op: notify_user\n    params:\n      input: audit_entry\n      recipient: \"$.case_manager_id\"\n      template: \"tickler_confirmation\"\n      message: \"Your tickler action has been processed successfully.\"\n\n  - id: terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      reason: \"Tickler action processed successfully\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ktg_002.py::test_parses_and_type_checks": true,
+        "test_wf_ktg_002.py::test_passes_taint_analysis": true,
+        "test_wf_ktg_002.py::test_writes_tickler": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1121,
+      "output_tokens": 837
+    }
+  ],
+  "complexity": 2,
+  "domain": "workers_compensation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1121,
+  "total_output_tokens": 837
+}

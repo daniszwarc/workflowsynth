@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_mvp_001",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 2,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "type_error",
+  "synthesis_time_seconds": 0.005476833321154118,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: user_authentication_session_bootstrap\nsteps:\n  - id: step_check_session\n    op: read_database\n    params:\n      table: active_sessions\n      query: \"SELECT * FROM active_sessions WHERE session_token = :token AND last_activity > NOW() - INTERVAL 8 HOUR\"\n    output: raw_session_data\n\n  - id: step_validate_session_data\n    op: validate_schema\n    params:\n      input: raw_session_data\n      schema: session_record_schema\n    output: validated_session_data\n\n  - id: step_extract_session_status\n    op: extract_field\n    params:\n      input: validated_session_data\n      field: is_authenticated\n    output: session_status\n\n  - id: step_apply_session_rule\n    op: apply_rule\n    params:\n      rule: \"session_status == true AND session_not_expired\"\n      input_ref: session_status\n    output: session_valid\n\n  - id: step_route_unauthenticated\n    op: route_to_step\n    params:\n      condition: \"session_valid == false\"\n      target: step_notify_login_redirect\n\n  - id: step_route_authenticated\n    op: route_to_step\n    params:\n      condition: \"session_valid == true\"\n      target: step_fetch_role_menu\n\n  - id: step_notify_login_redirect\n    op: notify_user\n    params:\n      input: session_status\n      message: \"Session not found or expired. Redirecting to login form.\"\n      channel: browser_redirect\n      target_url: \"/admin/login\"\n    output: login_redirect_sent\n\n  - id: step_receive_credentials\n    op: fetch_api\n    params:\n      endpoint: \"/admin/login/submit\"\n      method: POST\n      fields:\n        - username\n        - password\n    output: raw_credentials\n\n  - id: step_validate_credentials_schema\n    op: validate_schema\n    params:\n      input: raw_credentials\n      schema: login_credentials_schema\n    output: validated_credentials\n\n  - id: step_encrypt_password\n    op: encrypt_field\n    params:\n      input: validated_credentials\n      field: password\n    output: secure_credentials\n\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      username_ref: secure_credentials.username\n      password_hash_ref: secure_credentials.password\n    output: auth_result\n\n  - id: step_handle_auth_error\n    op: handle_error\n    params:\n      source_step: step_authenticate_user\n      on_error: step_notify_login_failure\n\n  - id: step_notify_login_failure\n    op: notify_user\n    params:\n      input: auth_result\n      message: \"Invalid username or password. Please try again.\"\n      channel: browser_redirect\n      target_url: \"/admin/login?error=invalid_credentials\"\n    output: failure_notification_sent\n\n  - id: step_extract_user_role\n    op: extract_field\n    params:\n      input: auth_result\n      field: role\n    output: user_role\n\n  - id: step_build_session\n    op: transform_json\n    params:\n      input: auth_result\n      mapping:\n        user_id: \"auth_result.user_id\"\n        role: \"auth_result.role\"\n        session_token: \"generate_token()\"\n        last_activity: \"now()\"\n        timeout_hours: 8\n    output: session_record\n\n  - id: step_write_session\n    op: write_database\n    params:\n      input: session_record\n      table: active_sessions\n    output: session_write_result\n\n  - id: step_log_login_audit\n    op: log_audit\n    params:\n      input: session_record\n      event: \"user_login_success\"\n      details: \"Staff member authenticated and session established.\"\n    output: audit_log_result\n\n  - id: step_fetch_role_menu\n    op: read_database\n    params:\n      table: role_menu_config\n      query: \"SELECT * FROM role_menu_config WHERE role = :user_role\"\n    output: raw_menu_data\n\n  - id: step_validate_menu_data\n    op: validate_schema\n    params:\n      input: raw_menu_data\n      schema: menu_config_schema\n    output: validated_menu_data\n\n  - id: step_format_menu_response\n    op: format_output\n    params:\n      input: validated_menu_data\n      format: json\n      template: main_menu_template\n    output: menu_response\n\n  - id: step_notify_main_menu_redirect\n    op: notify_user\n    params:\n      input: menu_response\n      message: \"Authentication successful. Loading main menu.\"\n      channel: browser_redirect\n      target_url: \"/admin/dashboard\"\n    output: main_menu_redirect_sent\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: success\n      message: \"User authenticated and session bootstrapped successfully.\"",
+      "dsl_type_errors": [
+        "Step 'step_encrypt_password': op 'encrypt_field' requires input of type 'string' but 'validated_credentials' has type 'records'.",
+        "Step 'step_build_session': op 'transform_json' requires input of type 'records' but 'auth_result' has type 'auth_token'. Make sure the step producing 'auth_result' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1109,
+      "output_tokens": 1247
+    }
+  ],
+  "complexity": 2,
+  "domain": "manufacturing",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1109,
+  "total_output_tokens": 1247
+}

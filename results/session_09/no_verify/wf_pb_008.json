@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_pb_008",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.51612679194659,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: ticket_status_change\nsteps:\n  - id: step_authenticate_producer\n    op: authenticate_user\n    params:\n      role: \"producer\"\n    output: auth_result\n\n  - id: step_receive_status_update\n    op: fetch_api\n    params:\n      endpoint: \"/api/tickets/status-update\"\n    output: raw_status_update\n\n  - id: step_validate_status_update\n    op: validate_schema\n    params:\n      input: raw_status_update\n      schema:\n        type: object\n        required:\n          - ticket_id\n          - new_status\n        properties:\n          ticket_id:\n            type: string\n          new_status:\n            type: string\n            enum:\n              - pendiente\n              - en_proceso\n              - cerrado\n    output: validated_status_update\n\n  - id: step_apply_status_rule\n    op: apply_rule\n    params:\n      rule: \"new_status must be one of: pendiente, en_proceso, cerrado\"\n      input: validated_status_update\n    output: rule_result\n\n  - id: step_extract_ticket_id\n    op: extract_field\n    params:\n      input: validated_status_update\n      field: \"ticket_id\"\n    output: ticket_id\n\n  - id: step_extract_new_status\n    op: extract_field\n    params:\n      input: validated_status_update\n      field: \"new_status\"\n    output: new_status\n\n  - id: step_read_current_ticket\n    op: read_database\n    params:\n      table: \"tickets\"\n      filter:\n        ticket_id: ticket_id\n    output: raw_current_ticket\n\n  - id: step_validate_current_ticket\n    op: validate_schema\n    params:\n      input: raw_current_ticket\n      schema:\n        type: object\n        required:\n          - ticket_id\n          - status\n    output: current_ticket\n\n  - id: step_extract_old_status\n    op: extract_field\n    params:\n      input: current_ticket\n      field: \"status\"\n    output: old_status\n\n  - id: step_transform_ticket_update\n    op: transform_json\n    params:\n      input: validated_status_update\n      mapping:\n        ticket_id: \"ticket_id\"\n        status: \"new_status\"\n    output: ticket_update_record\n\n  - id: step_update_ticket\n    op: write_database\n    params:\n      input: ticket_update_record\n      table: \"tickets\"\n      operation: \"update\"\n      key: \"ticket_id\"\n    output: update_result\n\n  - id: step_build_history_entry\n    op: transform_json\n    params:\n      input: validated_status_update\n      mapping:\n        ticket_id: \"ticket_id\"\n        old_status: old_status\n        new_status: \"new_status\"\n        changed_by: auth_result\n        timestamp: \"NOW()\"\n    output: history_entry\n\n  - id: step_write_ticket_history\n    op: write_database\n    params:\n      input: history_entry\n      table: \"ticket_history\"\n      operation: \"insert\"\n    output: history_write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: history_entry\n      action: \"ticket_status_change\"\n      message: \"Ticket status changed\"\n    output: audit_log_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"Ticket status updated and history logged successfully\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_008.py::test_parses_and_type_checks": true,
+        "test_wf_pb_008.py::test_passes_taint_analysis": true,
+        "test_wf_pb_008.py::test_validates_status": true,
+        "test_wf_pb_008.py::test_logs_change": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1093,
+      "output_tokens": 892
+    }
+  ],
+  "complexity": 1,
+  "domain": "insurance_brokerage",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1093,
+  "total_output_tokens": 892
+}

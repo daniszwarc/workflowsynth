@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_aw_002",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "type_error",
+  "synthesis_time_seconds": 0.004449082538485527,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: document_upload_pipeline_trigger\nsteps:\n  - id: receive_document_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge-base/upload\"\n      method: \"POST\"\n      headers:\n        Cache-Control: \"private, no-store\"\n    output: raw_upload\n\n  - id: authenticate_uploader\n    op: authenticate_user\n    params:\n      role: \"editor,admin,developer\"\n    output: auth_result\n\n  - id: validate_upload_schema\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema:\n        required_fields:\n          - file\n          - document_type\n        allowed_document_types:\n          - PDF\n          - DOCX\n          - TXT\n    output: validated_upload\n\n  - id: extract_document_type\n    op: extract_field\n    params:\n      input: validated_upload\n      field: \"document_type\"\n    output: doc_type\n\n  - id: apply_sed_docx_rule\n    op: apply_rule\n    params:\n      rule: \"if doc_type == 'SED' then file_format must be 'DOCX'\"\n      document_type: doc_type\n    output: format_rule_result\n\n  - id: handle_format_violation\n    op: handle_error\n    params:\n      condition: \"format_rule_result.violated == true\"\n      error_message: \"SED documents must be in DOCX format\"\n      route_to: terminate_on_format_error\n\n  - id: terminate_on_format_error\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"Document format does not match required type constraint\"\n\n  - id: transform_for_storage\n    op: transform_json\n    params:\n      input: validated_upload\n      mapping:\n        file_data: \"$.file\"\n        document_type: \"$.document_type\"\n        uploaded_by: \"$.auth_result.user_id\"\n        upload_timestamp: \"$.now()\"\n    output: storage_payload\n\n  - id: store_uploaded_file\n    op: write_database\n    params:\n      input: storage_payload\n      table: \"uploads_volume\"\n      options:\n        cache_control: \"private, no-store\"\n    output: storage_result\n\n  - id: extract_storage_reference\n    op: extract_field\n    params:\n      input: storage_result\n      field: \"file_reference_id\"\n    output: file_reference\n\n  - id: prepare_pipeline_payload\n    op: transform_json\n    params:\n      input: storage_result\n      mapping:\n        file_reference_id: \"$.file_reference_id\"\n        document_type: \"$.document_type\"\n        uploaded_by: \"$.uploaded_by\"\n    output: pipeline_payload\n\n  - id: trigger_extraction_pipeline\n    op: call_webhook\n    params:\n      input: pipeline_payload\n      url: \"/services/pipeline/extract\"\n      method: \"POST\"\n    output: pipeline_response\n\n  - id: validate_pipeline_response\n    op: validate_schema\n    params:\n      input: pipeline_response\n      schema:\n        required_fields:\n          - status\n          - pipeline_run_id\n    output: validated_pipeline_response\n\n  - id: log_upload_event\n    op: log_audit\n    params:\n      input: validated_pipeline_response\n      action: \"document_upload_and_pipeline_trigger\"\n      details:\n        file_reference: file_reference\n        pipeline_run_id: \"$.pipeline_run_id\"\n        user: auth_result\n\n  - id: notify_uploader\n    op: notify_user\n    params:\n      input: validated_pipeline_response\n      template: \"document_upload_success\"\n      message: \"Your document has been uploaded and the extraction pipeline has been triggered.\"\n      user: auth_result\n\n  - id: complete_workflow\n    op: terminate_workflow\n    params:\n      status: \"success\"",
+      "dsl_type_errors": [
+        "Step 'prepare_pipeline_payload': op 'transform_json' requires input of type 'records' but 'storage_result' has type 'none'. Make sure the step producing 'storage_result' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1121,
+      "output_tokens": 980
+    }
+  ],
+  "complexity": 2,
+  "domain": "enterprise_knowledge",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1121,
+  "total_output_tokens": 980
+}

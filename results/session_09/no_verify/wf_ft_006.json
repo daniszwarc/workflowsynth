@@ -1,0 +1,100 @@
+{
+  "task_id": "wf_ft_006",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 5,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 31.85434337425977,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: daily_progress_statistics\nsteps:\n  - id: authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: read_nutrition_log\n    op: read_database\n    params:\n      table: nutrition_log\n      filters:\n        user_id: auth_result.user_id\n        date: today\n    output: raw_nutrition_entries\n\n  - id: validate_nutrition_entries\n    op: validate_schema\n    params:\n      input: raw_nutrition_entries\n      schema: nutrition_entry_schema\n    output: validated_nutrition_entries\n\n  - id: read_user_profile\n    op: read_database\n    params:\n      table: user_profiles\n      filters:\n        user_id: auth_result.user_id\n    output: raw_user_profile\n\n  - id: validate_user_profile\n    op: validate_schema\n    params:\n      input: raw_user_profile\n      schema: user_profile_schema\n    output: validated_user_profile\n\n  - id: extract_daily_targets\n    op: extract_field\n    params:\n      input: validated_user_profile\n      field: daily_nutrition_targets\n    output: daily_targets\n\n  - id: aggregate_nutrition\n    op: aggregate_data\n    params:\n      input: validated_nutrition_entries\n      group_by: date\n      operations:\n        - field: calories\n          function: sum\n        - field: protein_g\n          function: sum\n        - field: carbs_g\n          function: sum\n        - field: fat_g\n          function: sum\n    output: nutrition_totals\n\n  - id: merge_totals_with_targets\n    op: merge_datasets\n    params:\n      input: nutrition_totals\n      secondary: daily_targets\n      key: date\n    output: progress_data\n\n  - id: apply_progress_rule\n    op: apply_rule\n    params:\n      rule: calculate_progress_percentages\n      input: progress_data\n    output: progress_percentages\n\n  - id: format_progress_summary\n    op: format_output\n    params:\n      input: progress_percentages\n      format: json\n      template: daily_progress_summary\n    output: progress_summary\n\n  - id: log_stats_view\n    op: log_audit\n    params:\n      input: progress_summary\n      action: stats_screen_viewed\n      user_id: auth_result.user_id\n\n  - id: notify_stats_ready\n    op: notify_user\n    params:\n      input: progress_summary\n      user_id: auth_result.user_id\n      channel: in_app\n      message: \"Your daily progress stats are ready.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_006.py::test_parses_and_type_checks": false,
+        "test_wf_ft_006.py::test_passes_taint_analysis": true,
+        "test_wf_ft_006.py::test_aggregates_daily": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1057,
+      "output_tokens": 656
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: daily_progress_statistics\nsteps:\n  - id: authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: read_nutrition_log\n    op: read_database\n    params:\n      table: nutrition_log\n      filters:\n        user_id: auth_result.user_id\n        date: today\n    output: raw_nutrition_entries\n\n  - id: validate_nutrition_entries\n    op: validate_schema\n    params:\n      input: raw_nutrition_entries\n      schema: nutrition_entry_schema\n    output: validated_nutrition_entries\n\n  - id: read_user_profile\n    op: read_database\n    params:\n      table: user_profiles\n      filters:\n        user_id: auth_result.user_id\n    output: raw_user_profile\n\n  - id: validate_user_profile\n    op: validate_schema\n    params:\n      input: raw_user_profile\n      schema: user_profile_schema\n    output: validated_user_profile\n\n  - id: extract_daily_targets\n    op: extract_field\n    params:\n      input: validated_user_profile\n      field: daily_nutrition_targets\n    output: daily_targets\n\n  - id: aggregate_nutrition\n    op: aggregate_data\n    params:\n      input: validated_nutrition_entries\n      group_by: date\n      operations:\n        - field: calories\n          function: sum\n        - field: protein_g\n          function: sum\n        - field: carbs_g\n          function: sum\n        - field: fat_g\n          function: sum\n    output: nutrition_totals\n\n  - id: merge_totals_with_targets\n    op: merge_datasets\n    params:\n      input: nutrition_totals\n      secondary: daily_targets\n      key: user_id\n    output: progress_data\n\n  - id: apply_progress_rule\n    op: apply_rule\n    params:\n      rule: calculate_progress_percentages\n      input: progress_data\n    output: progress_percentages\n\n  - id: format_progress_summary\n    op: format_output\n    params:\n      input: progress_percentages\n      format: json\n    output: progress_summary\n\n  - id: transform_summary_for_audit\n    op: transform_json\n    params:\n      input: progress_summary\n      mapping:\n        summary: progress_summary\n        action: stats_screen_viewed\n    output: audit_payload\n\n  - id: log_stats_view\n    op: log_audit\n    params:\n      input: audit_payload\n      action: stats_screen_viewed\n      user_id: auth_result.user_id\n\n  - id: notify_stats_ready\n    op: notify_user\n    params:\n      input: progress_summary\n      user_id: auth_result.user_id\n      channel: in_app\n      message: \"Your daily progress stats are ready.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_006.py::test_parses_and_type_checks": false,
+        "test_wf_ft_006.py::test_passes_taint_analysis": true,
+        "test_wf_ft_006.py::test_aggregates_daily": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1798,
+      "output_tokens": 706
+    },
+    {
+      "attempt_number": 2,
+      "llm_sketch": "workflow_id: daily_progress_statistics\nsteps:\n  - id: authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: read_nutrition_log\n    op: read_database\n    params:\n      table: nutrition_log\n      filters:\n        user_id: auth_result.user_id\n        date: today\n    output: raw_nutrition_entries\n\n  - id: validate_nutrition_entries\n    op: validate_schema\n    params:\n      input: raw_nutrition_entries\n      schema: nutrition_entry_schema\n    output: validated_nutrition_entries\n\n  - id: read_user_profile\n    op: read_database\n    params:\n      table: user_profiles\n      filters:\n        user_id: auth_result.user_id\n    output: raw_user_profile\n\n  - id: validate_user_profile\n    op: validate_schema\n    params:\n      input: raw_user_profile\n      schema: user_profile_schema\n    output: validated_user_profile\n\n  - id: extract_daily_targets\n    op: extract_field\n    params:\n      input: validated_user_profile\n      field: daily_nutrition_targets\n    output: daily_targets\n\n  - id: aggregate_nutrition\n    op: aggregate_data\n    params:\n      input: validated_nutrition_entries\n      group_by: date\n      operations:\n        - field: calories\n          function: sum\n        - field: protein_g\n          function: sum\n        - field: carbs_g\n          function: sum\n        - field: fat_g\n          function: sum\n    output: nutrition_totals\n\n  - id: merge_totals_with_targets\n    op: merge_datasets\n    params:\n      input: nutrition_totals\n      secondary: daily_targets\n      key: user_id\n    output: progress_data\n\n  - id: apply_progress_rule\n    op: apply_rule\n    params:\n      rule: calculate_progress_percentages\n      input: progress_data\n    output: progress_percentages\n\n  - id: format_progress_summary\n    op: format_output\n    params:\n      input: progress_percentages\n      format: json\n    output: progress_summary\n\n  - id: transform_summary_for_notify\n    op: transform_json\n    params:\n      input: progress_summary\n      mapping:\n        summary: progress_summary\n        user_id: auth_result.user_id\n    output: notify_payload\n\n  - id: notify_stats_ready\n    op: notify_user\n    params:\n      input: notify_payload\n      user_id: auth_result.user_id\n      channel: in_app\n      message: \"Your daily progress stats are ready.\"\n\n  - id: transform_summary_for_audit\n    op: transform_json\n    params:\n      input: progress_summary\n      mapping:\n        summary: progress_summary\n        action: stats_screen_viewed\n    output: audit_payload\n\n  - id: log_stats_view\n    op: log_audit\n    params:\n      input: audit_payload\n      action: stats_screen_viewed\n      user_id: auth_result.user_id",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_006.py::test_parses_and_type_checks": false,
+        "test_wf_ft_006.py::test_passes_taint_analysis": true,
+        "test_wf_ft_006.py::test_aggregates_daily": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1848,
+      "output_tokens": 767
+    },
+    {
+      "attempt_number": 3,
+      "llm_sketch": "workflow_id: daily_progress_statistics\nsteps:\n  - id: authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: read_nutrition_log\n    op: read_database\n    params:\n      table: nutrition_log\n      filters:\n        user_id: auth_result.user_id\n        date: today\n    output: raw_nutrition_entries\n\n  - id: validate_nutrition_entries\n    op: validate_schema\n    params:\n      input: raw_nutrition_entries\n      schema: nutrition_entry_schema\n    output: validated_nutrition_entries\n\n  - id: read_user_profile\n    op: read_database\n    params:\n      table: user_profiles\n      filters:\n        user_id: auth_result.user_id\n    output: raw_user_profile\n\n  - id: validate_user_profile\n    op: validate_schema\n    params:\n      input: raw_user_profile\n      schema: user_profile_schema\n    output: validated_user_profile\n\n  - id: extract_daily_targets\n    op: extract_field\n    params:\n      input: validated_user_profile\n      field: daily_nutrition_targets\n    output: daily_targets\n\n  - id: aggregate_nutrition\n    op: aggregate_data\n    params:\n      input: validated_nutrition_entries\n      group_by: date\n      operations:\n        - field: calories\n          function: sum\n        - field: protein_g\n          function: sum\n        - field: carbs_g\n          function: sum\n        - field: fat_g\n          function: sum\n    output: nutrition_totals\n\n  - id: merge_totals_with_targets\n    op: merge_datasets\n    params:\n      input: nutrition_totals\n      secondary: daily_targets\n      key: user_id\n    output: progress_data\n\n  - id: apply_progress_rule\n    op: apply_rule\n    params:\n      rule: calculate_progress_percentages\n      input: progress_data\n    output: progress_percentages\n\n  - id: format_progress_summary\n    op: format_output\n    params:\n      input: progress_percentages\n      format: json\n    output: progress_summary\n\n  - id: log_stats_view\n    op: log_audit\n    params:\n      input: progress_summary\n      action: stats_screen_viewed\n      user_id: auth_result.user_id",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_006.py::test_parses_and_type_checks": false,
+        "test_wf_ft_006.py::test_passes_taint_analysis": true,
+        "test_wf_ft_006.py::test_aggregates_daily": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1909,
+      "output_tokens": 589
+    },
+    {
+      "attempt_number": 4,
+      "llm_sketch": "workflow_id: daily_progress_statistics\nsteps:\n  - id: authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: read_nutrition_log\n    op: read_database\n    params:\n      table: nutrition_log\n      filters:\n        user_id: auth_result.user_id\n        date: today\n    output: raw_nutrition_entries\n\n  - id: validate_nutrition_entries\n    op: validate_schema\n    params:\n      input: raw_nutrition_entries\n      schema: nutrition_entry_schema\n    output: validated_nutrition_entries\n\n  - id: read_user_profile\n    op: read_database\n    params:\n      table: user_profiles\n      filters:\n        user_id: auth_result.user_id\n    output: raw_user_profile\n\n  - id: validate_user_profile\n    op: validate_schema\n    params:\n      input: raw_user_profile\n      schema: user_profile_schema\n    output: validated_user_profile\n\n  - id: extract_daily_targets\n    op: extract_field\n    params:\n      input: validated_user_profile\n      field: daily_nutrition_targets\n    output: daily_targets\n\n  - id: aggregate_nutrition\n    op: aggregate_data\n    params:\n      input: validated_nutrition_entries\n      group_by: date\n      operations:\n        - field: calories\n          function: sum\n        - field: protein_g\n          function: sum\n        - field: carbs_g\n          function: sum\n        - field: fat_g\n          function: sum\n    output: nutrition_totals\n\n  - id: merge_totals_with_targets\n    op: merge_datasets\n    params:\n      input: nutrition_totals\n      secondary: daily_targets\n      key: user_id\n    output: progress_data\n\n  - id: transform_progress\n    op: transform_json\n    params:\n      input: progress_data\n      mapping:\n        calories_percent: \"nutrition_totals.calories / daily_targets.calories * 100\"\n        protein_percent: \"nutrition_totals.protein_g / daily_targets.protein_g * 100\"\n        carbs_percent: \"nutrition_totals.carbs_g / daily_targets.carbs_g * 100\"\n        fat_percent: \"nutrition_totals.fat_g / daily_targets.fat_g * 100\"\n    output: progress_percentages\n\n  - id: format_progress_summary\n    op: format_output\n    params:\n      input: progress_percentages\n      format: json\n    output: progress_summary\n\n  - id: log_stats_view\n    op: log_audit\n    params:\n      input: progress_summary\n      action: stats_screen_viewed\n      user_id: auth_result.user_id",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_006.py::test_parses_and_type_checks": true,
+        "test_wf_ft_006.py::test_passes_taint_analysis": true,
+        "test_wf_ft_006.py::test_aggregates_daily": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1731,
+      "output_tokens": 688
+    }
+  ],
+  "complexity": 2,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 8343,
+  "total_output_tokens": 3406
+}

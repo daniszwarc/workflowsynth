@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_aw_002",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.4924921663478017,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: document_upload_pipeline_trigger\nsteps:\n  - id: receive_document_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge-base/upload\"\n      method: \"POST\"\n      headers:\n        Cache-Control: \"private, no-store\"\n    output: raw_upload\n\n  - id: authenticate_uploader\n    op: authenticate_user\n    params:\n      role: \"Editor,Admin,Developer\"\n    output: auth_result\n\n  - id: validate_upload_schema\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema: document_upload_schema\n      rules:\n        allowed_formats:\n          - \"PDF\"\n          - \"DOCX\"\n          - \"TXT\"\n        sed_format_constraint: \"DOCX\"\n    output: validated_upload\n\n  - id: check_document_type\n    op: apply_rule\n    params:\n      rule: \"validated_upload.file_format matches validated_upload.selected_document_type AND (validated_upload.document_type != 'SED' OR validated_upload.file_format == 'DOCX')\"\n      input_ref: validated_upload\n    output: type_check_result\n\n  - id: route_on_type_check\n    op: route_to_step\n    params:\n      condition: \"type_check_result.passed == true\"\n      true_step: extract_metadata\n      false_step: notify_upload_failure\n\n  - id: extract_metadata\n    op: extract_field\n    params:\n      input: validated_upload\n      fields:\n        - \"file_name\"\n        - \"document_type\"\n        - \"file_content\"\n        - \"uploader_id\"\n    output: document_metadata\n\n  - id: transform_for_storage\n    op: transform_json\n    params:\n      input: document_metadata\n      mapping:\n        file_name: \"document_metadata.file_name\"\n        document_type: \"document_metadata.document_type\"\n        uploaded_by: \"document_metadata.uploader_id\"\n        status: \"pending_extraction\"\n        upload_timestamp: \"$now\"\n    output: storage_record\n\n  - id: store_upload_record\n    op: write_database\n    params:\n      input: storage_record\n      table: document_uploads\n      volume: uploads\n    output: write_result\n\n  - id: prepare_pipeline_payload\n    op: transform_json\n    params:\n      input: storage_record\n      mapping:\n        document_id: \"write_result.inserted_id\"\n        document_type: \"storage_record.document_type\"\n        file_name: \"storage_record.file_name\"\n        source: \"knowledge_base\"\n    output: pipeline_payload\n\n  - id: send_to_pipeline\n    op: call_webhook\n    params:\n      input: pipeline_payload\n      url: \"/services/extraction-pipeline/trigger\"\n      method: \"POST\"\n    output: pipeline_response\n\n  - id: log_upload_event\n    op: log_audit\n    params:\n      input: storage_record\n      action: \"document_uploaded_and_pipeline_triggered\"\n      user: \"document_metadata.uploader_id\"\n      details:\n        document_id: \"write_result.inserted_id\"\n        document_type: \"storage_record.document_type\"\n        pipeline_status: \"triggered\"\n\n  - id: notify_uploader_success\n    op: notify_user\n    params:\n      input: storage_record\n      user: \"document_metadata.uploader_id\"\n      message: \"Your document has been uploaded and the extraction pipeline has been triggered.\"\n      channel: \"in_app\"\n\n  - id: end_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n\n  - id: notify_upload_failure\n    op: notify_user\n    params:\n      input: validated_upload\n      user: \"auth_result.user_id\"\n      message: \"Document upload failed: file format does not match the selected document type. SED documents must be DOCX format.\"\n      channel: \"in_app\"\n\n  - id: log_failure_event\n    op: log_audit\n    params:\n      input: validated_upload\n      action: \"document_upload_rejected\"\n      user: \"auth_result.user_id\"\n      reason: \"format_mismatch\"\n\n  - id: end_failure\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"document_type_format_mismatch\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_aw_002.py::test_parses_and_type_checks": true,
+        "test_wf_aw_002.py::test_passes_taint_analysis": true,
+        "test_wf_aw_002.py::test_validates_format": true,
+        "test_wf_aw_002.py::test_triggers_pipeline": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1121,
+      "output_tokens": 1107
+    }
+  ],
+  "complexity": 2,
+  "domain": "enterprise_knowledge",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1121,
+  "total_output_tokens": 1107
+}

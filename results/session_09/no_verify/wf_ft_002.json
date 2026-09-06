@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_ft_002",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.5337415421381593,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: daily_nutrition_log_entry\nsteps:\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: step_receive_food_entry\n    op: fetch_api\n    params:\n      endpoint: \"/api/nutrition/food-entry\"\n    output: raw_food_entry\n\n  - id: step_validate_entry\n    op: validate_schema\n    params:\n      input: raw_food_entry\n      schema:\n        required_fields:\n          - item_name\n          - meal_type\n          - calories\n          - protein\n          - carbs\n          - fat\n          - timestamp\n          - user_id\n        constraints:\n          meal_type:\n            enum:\n              - breakfast\n              - lunch\n              - dinner\n              - snack\n          calories:\n            type: number\n            min: 0\n          protein:\n            type: number\n            min: 0\n          carbs:\n            type: number\n            min: 0\n          fat:\n            type: number\n            min: 0\n    output: validated_entry\n\n  - id: step_extract_user_id\n    op: extract_field\n    params:\n      input: validated_entry\n      field: \"user_id\"\n    output: user_id\n\n  - id: step_extract_item_name\n    op: extract_field\n    params:\n      input: validated_entry\n      field: \"item_name\"\n    output: item_name\n\n  - id: step_lookup_food_item\n    op: read_database\n    params:\n      table: \"nutrition_foods\"\n      query:\n        item_name: item_name\n    output: raw_food_lookup\n\n  - id: step_validate_food_lookup\n    op: validate_schema\n    params:\n      input: raw_food_lookup\n      schema:\n        required_fields:\n          - item_name\n          - serving_size\n          - calories_per_serving\n    output: validated_food_lookup\n\n  - id: step_merge_entry_with_lookup\n    op: merge_datasets\n    params:\n      input: validated_entry\n      secondary: validated_food_lookup\n      key: \"item_name\"\n    output: enriched_entry\n\n  - id: step_write_log_entry\n    op: write_database\n    params:\n      input: enriched_entry\n      table: \"nutrition_log\"\n    output: write_result\n\n  - id: step_read_daily_entries\n    op: read_database\n    params:\n      table: \"nutrition_log\"\n      query:\n        user_id: user_id\n        date: \"today\"\n    output: raw_daily_entries\n\n  - id: step_filter_daily_entries\n    op: filter_records\n    params:\n      input: raw_daily_entries\n      condition: \"date == today\"\n    output: filtered_daily_entries\n\n  - id: step_aggregate_daily_totals\n    op: aggregate_data\n    params:\n      input: filtered_daily_entries\n      group_by: \"user_id\"\n      aggregations:\n        total_calories:\n          op: sum\n          field: \"calories\"\n        total_protein:\n          op: sum\n          field: \"protein\"\n        total_carbs:\n          op: sum\n          field: \"carbs\"\n        total_fat:\n          op: sum\n          field: \"fat\"\n    output: daily_totals\n\n  - id: step_write_daily_totals\n    op: write_database\n    params:\n      input: daily_totals\n      table: \"nutrition_daily_totals\"\n    output: totals_write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: daily_totals\n      action: \"daily_nutrition_log_updated\"\n      user: user_id\n    output: audit_result\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: daily_totals\n      message: \"Your nutrition log has been updated with daily totals.\"\n      recipient: user_id\n    output: notification_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_002.py::test_parses_and_type_checks": true,
+        "test_wf_ft_002.py::test_passes_taint_analysis": true,
+        "test_wf_ft_002.py::test_computes_daily_totals": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1108,
+      "output_tokens": 1008
+    }
+  ],
+  "complexity": 2,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1108,
+  "total_output_tokens": 1008
+}

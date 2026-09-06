@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_sv_002",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 0.46973170805722475,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: sent_email_history_ingestion\nsteps:\n  - id: authenticate_service_account\n    op: authenticate_user\n    params:\n      role: \"email_agent_service\"\n      method: \"service_account\"\n    output: auth_result\n\n  - id: fetch_sent_emails\n    op: fetch_api\n    params:\n      endpoint: \"/api/gmail/sent\"\n      query:\n        date_from: \"1_month_ago\"\n        date_to: \"2_weeks_ago\"\n    output: raw_sent_emails\n\n  - id: validate_email_schema\n    op: validate_schema\n    params:\n      input: raw_sent_emails\n      schema: sent_email_schema\n    output: validated_emails\n\n  - id: filter_short_emails\n    op: filter_records\n    params:\n      input: validated_emails\n      condition: \"body != null AND length(body) >= 20\"\n    output: filtered_emails\n\n  - id: chunk_emails\n    op: loop_records\n    params:\n      input: filtered_emails\n      step: build_chunks_per_email\n    output: all_email_chunks\n\n  - id: build_chunks_per_email\n    op: transform_json\n    params:\n      input: filtered_emails\n      mapping:\n        operation: \"chunk_emails\"\n        combine_fields:\n          - \"subject\"\n          - \"date\"\n          - \"recipient\"\n          - \"body\"\n        chunk_size: 500\n        chunk_overlap: 50\n        chunk_id_template: \"sent-{messageId}-chunk-{index}\"\n    output: structured_chunks\n\n  - id: embed_chunks\n    op: call_webhook\n    params:\n      input: structured_chunks\n      url: \"/api/embeddings/generate\"\n      method: \"POST\"\n      payload_field: \"text_chunks\"\n      model: \"embedding_model\"\n    output: raw_embedded_chunks\n\n  - id: validate_embeddings\n    op: validate_schema\n    params:\n      input: raw_embedded_chunks\n      schema: embedding_response_schema\n    output: validated_embedded_chunks\n\n  - id: write_to_vector_store\n    op: write_database\n    params:\n      input: validated_embedded_chunks\n      table: \"vector_store\"\n      namespace: \"email-history\"\n      upsert: true\n      id_field: \"chunk_id\"\n    output: write_result\n\n  - id: log_ingestion_audit\n    op: log_audit\n    params:\n      input: write_result\n      action: \"sent_email_history_ingestion\"\n      details:\n        emails_processed: \"{{filtered_emails.count}}\"\n        chunks_indexed: \"{{validated_embedded_chunks.count}}\"\n        namespace: \"email-history\"\n    output: audit_log_entry\n\n  - id: notify_completion\n    op: notify_user\n    params:\n      input: audit_log_entry\n      recipient: \"admin\"\n      channel: \"email\"\n      message: \"Sent email history ingestion completed. Chunks indexed into email-history namespace.\"\n    output: notification_result\n\n  - id: handle_ingestion_error\n    op: handle_error\n    params:\n      steps:\n        - fetch_sent_emails\n        - embed_chunks\n        - write_to_vector_store\n      action: \"notify_and_terminate\"\n      notify: \"admin\"\n\n  - id: end_workflow\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      summary: \"Weekly sent email history ingestion completed successfully.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_sv_002.py::test_parses_and_type_checks": true,
+        "test_wf_sv_002.py::test_passes_taint_analysis": true,
+        "test_wf_sv_002.py::test_filters_short_emails": true,
+        "test_wf_sv_002.py::test_indexes_to_store": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1178,
+      "output_tokens": 869
+    }
+  ],
+  "complexity": 2,
+  "domain": "community_sports",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1178,
+  "total_output_tokens": 869
+}

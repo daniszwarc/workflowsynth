@@ -1,0 +1,53 @@
+{
+  "task_id": "wf_mvp_001",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 13.6134860413149,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: user_authentication_session_bootstrap\nsteps:\n  - id: step_check_session\n    op: read_database\n    params:\n      table: active_sessions\n      query: \"SELECT * FROM active_sessions WHERE session_token = :token AND last_activity > NOW() - INTERVAL 8 HOUR\"\n    output: raw_session_data\n\n  - id: step_validate_session_data\n    op: validate_schema\n    params:\n      input: raw_session_data\n      schema: session_schema\n    output: validated_session_data\n\n  - id: step_extract_session_status\n    op: extract_field\n    params:\n      input: validated_session_data\n      field: \"is_authenticated\"\n    output: session_status\n\n  - id: step_evaluate_session\n    op: apply_rule\n    params:\n      rule: \"session_status == true AND session is not expired\"\n      input_ref: session_status\n    output: session_rule_result\n\n  - id: step_route_unauthenticated\n    op: route_to_step\n    params:\n      condition: \"session_rule_result == false\"\n      target: step_notify_login_redirect\n      fallback: step_load_role_permissions\n\n  - id: step_notify_login_redirect\n    op: notify_user\n    params:\n      input: session_rule_result\n      message: \"Session not authenticated. Redirecting to login form.\"\n      channel: \"browser_redirect\"\n      target_url: \"/admin/login\"\n    output: login_redirect_notification\n\n  - id: step_receive_credentials\n    op: fetch_api\n    params:\n      endpoint: \"/admin/login/submit\"\n      method: \"POST\"\n      fields:\n        - username\n        - password\n    output: raw_credentials\n\n  - id: step_validate_credentials_schema\n    op: validate_schema\n    params:\n      input: raw_credentials\n      schema: login_credentials_schema\n    output: validated_credentials\n\n  - id: step_encrypt_password\n    op: encrypt_field\n    params:\n      input: validated_credentials\n      field: \"password\"\n    output: secure_credentials\n\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      username_source: secure_credentials\n      role: \"staff\"\n    output: auth_result\n\n  - id: step_handle_auth_failure\n    op: handle_error\n    params:\n      source_step: step_authenticate_user\n      on_error: step_notify_login_failure\n\n  - id: step_notify_login_failure\n    op: notify_user\n    params:\n      input: auth_result\n      message: \"Invalid username or password. Please try again.\"\n      channel: \"browser_redirect\"\n      target_url: \"/admin/login?error=invalid_credentials\"\n    output: login_failure_notification\n\n  - id: step_lookup_user_record\n    op: read_database\n    params:\n      table: staff_users\n      query: \"SELECT user_id, role, display_name, permissions FROM staff_users WHERE username = :username AND active = 1\"\n    output: raw_user_record\n\n  - id: step_validate_user_record\n    op: validate_schema\n    params:\n      input: raw_user_record\n      schema: staff_user_schema\n    output: validated_user_record\n\n  - id: step_extract_user_role\n    op: extract_field\n    params:\n      input: validated_user_record\n      field: \"role\"\n    output: user_role\n\n  - id: step_build_session\n    op: transform_json\n    params:\n      input: validated_user_record\n      mapping:\n        user_id: \"user_id\"\n        role: \"role\"\n        display_name: \"display_name\"\n        permissions: \"permissions\"\n        session_timeout_hours: 8\n        created_at: \"NOW()\"\n        last_activity: \"NOW()\"\n    output: session_payload\n\n  - id: step_write_session\n    op: write_database\n    params:\n      input: session_payload\n      table: active_sessions\n    output: session_write_result\n\n  - id: step_log_login_audit\n    op: log_audit\n    params:\n      input: session_payload\n      event: \"staff_login_success\"\n      details: \"Role-based session established\"\n    output: audit_log_result\n\n  - id: step_load_role_permissions\n    op: apply_rule\n    params:\n      rule: \"determine_visible_menus_by_role\"\n      input_ref: user_role\n    output: menu_visibility\n\n  - id: step_redirect_main_menu\n    op: notify_user\n    params:\n      input: menu_visibility\n      message: \"Login successful. Welcome to the admin area.\"\n      channel: \"browser_redirect\"\n      target_url: \"/admin/dashboard\"\n    output: main_menu_redirect",
+      "dsl_type_errors": [
+        "Step 'step_encrypt_password': op 'encrypt_field' requires input of type 'string' but 'validated_credentials' has type 'records'."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1109,
+      "output_tokens": 1202
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: user_authentication_session_bootstrap\nsteps:\n  - id: step_check_session\n    op: read_database\n    params:\n      table: active_sessions\n      query: \"SELECT * FROM active_sessions WHERE session_token = :token AND last_activity > NOW() - INTERVAL 8 HOUR\"\n    output: raw_session_data\n\n  - id: step_validate_session_data\n    op: validate_schema\n    params:\n      input: raw_session_data\n      schema: session_schema\n    output: validated_session_data\n\n  - id: step_extract_session_status\n    op: extract_field\n    params:\n      input: validated_session_data\n      field: \"is_authenticated\"\n    output: session_status\n\n  - id: step_evaluate_session\n    op: apply_rule\n    params:\n      rule: \"session_status == true AND session is not expired\"\n      input_ref: session_status\n    output: session_rule_result\n\n  - id: step_route_unauthenticated\n    op: route_to_step\n    params:\n      condition: \"session_rule_result == false\"\n      target: step_notify_login_redirect\n      fallback: step_load_role_permissions\n\n  - id: step_notify_login_redirect\n    op: notify_user\n    params:\n      input: session_rule_result\n      message: \"Session not authenticated. Redirecting to login form.\"\n      channel: \"browser_redirect\"\n      target_url: \"/admin/login\"\n    output: login_redirect_notification\n\n  - id: step_receive_credentials\n    op: fetch_api\n    params:\n      endpoint: \"/admin/login/submit\"\n      method: \"POST\"\n      fields:\n        - username\n        - password\n    output: raw_credentials\n\n  - id: step_validate_credentials_schema\n    op: validate_schema\n    params:\n      input: raw_credentials\n      schema: login_credentials_schema\n    output: validated_credentials\n\n  - id: step_extract_password\n    op: extract_field\n    params:\n      input: validated_credentials\n      field: \"password\"\n    output: extracted_password\n\n  - id: step_encrypt_password\n    op: encrypt_field\n    params:\n      input: extracted_password\n      field: \"password\"\n    output: secure_password\n\n  - id: step_merge_secure_credentials\n    op: transform_json\n    params:\n      input: validated_credentials\n      mapping:\n        username: \"username\"\n        password_encrypted: secure_password\n    output: secure_credentials\n\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      username_source: secure_credentials\n      role: \"staff\"\n    output: auth_result\n\n  - id: step_handle_auth_failure\n    op: handle_error\n    params:\n      source_step: step_authenticate_user\n      on_error: step_notify_login_failure\n\n  - id: step_notify_login_failure\n    op: notify_user\n    params:\n      input: auth_result\n      message: \"Invalid username or password. Please try again.\"\n      channel: \"browser_redirect\"\n      target_url: \"/admin/login?error=invalid_credentials\"\n    output: login_failure_notification\n\n  - id: step_lookup_user_record\n    op: read_database\n    params:\n      table: staff_users\n      query: \"SELECT user_id, role, display_name, permissions FROM staff_users WHERE username = :username AND active = 1\"\n    output: raw_user_record\n\n  - id: step_validate_user_record\n    op: validate_schema\n    params:\n      input: raw_user_record\n      schema: staff_user_schema\n    output: validated_user_record\n\n  - id: step_extract_user_role\n    op: extract_field\n    params:\n      input: validated_user_record\n      field: \"role\"\n    output: user_role\n\n  - id: step_build_session\n    op: transform_json\n    params:\n      input: validated_user_record\n      mapping:\n        user_id: \"user_id\"\n        role: \"role\"\n        display_name: \"display_name\"\n        permissions: \"permissions\"\n        session_timeout_hours: 8\n        created_at: \"NOW()\"\n        last_activity: \"NOW()\"\n    output: session_payload\n\n  - id: step_write_session\n    op: write_database\n    params:\n      input: session_payload\n      table: active_sessions\n    output: session_write_result\n\n  - id: step_log_login_audit\n    op: log_audit\n    params:\n      input: session_payload\n      event: \"staff_login_success\"\n      details: \"Role-based session established\"\n    output: audit_log_result\n\n  - id: step_load_role_permissions\n    op: apply_rule\n    params:\n      rule: \"determine_visible_menus_by_role\"\n      input_ref: user_role\n    output: menu_visibility\n\n  - id: step_redirect_main_menu\n    op: notify_user\n    params:\n      input: menu_visibility\n      message: \"Login successful. Welcome to the admin area.\"\n      channel: \"browser_redirect\"\n      target_url: \"/admin/dashboard\"\n    output: main_menu_redirect",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_mvp_001.py::test_parses_and_type_checks": true,
+        "test_wf_mvp_001.py::test_passes_taint_analysis": true,
+        "test_wf_mvp_001.py::test_authenticates_user": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 2416,
+      "output_tokens": 1301
+    }
+  ],
+  "complexity": 2,
+  "domain": "manufacturing",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 3525,
+  "total_output_tokens": 2503
+}

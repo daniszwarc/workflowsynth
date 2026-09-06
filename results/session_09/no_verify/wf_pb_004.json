@@ -1,0 +1,169 @@
+{
+  "task_id": "wf_pb_004",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 9,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 66.59344804193825,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: daily_ticket_summary_email\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"system_scheduler\"\n    output: auth_result\n\n  - id: step_read_open_tickets\n    op: read_database\n    params:\n      table: tickets\n      query: \"status != 'cerrado' AND status != 'archived' AND visible = true\"\n    output: raw_open_tickets\n\n  - id: step_validate_tickets\n    op: validate_schema\n    params:\n      input: raw_open_tickets\n      schema: open_ticket_schema\n    output: validated_tickets\n\n  - id: step_filter_open_visible\n    op: filter_records\n    params:\n      input: validated_tickets\n      condition: \"status != 'cerrado' AND status != 'archived' AND visible == true\"\n    output: filtered_tickets\n\n  - id: step_aggregate_by_producer\n    op: aggregate_data\n    params:\n      input: filtered_tickets\n      group_by: \"producer_id\"\n      calculations:\n        - field: \"hours_since_last_update\"\n          function: \"elapsed_hours_since(last_status_update)\"\n    output: tickets_by_producer\n\n  - id: step_apply_stall_rule\n    op: apply_rule\n    params:\n      rule: \"flag_stalled_tickets\"\n      condition: \"hours_since_last_update > 4\"\n      flag: \"WARNING_STALLED\"\n      input_ref: tickets_by_producer\n    output: flagged_tickets_by_producer\n\n  - id: step_loop_producers\n    op: loop_records\n    params:\n      input: flagged_tickets_by_producer\n      iterator: producer_group\n    output: loop_context\n\n  - id: step_format_email\n    op: format_output\n    params:\n      input: producer_group\n      template: \"daily_ticket_summary_email_template\"\n      format: \"html\"\n      include_warning_flags: true\n      warning_condition: \"hours_since_last_update > 4\"\n    output: formatted_email\n\n  - id: step_notify_producer\n    op: notify_user\n    params:\n      input: formatted_email\n      channel: \"email\"\n      recipient_field: \"producer_email\"\n      subject: \"Daily Open Tickets Summary\"\n    output: notification_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_email\n      event: \"daily_ticket_summary_sent\"\n      details: \"Daily summary email dispatched to producer\"\n    output: audit_log_result\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: \"step_notify_producer\"\n      action: \"retry_then_log\"\n      max_retries: 2\n    output: error_handling_result\n\n  - id: step_retry_notification\n    op: retry_step\n    params:\n      step_to_retry: \"step_notify_producer\"\n      max_retries: 2\n      delay_seconds: 30\n    output: retry_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Daily ticket summary emails dispatched to all producers\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_004.py::test_parses_and_type_checks": false,
+        "test_wf_pb_004.py::test_passes_taint_analysis": true,
+        "test_wf_pb_004.py::test_aggregates_by_producer": true,
+        "test_wf_pb_004.py::test_sends_notification": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1113,
+      "output_tokens": 813
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: daily_ticket_summary_email\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"system_scheduler\"\n    output: auth_result\n\n  - id: step_read_open_tickets\n    op: read_database\n    params:\n      table: tickets\n      query: \"status != 'cerrado' AND status != 'archived' AND visible = true\"\n    output: raw_open_tickets\n\n  - id: step_validate_tickets\n    op: validate_schema\n    params:\n      input: raw_open_tickets\n      schema: open_ticket_schema\n    output: validated_tickets\n\n  - id: step_filter_open_visible\n    op: filter_records\n    params:\n      input: validated_tickets\n      condition: \"status != 'cerrado' AND status != 'archived' AND visible == true\"\n    output: filtered_tickets\n\n  - id: step_aggregate_by_producer\n    op: aggregate_data\n    params:\n      input: filtered_tickets\n      group_by: \"producer_id\"\n      calculations:\n        - field: \"hours_since_last_update\"\n          function: \"elapsed_hours_since_last_status_update\"\n    output: tickets_by_producer\n\n  - id: step_apply_stall_rule\n    op: apply_rule\n    params:\n      rule: \"flag_stalled_tickets\"\n      condition: \"hours_since_last_update > 4\"\n      flag: \"WARNING_STALLED\"\n    output: flagged_tickets_by_producer\n\n  - id: step_transform_flagged\n    op: transform_json\n    params:\n      input: tickets_by_producer\n      mapping:\n        stall_flag: \"flagged_tickets_by_producer\"\n    output: enriched_tickets_by_producer\n\n  - id: step_loop_producers\n    op: loop_records\n    params:\n      input: enriched_tickets_by_producer\n      iterator: producer_group\n    output: loop_context\n\n  - id: step_format_email\n    op: format_output\n    params:\n      input: producer_group\n      template: \"daily_ticket_summary_email_template\"\n      format: \"html\"\n    output: formatted_email\n\n  - id: step_notify_producer\n    op: notify_user\n    params:\n      input: formatted_email\n      channel: \"email\"\n      recipient_field: \"producer_email\"\n      subject: \"Daily Open Tickets Summary\"\n    output: notification_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_email\n      event: \"daily_ticket_summary_sent\"\n      details: \"Daily summary email dispatched to producer\"\n    output: audit_log_result\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: \"step_notify_producer\"\n      action: \"retry_then_log\"\n    output: error_handling_result\n\n  - id: step_retry_notification\n    op: retry_step\n    params:\n      step_to_retry: \"step_notify_producer\"\n      max_retries: 2\n    output: retry_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Daily ticket summary emails dispatched to all producers\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_004.py::test_parses_and_type_checks": false,
+        "test_wf_pb_004.py::test_passes_taint_analysis": true,
+        "test_wf_pb_004.py::test_aggregates_by_producer": true,
+        "test_wf_pb_004.py::test_sends_notification": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2011,
+      "output_tokens": 822
+    },
+    {
+      "attempt_number": 2,
+      "llm_sketch": "workflow_id: daily_ticket_summary_email\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"system_scheduler\"\n    output: auth_result\n\n  - id: step_read_open_tickets\n    op: read_database\n    params:\n      table: tickets\n      query: \"status != 'cerrado' AND status != 'archived' AND visible = true\"\n    output: raw_open_tickets\n\n  - id: step_validate_tickets\n    op: validate_schema\n    params:\n      input: raw_open_tickets\n      schema: open_ticket_schema\n    output: validated_tickets\n\n  - id: step_filter_open_visible\n    op: filter_records\n    params:\n      input: validated_tickets\n      condition: \"status != 'cerrado' AND status != 'archived' AND visible == true\"\n    output: filtered_tickets\n\n  - id: step_aggregate_by_producer\n    op: aggregate_data\n    params:\n      input: filtered_tickets\n      group_by: \"producer_id\"\n      calculations:\n        - field: \"hours_since_last_update\"\n          function: \"elapsed_hours_since_last_status_update\"\n    output: tickets_by_producer\n\n  - id: step_apply_stall_rule\n    op: apply_rule\n    params:\n      input: tickets_by_producer\n      rule: \"flag_stalled_tickets\"\n      condition: \"hours_since_last_update > 4\"\n      flag: \"WARNING_STALLED\"\n    output: flagged_tickets_by_producer\n\n  - id: step_transform_flagged\n    op: transform_json\n    params:\n      input: flagged_tickets_by_producer\n      mapping:\n        stall_flag: \"WARNING_STALLED\"\n        tickets: \"tickets_by_producer\"\n    output: enriched_tickets_by_producer\n\n  - id: step_loop_producers\n    op: loop_records\n    params:\n      input: enriched_tickets_by_producer\n      iterator: producer_group\n    output: loop_context\n\n  - id: step_format_email\n    op: format_output\n    params:\n      input: producer_group\n      template: \"daily_ticket_summary_email_template\"\n      format: \"html\"\n    output: formatted_email\n\n  - id: step_notify_producer\n    op: notify_user\n    params:\n      input: formatted_email\n      channel: \"email\"\n      recipient_field: \"producer_email\"\n      subject: \"Daily Open Tickets Summary\"\n    output: notification_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_email\n      event: \"daily_ticket_summary_sent\"\n      details: \"Daily summary email dispatched to producer\"\n    output: audit_log_result\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: \"step_notify_producer\"\n      action: \"retry_then_log\"\n    output: error_handling_result\n\n  - id: step_retry_notification\n    op: retry_step\n    params:\n      step_to_retry: \"step_notify_producer\"\n      max_retries: 2\n    output: retry_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Daily ticket summary emails dispatched to all producers\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_004.py::test_parses_and_type_checks": false,
+        "test_wf_pb_004.py::test_passes_taint_analysis": true,
+        "test_wf_pb_004.py::test_aggregates_by_producer": true,
+        "test_wf_pb_004.py::test_sends_notification": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2020,
+      "output_tokens": 842
+    },
+    {
+      "attempt_number": 3,
+      "llm_sketch": "workflow_id: daily_ticket_summary_email\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"system_scheduler\"\n    output: auth_result\n\n  - id: step_read_open_tickets\n    op: read_database\n    params:\n      table: tickets\n      query: \"status != 'cerrado' AND status != 'archived' AND visible = true\"\n    output: raw_open_tickets\n\n  - id: step_validate_tickets\n    op: validate_schema\n    params:\n      input: raw_open_tickets\n      schema: open_ticket_schema\n    output: validated_tickets\n\n  - id: step_filter_open_visible\n    op: filter_records\n    params:\n      input: validated_tickets\n      condition: \"status != 'cerrado' AND status != 'archived' AND visible == true\"\n    output: filtered_tickets\n\n  - id: step_aggregate_by_producer\n    op: aggregate_data\n    params:\n      input: filtered_tickets\n      group_by: \"producer_id\"\n      calculations:\n        - field: \"hours_since_last_update\"\n          function: \"elapsed_hours_since_last_status_update\"\n    output: tickets_by_producer\n\n  - id: step_apply_stall_rule\n    op: apply_rule\n    params:\n      rule: \"flag_stalled_tickets\"\n      condition: \"hours_since_last_update > 4\"\n      flag: \"WARNING_STALLED\"\n    output: stall_rule_result\n\n  - id: step_transform_flagged\n    op: transform_json\n    params:\n      input: tickets_by_producer\n      mapping:\n        stall_flag: \"WARNING_STALLED if hours_since_last_update > 4\"\n        group: \"producer_id\"\n    output: enriched_tickets_by_producer\n\n  - id: step_loop_producers\n    op: loop_records\n    params:\n      input: enriched_tickets_by_producer\n      iterator: producer_group\n    output: loop_context\n\n  - id: step_format_email\n    op: format_output\n    params:\n      input: producer_group\n      template: \"daily_ticket_summary_email_template\"\n      format: \"html\"\n    output: formatted_email\n\n  - id: step_notify_producer\n    op: notify_user\n    params:\n      input: formatted_email\n      channel: \"email\"\n      recipient_field: \"producer_email\"\n      subject: \"Daily Open Tickets Summary\"\n    output: notification_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_email\n      event: \"daily_ticket_summary_sent\"\n      details: \"Daily summary email dispatched to producer\"\n    output: audit_log_result\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: \"step_notify_producer\"\n      action: \"retry_then_log\"\n    output: error_handling_result\n\n  - id: step_retry_notification\n    op: retry_step\n    params:\n      step_to_retry: \"step_notify_producer\"\n      max_retries: 2\n    output: retry_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Daily ticket summary emails dispatched to all producers\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_004.py::test_parses_and_type_checks": false,
+        "test_wf_pb_004.py::test_passes_taint_analysis": true,
+        "test_wf_pb_004.py::test_aggregates_by_producer": true,
+        "test_wf_pb_004.py::test_sends_notification": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2040,
+      "output_tokens": 837
+    },
+    {
+      "attempt_number": 4,
+      "llm_sketch": "workflow_id: daily_ticket_summary_email\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"system_scheduler\"\n    output: auth_result\n\n  - id: step_read_open_tickets\n    op: read_database\n    params:\n      table: tickets\n      query: \"status != 'cerrado' AND status != 'archived' AND visible = true\"\n    output: raw_open_tickets\n\n  - id: step_validate_tickets\n    op: validate_schema\n    params:\n      input: raw_open_tickets\n      schema: open_ticket_schema\n    output: validated_tickets\n\n  - id: step_filter_open_visible\n    op: filter_records\n    params:\n      input: validated_tickets\n      condition: \"status != 'cerrado' AND status != 'archived' AND visible == true\"\n    output: filtered_tickets\n\n  - id: step_aggregate_by_producer\n    op: aggregate_data\n    params:\n      input: filtered_tickets\n      group_by: \"producer_id\"\n      calculations:\n        - field: \"hours_since_last_update\"\n          function: \"elapsed_hours_since_last_status_update\"\n    output: tickets_by_producer\n\n  - id: step_transform_flagged\n    op: transform_json\n    params:\n      input: tickets_by_producer\n      mapping:\n        stall_flag: \"WARNING_STALLED if hours_since_last_update > 4 else null\"\n        group: \"producer_id\"\n    output: enriched_tickets_by_producer\n\n  - id: step_loop_producers\n    op: loop_records\n    params:\n      input: enriched_tickets_by_producer\n      iterator: producer_group\n    output: loop_context\n\n  - id: step_format_email\n    op: format_output\n    params:\n      input: producer_group\n      template: \"daily_ticket_summary_email_template\"\n      format: \"html\"\n    output: formatted_email\n\n  - id: step_notify_producer\n    op: notify_user\n    params:\n      input: formatted_email\n      channel: \"email\"\n      recipient_field: \"producer_email\"\n      subject: \"Daily Open Tickets Summary\"\n    output: notification_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_email\n      event: \"daily_ticket_summary_sent\"\n      details: \"Daily summary email dispatched to producer\"\n    output: audit_log_result\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: \"step_notify_producer\"\n      action: \"retry_then_log\"\n    output: error_handling_result\n\n  - id: step_retry_notification\n    op: retry_step\n    params:\n      step_to_retry: \"step_notify_producer\"\n      max_retries: 2\n    output: retry_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Daily ticket summary emails dispatched to all producers\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_004.py::test_parses_and_type_checks": false,
+        "test_wf_pb_004.py::test_passes_taint_analysis": true,
+        "test_wf_pb_004.py::test_aggregates_by_producer": true,
+        "test_wf_pb_004.py::test_sends_notification": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2035,
+      "output_tokens": 767
+    },
+    {
+      "attempt_number": 5,
+      "llm_sketch": "workflow_id: daily_ticket_summary_email\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"system_scheduler\"\n    output: auth_result\n\n  - id: step_read_open_tickets\n    op: read_database\n    params:\n      table: tickets\n      query: \"status != 'cerrado' AND status != 'archived' AND visible = true\"\n    output: raw_open_tickets\n\n  - id: step_validate_tickets\n    op: validate_schema\n    params:\n      input: raw_open_tickets\n      schema: open_ticket_schema\n    output: validated_tickets\n\n  - id: step_filter_open_visible\n    op: filter_records\n    params:\n      input: validated_tickets\n      condition: \"status != 'cerrado' AND status != 'archived' AND visible == true\"\n    output: filtered_tickets\n\n  - id: step_aggregate_by_producer\n    op: aggregate_data\n    params:\n      input: filtered_tickets\n      group_by: \"producer_id\"\n      calculations:\n        - field: \"hours_since_last_update\"\n          function: \"elapsed_hours\"\n    output: tickets_by_producer\n\n  - id: step_transform_flagged\n    op: transform_json\n    params:\n      input: tickets_by_producer\n      mapping:\n        stall_flag: \"hours_since_last_update > 4\"\n        group: \"producer_id\"\n    output: enriched_tickets_by_producer\n\n  - id: step_loop_producers\n    op: loop_records\n    params:\n      input: enriched_tickets_by_producer\n      steps:\n        - id: step_format_email\n          op: format_output\n          params:\n            input: enriched_tickets_by_producer\n            template: \"daily_ticket_summary_email_template\"\n            format: \"html\"\n          output: formatted_email\n        - id: step_notify_producer\n          op: notify_user\n          params:\n            input: formatted_email\n            channel: \"email\"\n            recipient_field: \"producer_email\"\n            subject: \"Daily Open Tickets Summary\"\n          output: notification_result\n        - id: step_log_audit_entry\n          op: log_audit\n          params:\n            input: formatted_email\n            event: \"daily_ticket_summary_sent\"\n            details: \"Daily summary email dispatched to producer\"\n          output: audit_log_result\n    output: loop_result\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: \"step_loop_producers\"\n      action: \"retry_then_log\"\n    output: error_handling_result\n\n  - id: step_retry_notification\n    op: retry_step\n    params:\n      step_to_retry: \"step_loop_producers\"\n      max_retries: 2\n    output: retry_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Daily ticket summary emails dispatched to all producers\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_004.py::test_parses_and_type_checks": false,
+        "test_wf_pb_004.py::test_passes_taint_analysis": true,
+        "test_wf_pb_004.py::test_aggregates_by_producer": true,
+        "test_wf_pb_004.py::test_sends_notification": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1965,
+      "output_tokens": 754
+    },
+    {
+      "attempt_number": 6,
+      "llm_sketch": "workflow_id: daily_ticket_summary_email\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"system_scheduler\"\n    output: auth_result\n\n  - id: step_read_open_tickets\n    op: read_database\n    params:\n      table: tickets\n      query: \"status != 'cerrado' AND status != 'archived' AND visible = true\"\n    output: raw_open_tickets\n\n  - id: step_validate_tickets\n    op: validate_schema\n    params:\n      input: raw_open_tickets\n      schema: open_ticket_schema\n    output: validated_tickets\n\n  - id: step_filter_open_visible\n    op: filter_records\n    params:\n      input: validated_tickets\n      condition: \"status != 'cerrado' AND status != 'archived' AND visible == true\"\n    output: filtered_tickets\n\n  - id: step_aggregate_by_producer\n    op: aggregate_data\n    params:\n      input: filtered_tickets\n      group_by: \"producer_id\"\n      calculations:\n        - field: \"hours_since_last_update\"\n          function: \"elapsed_hours\"\n    output: tickets_by_producer\n\n  - id: step_transform_flagged\n    op: transform_json\n    params:\n      input: tickets_by_producer\n      mapping:\n        stall_flag: \"hours_since_last_update > 4\"\n        group: \"producer_id\"\n    output: enriched_tickets_by_producer\n\n  - id: step_format_email\n    op: format_output\n    params:\n      input: enriched_tickets_by_producer\n      template: \"daily_ticket_summary_email_template\"\n      format: \"html\"\n    output: formatted_email\n\n  - id: step_loop_producers\n    op: loop_records\n    params:\n      input: formatted_email\n      step: step_notify_producer\n    output: loop_result\n\n  - id: step_notify_producer\n    op: notify_user\n    params:\n      input: formatted_email\n      channel: \"email\"\n      recipient_field: \"producer_email\"\n      subject: \"Daily Open Tickets Summary\"\n    output: notification_result\n\n  - id: step_log_audit_entry\n    op: log_audit\n    params:\n      input: formatted_email\n      event: \"daily_ticket_summary_sent\"\n      details: \"Daily summary email dispatched to producers\"\n    output: audit_log_result\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: \"step_notify_producer\"\n      action: \"retry_then_log\"\n    output: error_handling_result\n\n  - id: step_retry_notification\n    op: retry_step\n    params:\n      step_to_retry: \"step_notify_producer\"\n      max_retries: 2\n    output: retry_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Daily ticket summary emails dispatched to all producers\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_004.py::test_parses_and_type_checks": false,
+        "test_wf_pb_004.py::test_passes_taint_analysis": true,
+        "test_wf_pb_004.py::test_aggregates_by_producer": true,
+        "test_wf_pb_004.py::test_sends_notification": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1970,
+      "output_tokens": 754
+    },
+    {
+      "attempt_number": 7,
+      "llm_sketch": "workflow_id: daily_ticket_summary_email\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"system_scheduler\"\n    output: auth_result\n\n  - id: step_read_open_tickets\n    op: read_database\n    params:\n      table: tickets\n      query: \"status != 'cerrado' AND status != 'archived' AND visible = true\"\n    output: raw_open_tickets\n\n  - id: step_validate_tickets\n    op: validate_schema\n    params:\n      input: raw_open_tickets\n      schema: open_ticket_schema\n    output: validated_tickets\n\n  - id: step_filter_open_visible\n    op: filter_records\n    params:\n      input: validated_tickets\n      condition: \"status != 'cerrado' AND status != 'archived' AND visible == true\"\n    output: filtered_tickets\n\n  - id: step_aggregate_by_producer\n    op: aggregate_data\n    params:\n      input: filtered_tickets\n      group_by: \"producer_id\"\n      calculations:\n        - field: \"hours_since_last_update\"\n          function: \"elapsed_hours\"\n    output: tickets_by_producer\n\n  - id: step_transform_flagged\n    op: transform_json\n    params:\n      input: tickets_by_producer\n      mapping:\n        stall_flag: \"hours_since_last_update > 4\"\n        group: \"producer_id\"\n    output: enriched_tickets_by_producer\n\n  - id: step_format_email\n    op: format_output\n    params:\n      input: enriched_tickets_by_producer\n      template: \"daily_ticket_summary_email_template\"\n      format: \"html\"\n    output: formatted_emails\n\n  - id: step_loop_producers\n    op: loop_records\n    params:\n      input: formatted_emails\n      step: step_send_notification\n    output: loop_result\n\n  - id: step_send_notification\n    op: notify_user\n    params:\n      input: formatted_emails\n      channel: \"email\"\n      recipient_field: \"producer_email\"\n      subject: \"Daily Open Tickets Summary\"\n    output: notification_result\n\n  - id: step_log_audit_entry\n    op: log_audit\n    params:\n      input: enriched_tickets_by_producer\n      event: \"daily_ticket_summary_sent\"\n      details: \"Daily summary email dispatched to producers\"\n    output: audit_log_result\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: \"step_send_notification\"\n      action: \"retry_then_log\"\n    output: error_handling_result\n\n  - id: step_retry_notification\n    op: retry_step\n    params:\n      step_to_retry: \"step_send_notification\"\n      max_retries: 2\n    output: retry_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Daily ticket summary emails dispatched to all producers\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_004.py::test_parses_and_type_checks": false,
+        "test_wf_pb_004.py::test_passes_taint_analysis": true,
+        "test_wf_pb_004.py::test_aggregates_by_producer": true,
+        "test_wf_pb_004.py::test_sends_notification": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1952,
+      "output_tokens": 759
+    },
+    {
+      "attempt_number": 8,
+      "llm_sketch": "workflow_id: daily_ticket_summary_email\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: system_scheduler\n    output: auth_result\n\n  - id: step_read_open_tickets\n    op: read_database\n    params:\n      table: tickets\n      query: \"status != 'cerrado' AND status != 'archived' AND visible = true\"\n    output: raw_open_tickets\n\n  - id: step_validate_tickets\n    op: validate_schema\n    params:\n      input: raw_open_tickets\n      schema: open_ticket_schema\n    output: validated_tickets\n\n  - id: step_filter_open_visible\n    op: filter_records\n    params:\n      input: validated_tickets\n      condition: \"status != 'cerrado' AND status != 'archived' AND visible == true\"\n    output: filtered_tickets\n\n  - id: step_transform_ticket_fields\n    op: transform_json\n    params:\n      input: filtered_tickets\n      mapping:\n        producer_id: producer_id\n        producer_email: producer_email\n        ticket_id: ticket_id\n        status: status\n        visible: visible\n        hours_since_last_update: hours_since_last_update\n        stalled_warning: \"hours_since_last_update > 4\"\n    output: enriched_tickets\n\n  - id: step_aggregate_by_producer\n    op: aggregate_data\n    params:\n      input: enriched_tickets\n      group_by: producer_id\n      calculations:\n        - field: ticket_id\n          function: count\n    output: tickets_by_producer\n\n  - id: step_format_email\n    op: format_output\n    params:\n      input: enriched_tickets\n      template: daily_ticket_summary_email_template\n      format: html\n    output: formatted_emails\n\n  - id: step_loop_producers\n    op: loop_records\n    params:\n      input: formatted_emails\n      step: step_send_notification\n    output: loop_result\n\n  - id: step_send_notification\n    op: notify_user\n    params:\n      input: formatted_emails\n      channel: email\n      recipient_field: producer_email\n      subject: Daily Open Tickets Summary\n    output: notification_result\n\n  - id: step_log_audit_entry\n    op: log_audit\n    params:\n      input: enriched_tickets\n      event: daily_ticket_summary_sent\n      details: Daily summary email dispatched to producers\n    output: audit_log_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: completed\n      message: Daily ticket summary emails dispatched to all producers",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_004.py::test_parses_and_type_checks": true,
+        "test_wf_pb_004.py::test_passes_taint_analysis": true,
+        "test_wf_pb_004.py::test_aggregates_by_producer": true,
+        "test_wf_pb_004.py::test_sends_notification": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1652,
+      "output_tokens": 556
+    }
+  ],
+  "complexity": 2,
+  "domain": "insurance_brokerage",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 16758,
+  "total_output_tokens": 6904
+}

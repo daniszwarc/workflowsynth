@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_lf_003",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 2,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "type_error",
+  "synthesis_time_seconds": 0.004903167486190796,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: tts_playback_with_sentence_highlighting\nsteps:\n  - id: step_receive_cleaned_text\n    op: fetch_api\n    params:\n      endpoint: \"/api/tts/cleaned_text_sections\"\n    output: raw_text_sections\n\n  - id: step_validate_text_sections\n    op: validate_schema\n    params:\n      input: raw_text_sections\n      schema: cleaned_text_sections_schema\n    output: validated_text_sections\n\n  - id: step_extract_user_config\n    op: fetch_api\n    params:\n      endpoint: \"/api/tts/user_config\"\n    output: raw_user_config\n\n  - id: step_validate_user_config\n    op: validate_schema\n    params:\n      input: raw_user_config\n      schema: tts_user_config_schema\n    output: validated_user_config\n\n  - id: step_split_sentences\n    op: loop_records\n    params:\n      input: validated_text_sections\n      operation: split_into_sentences\n      language: \"fr\"\n    output: sentence_records\n\n  - id: step_transform_to_utterances\n    op: transform_json\n    params:\n      input: sentence_records\n      mapping:\n        sentence: \"$.text\"\n        section_id: \"$.section_id\"\n        sentence_index: \"$.sentence_index\"\n        lang: \"fr-FR\"\n        rate: \"$.config.rate\"\n        pitch: \"$.config.pitch\"\n      config_ref: validated_user_config\n    output: utterance_objects\n\n  - id: step_apply_pause_rule\n    op: apply_rule\n    params:\n      rule: inter_section_pause\n      input: utterance_objects\n      pause_config_ref: validated_user_config\n      description: \"Insert configurable pause utterance between sections based on section_id boundaries\"\n    output: utterances_with_pauses\n\n  - id: step_build_queue_payload\n    op: transform_json\n    params:\n      input: utterances_with_pauses\n      mapping:\n        queue_order: \"$.index\"\n        utterance: \"$.utterance\"\n        highlight_selector: \"$.section_id + '.' + $.sentence_index\"\n        api: \"WebSpeechAPI\"\n    output: tts_queue_payload\n\n  - id: step_authenticate_client\n    op: authenticate_user\n    params:\n      role: \"tts_consumer\"\n    output: auth_result\n\n  - id: step_queue_utterances\n    op: send_to_queue\n    params:\n      input: tts_queue_payload\n      queue: \"web_speech_utterance_queue\"\n      ordering: sequential\n    output: queue_confirmation\n\n  - id: step_wait_utterance_start\n    op: wait_for_condition\n    params:\n      condition: \"utterance_start_event_received\"\n      source: \"web_speech_utterance_queue\"\n    output: current_utterance_event\n\n  - id: step_extract_highlight_info\n    op: extract_field\n    params:\n      input: current_utterance_event\n      field: \"highlight_selector\"\n    output: highlight_target\n\n  - id: step_notify_highlight\n    op: notify_user\n    params:\n      input: highlight_target\n      type: \"sentence_highlight\"\n      action: \"highlight_and_scroll_into_view\"\n      description: \"Highlight the current sentence and scroll it into view in the browser\"\n    output: highlight_result\n\n  - id: step_loop_remaining_utterances\n    op: route_to_step\n    params:\n      condition: \"utterance_queue_has_remaining\"\n      target: step_wait_utterance_start\n      else_target: step_log_completion\n\n  - id: step_log_completion\n    op: log_audit\n    params:\n      input: queue_confirmation\n      message: \"TTS playback completed for all sections with sentence highlighting\"\n      status: \"success\"\n    output: audit_log_entry\n\n  - id: step_handle_tts_error\n    op: handle_error\n    params:\n      monitored_steps:\n        - step_queue_utterances\n        - step_wait_utterance_start\n        - step_notify_highlight\n      action: log_and_terminate\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      summary: \"French TTS playback with real-time sentence highlighting finished\"",
+      "dsl_type_errors": [
+        "Step 'step_transform_to_utterances': op 'transform_json' requires input of type 'records' but 'sentence_records' has type 'none'. Make sure the step producing 'sentence_records' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database).",
+        "Step 'step_build_queue_payload': op 'transform_json' requires input of type 'records' but 'utterances_with_pauses' has type 'boolean'. Make sure the step producing 'utterances_with_pauses' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1163,
+      "output_tokens": 1096
+    }
+  ],
+  "complexity": 3,
+  "domain": "personal_tool",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1163,
+  "total_output_tokens": 1096
+}

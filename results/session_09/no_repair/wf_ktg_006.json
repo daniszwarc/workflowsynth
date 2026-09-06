@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_ktg_006",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "type_error",
+  "synthesis_time_seconds": 0.007826084271073341,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: claim_status_management_reporting\nsteps:\n  - id: receive_report_request\n    op: fetch_api\n    params:\n      endpoint: \"/api/reports/claim-status/request\"\n    output: raw_report_request\n\n  - id: validate_report_request\n    op: validate_schema\n    params:\n      input: raw_report_request\n      schema: report_request_schema\n    output: validated_request\n\n  - id: authenticate_requesting_user\n    op: authenticate_user\n    params:\n      role: \"report_viewer\"\n    output: auth_result\n\n  - id: extract_date_range\n    op: extract_field\n    params:\n      input: validated_request\n      field: \"date_range\"\n    output: date_range\n\n  - id: extract_audience\n    op: extract_field\n    params:\n      input: validated_request\n      field: \"audience\"\n    output: audience\n\n  - id: extract_filters\n    op: extract_field\n    params:\n      input: validated_request\n      field: \"filters\"\n    output: filters\n\n  - id: read_employer_summary\n    op: read_database\n    params:\n      table: \"tenant_employer_summary\"\n      filters:\n        date_range: date_range\n        tenant_scoped: true\n    output: raw_employer_summary\n\n  - id: validate_employer_summary\n    op: validate_schema\n    params:\n      input: raw_employer_summary\n      schema: employer_summary_schema\n    output: validated_employer_summary\n\n  - id: read_activity_data\n    op: read_database\n    params:\n      table: \"tenant_activity_fcm_ime\"\n      filters:\n        date_range: date_range\n        tenant_scoped: true\n    output: raw_activity_data\n\n  - id: validate_activity_data\n    op: validate_schema\n    params:\n      input: raw_activity_data\n      schema: activity_data_schema\n    output: validated_activity_data\n\n  - id: read_medical_data\n    op: read_database\n    params:\n      table: \"tenant_medical\"\n      filters:\n        date_range: date_range\n        tenant_scoped: true\n    output: raw_medical_data\n\n  - id: validate_medical_data\n    op: validate_schema\n    params:\n      input: raw_medical_data\n      schema: medical_data_schema\n    output: validated_medical_data\n\n  - id: read_litigation_data\n    op: read_database\n    params:\n      table: \"tenant_litigation\"\n      filters:\n        date_range: date_range\n        tenant_scoped: true\n    output: raw_litigation_data\n\n  - id: validate_litigation_data\n    op: validate_schema\n    params:\n      input: raw_litigation_data\n      schema: litigation_data_schema\n    output: validated_litigation_data\n\n  - id: read_lost_time_data\n    op: read_database\n    params:\n      table: \"tenant_lost_time\"\n      filters:\n        date_range: date_range\n        tenant_scoped: true\n    output: raw_lost_time_data\n\n  - id: validate_lost_time_data\n    op: validate_schema\n    params:\n      input: raw_lost_time_data\n      schema: lost_time_data_schema\n    output: validated_lost_time_data\n\n  - id: read_incident_data\n    op: read_database\n    params:\n      table: \"tenant_incidents\"\n      filters:\n        date_range: date_range\n        tenant_scoped: true\n    output: raw_incident_data\n\n  - id: validate_incident_data\n    op: validate_schema\n    params:\n      input: raw_incident_data\n      schema: incident_data_schema\n    output: validated_incident_data\n\n  - id: merge_employer_activity\n    op: merge_datasets\n    params:\n      input: validated_employer_summary\n      secondary: validated_activity_data\n      key: \"claim_id\"\n    output: merged_employer_activity\n\n  - id: merge_medical_litigation\n    op: merge_datasets\n    params:\n      input: validated_medical_data\n      secondary: validated_litigation_data\n      key: \"claim_id\"\n    output: merged_medical_litigation\n\n  - id: merge_lost_time_incident\n    op: merge_datasets\n    params:\n      input: validated_lost_time_data\n      secondary: validated_incident_data\n      key: \"claim_id\"\n    output: merged_lost_time_incident\n\n  - id: merge_first_half\n    op: merge_datasets\n    params:\n      input: merged_employer_activity\n      secondary: merged_medical_litigation\n      key: \"claim_id\"\n    output: merged_first_half\n\n  - id: merge_all_categories\n    op: merge_datasets\n    params:\n      input: merged_first_half\n      secondary: merged_lost_time_incident\n      key: \"claim_id\"\n    output: unified_claim_data\n\n  - id: apply_audience_filter\n    op: filter_records\n    params:\n      input: unified_claim_data\n      condition: \"matches_audience_and_filters\"\n      audience: audience\n      filters: filters\n    output: filtered_claim_data\n\n  - id: aggregate_report\n    op: aggregate_data\n    params:\n      input: filtered_claim_data\n      group_by:\n        - \"category\"\n        - \"claim_status\"\n      summaries:\n        - field: \"total_cost\"\n          function: \"sum\"\n        - field: \"claim_id\"\n          function: \"count\"\n    output: aggregated_report\n\n  - id: transform_report_structure\n    op: transform_json\n    params:\n      input: aggregated_report\n      mapping:\n        report_title: \"Claim Status and Management Report\"\n        audience: audience\n        date_range: date_range\n        sections:\n          - \"employer_summary\"\n          - \"activity\"\n          - \"medical\"\n          - \"litigation\"\n          - \"lost_time\"\n          - \"incidents\"\n    output: structured_report\n\n  - id: format_html_report\n    op: format_output\n    params:\n      input: structured_report\n      format: \"html\"\n      template: \"claim_status_print_template\"\n    output: html_report\n\n  - id: log_report_generation\n    op: log_audit\n    params:\n      input: structured_report\n      action: \"claim_status_report_generated\"\n      details:\n        audience: audience\n        date_range: date_range\n\n  - id: notify_requesting_user\n    op: notify_user\n    params:\n      input: html_report\n      message: \"Your Claim Status and Management Report is ready for review.\"\n      channel: \"email\"\n\n  - id: end_workflow\n    op: terminate_workflow\n    params:\n      status: \"success\"",
+      "dsl_type_errors": [
+        "Step 'transform_report_structure': op 'transform_json' requires input of type 'records' but 'aggregated_report' has type 'record'. Make sure the step producing 'aggregated_report' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1141,
+      "output_tokens": 1688
+    }
+  ],
+  "complexity": 5,
+  "domain": "workers_compensation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1141,
+  "total_output_tokens": 1688
+}

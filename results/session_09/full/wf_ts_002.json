@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_ts_002",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.5107534164562821,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: timesheet_hours_edit\nsteps:\n  - id: step_receive_edit_form\n    op: fetch_api\n    params:\n      endpoint: \"/api/timesheets/edit-submission\"\n    output: raw_edit_payload\n\n  - id: step_validate_edit_payload\n    op: validate_schema\n    params:\n      input: raw_edit_payload\n      schema: timesheet_edit_schema\n    output: validated_edit_payload\n\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      role: \"staff\"\n    output: auth_result\n\n  - id: step_extract_record_id\n    op: extract_field\n    params:\n      input: validated_edit_payload\n      field: \"record_id\"\n    output: record_id\n\n  - id: step_extract_updated_fields\n    op: extract_field\n    params:\n      input: validated_edit_payload\n      field: \"updated_fields\"\n    output: updated_fields\n\n  - id: step_read_existing_record\n    op: read_database\n    params:\n      table: timesheets\n      filter:\n        id: record_id\n    output: raw_existing_record\n\n  - id: step_validate_existing_record\n    op: validate_schema\n    params:\n      input: raw_existing_record\n      schema: timesheet_record_schema\n    output: existing_record\n\n  - id: step_read_overlapping_entries\n    op: read_database\n    params:\n      table: timesheets\n      filter:\n        employee_id: existing_record.employee_id\n        exclude_record_id: record_id\n    output: raw_overlap_candidates\n\n  - id: step_validate_overlap_candidates\n    op: validate_schema\n    params:\n      input: raw_overlap_candidates\n      schema: timesheet_records_schema\n    output: overlap_candidates\n\n  - id: step_filter_overlaps\n    op: filter_records\n    params:\n      input: overlap_candidates\n      condition: \"time_range_overlaps(record.start_time, record.end_time, updated_fields.start_time, updated_fields.end_time)\"\n    output: overlapping_entries\n\n  - id: step_check_overlap_rule\n    op: apply_rule\n    params:\n      rule: \"overlap_count_is_zero\"\n      input_count: overlapping_entries\n    output: overlap_check_result\n\n  - id: step_route_on_overlap\n    op: route_to_step\n    params:\n      condition: \"overlap_check_result == false\"\n      target: step_terminate_overlap_error\n\n  - id: step_compute_pay\n    op: transform_json\n    params:\n      input: updated_fields\n      mapping:\n        hours: \"updated_fields.hours\"\n        rate: \"updated_fields.rate\"\n        total_pay: \"updated_fields.hours * updated_fields.rate\"\n        start_time: \"updated_fields.start_time\"\n        end_time: \"updated_fields.end_time\"\n    output: computed_update\n\n  - id: step_merge_update\n    op: merge_datasets\n    params:\n      input: existing_record\n      secondary: computed_update\n      key: \"record_id\"\n    output: final_record\n\n  - id: step_write_updated_record\n    op: write_database\n    params:\n      input: final_record\n      table: timesheets\n      mode: update\n    output: write_result\n\n  - id: step_log_edit\n    op: log_audit\n    params:\n      input: final_record\n      action: \"timesheet_entry_edited\"\n      user: auth_result.user_id\n    output: audit_log_result\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: final_record\n      recipient: auth_result.user_id\n      message: \"Your timesheet entry has been successfully updated.\"\n    output: notification_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n\n  - id: step_terminate_overlap_error\n    op: terminate_workflow\n    params:\n      status: \"error\"\n      reason: \"Overlapping timesheet entry detected. Edit rejected.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ts_002.py::test_parses_and_type_checks": true,
+        "test_wf_ts_002.py::test_passes_taint_analysis": true,
+        "test_wf_ts_002.py::test_reads_before_update": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1097,
+      "output_tokens": 1046
+    }
+  ],
+  "complexity": 3,
+  "domain": "community_sports",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1097,
+  "total_output_tokens": 1046
+}

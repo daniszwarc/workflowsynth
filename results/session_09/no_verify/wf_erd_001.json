@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_erd_001",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.5401073331013322,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: user_auth_session_init\nsteps:\n  - id: step_check_session\n    op: wait_for_condition\n    params:\n      condition: \"incoming_request_received\"\n    output: incoming_request\n\n  - id: step_extract_session_token\n    op: extract_field\n    params:\n      input: incoming_request\n      field: \"session_token\"\n    output: session_token\n\n  - id: step_validate_session\n    op: apply_rule\n    params:\n      rule: \"session_token is valid and not expired (8 hour inactivity timeout)\"\n      input: session_token\n    output: session_check_result\n\n  - id: step_route_authenticated\n    op: route_to_step\n    params:\n      condition: \"session_check_result == 'authenticated'\"\n      target: step_redirect_main_menu\n      fallback: step_route_login_check\n\n  - id: step_route_login_check\n    op: apply_rule\n    params:\n      rule: \"request_is_login_form_submission\"\n      input: session_token\n    output: is_login_submission\n\n  - id: step_route_login_or_redirect\n    op: route_to_step\n    params:\n      condition: \"is_login_submission == true\"\n      target: step_receive_login_form\n      fallback: step_redirect_to_login\n\n  - id: step_redirect_to_login\n    op: notify_user\n    params:\n      input: session_token\n      message: \"Session not authenticated. Redirecting to login page.\"\n      redirect: \"/login\"\n    output: redirect_result\n\n  - id: step_terminate_redirect\n    op: terminate_workflow\n    params:\n      status: \"redirected_to_login\"\n\n  - id: step_receive_login_form\n    op: fetch_api\n    params:\n      endpoint: \"/api/auth/login_submission\"\n    output: raw_login_data\n\n  - id: step_validate_login_schema\n    op: validate_schema\n    params:\n      input: raw_login_data\n      schema: \"login_form_schema\"\n    output: validated_login_data\n\n  - id: step_extract_username\n    op: extract_field\n    params:\n      input: validated_login_data\n      field: \"username\"\n    output: username\n\n  - id: step_extract_password\n    op: extract_field\n    params:\n      input: validated_login_data\n      field: \"password\"\n    output: password\n\n  - id: step_encrypt_password\n    op: encrypt_field\n    params:\n      input: password\n      algorithm: \"bcrypt\"\n    output: encrypted_password\n\n  - id: step_lookup_user\n    op: read_database\n    params:\n      table: \"staff_users\"\n      query_field: \"username\"\n      query_value_ref: username\n    output: raw_user_record\n\n  - id: step_validate_user_record\n    op: validate_schema\n    params:\n      input: raw_user_record\n      schema: \"staff_user_schema\"\n    output: validated_user_record\n\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      username_ref: username\n      encrypted_password_ref: encrypted_password\n      stored_record_ref: validated_user_record\n    output: auth_result\n\n  - id: step_handle_auth_failure\n    op: handle_error\n    params:\n      source_step: step_authenticate_user\n      on_error: step_login_failed\n\n  - id: step_check_auth_success\n    op: route_to_step\n    params:\n      condition: \"auth_result.authenticated == true\"\n      target: step_extract_role\n      fallback: step_login_failed\n\n  - id: step_login_failed\n    op: log_audit\n    params:\n      input: validated_login_data\n      event: \"login_failure\"\n      detail: \"Invalid credentials for submitted username\"\n    output: audit_failure_log\n\n  - id: step_notify_login_failed\n    op: notify_user\n    params:\n      input: audit_failure_log\n      message: \"Login failed. Invalid username or password.\"\n      redirect: \"/login\"\n    output: failure_notify_result\n\n  - id: step_terminate_failed\n    op: terminate_workflow\n    params:\n      status: \"authentication_failed\"\n\n  - id: step_extract_role\n    op: extract_field\n    params:\n      input: validated_user_record\n      field: \"role\"\n    output: user_role\n\n  - id: step_create_session\n    op: write_database\n    params:\n      input: user_role\n      table: \"active_sessions\"\n      fields:\n        username_ref: username\n        role_ref: user_role\n        timeout_hours: 8\n    output: session_record\n\n  - id: step_log_login_success\n    op: log_audit\n    params:\n      input: user_role\n      event: \"login_success\"\n      detail: \"User authenticated and session established\"\n    output: audit_success_log\n\n  - id: step_redirect_main_menu\n    op: notify_user\n    params:\n      input: user_role\n      message: \"Login successful. Redirecting to main menu.\"\n      redirect: \"/main_menu\"\n      role_menus_ref: user_role\n    output: main_menu_redirect\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"session_initialized\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_erd_001.py::test_parses_and_type_checks": true,
+        "test_wf_erd_001.py::test_passes_taint_analysis": true,
+        "test_wf_erd_001.py::test_authenticates_user": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1117,
+      "output_tokens": 1356
+    }
+  ],
+  "complexity": 2,
+  "domain": "healthcare_billing",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1117,
+  "total_output_tokens": 1356
+}

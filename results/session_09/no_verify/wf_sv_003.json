@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_sv_003",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.4691454581916332,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: incoming_email_classification\nsteps:\n  - id: poll_gmail_inbox\n    op: fetch_api\n    params:\n      endpoint: \"/api/gmail/inbox/unread\"\n      polling_interval_minutes: 5\n    output: raw_email_payload\n\n  - id: validate_email_payload\n    op: validate_schema\n    params:\n      input: raw_email_payload\n      schema: gmail_unread_email_schema\n    output: validated_email_payload\n\n  - id: extract_email_body\n    op: extract_field\n    params:\n      input: validated_email_payload\n      field: \"body\"\n    output: email_body\n\n  - id: extract_thread_id\n    op: extract_field\n    params:\n      input: validated_email_payload\n      field: \"thread_id\"\n    output: thread_id\n\n  - id: extract_sender_address\n    op: extract_field\n    params:\n      input: validated_email_payload\n      field: \"sender_address\"\n    output: sender_address\n\n  - id: check_club_domain_sender\n    op: apply_rule\n    params:\n      rule: \"sender_address ends_with '@club.example.com'\"\n      input_variable: sender_address\n    output: is_club_sender\n\n  - id: route_if_club_sender\n    op: route_to_step\n    params:\n      condition: \"is_club_sender == true\"\n      true_step: skip_classification_club_sender\n      false_step: fetch_full_thread\n\n  - id: skip_classification_club_sender\n    op: format_output\n    params:\n      input: validated_email_payload\n      template:\n        customer_support_required: false\n        reason: \"sender_is_club_domain\"\n        thread_id: \"{{thread_id}}\"\n        sender: \"{{sender_address}}\"\n    output: classification_result\n\n  - id: route_to_audit_from_club\n    op: route_to_step\n    params:\n      condition: \"classification_result != null\"\n      true_step: log_classification_result\n\n  - id: fetch_full_thread\n    op: fetch_api\n    params:\n      endpoint: \"/api/gmail/threads/{{thread_id}}\"\n    output: raw_thread_data\n\n  - id: validate_thread_data\n    op: validate_schema\n    params:\n      input: raw_thread_data\n      schema: gmail_thread_schema\n    output: validated_thread_data\n\n  - id: build_thread_history\n    op: loop_records\n    params:\n      input: validated_thread_data\n      iterator_step: label_message_sender\n\n  - id: label_message_sender\n    op: transform_json\n    params:\n      input: validated_thread_data\n      mapping:\n        messages: \"messages[*].{message_id: message_id, body: body, sender: sender, label: if(sender ends_with '@club.example.com', 'Club', 'Customer'), timestamp: timestamp}\"\n    output: labeled_thread_history\n\n  - id: check_tax_receipt_request\n    op: apply_rule\n    params:\n      rule: \"email_body matches_any ['Releve 24', 'RL-24', 'releve 24', 'rl-24', 'relev\u00e9 24']\"\n      input_variable: email_body\n    output: is_tax_receipt_request\n\n  - id: route_tax_receipt\n    op: route_to_step\n    params:\n      condition: \"is_tax_receipt_request == true\"\n      true_step: force_classification_true\n      false_step: prepare_classification_payload\n\n  - id: force_classification_true\n    op: format_output\n    params:\n      input: labeled_thread_history\n      template:\n        customer_support_required: true\n        reason: \"tax_receipt_request_detected\"\n        thread_id: \"{{thread_id}}\"\n        sender: \"{{sender_address}}\"\n    output: classification_result\n\n  - id: route_to_audit_from_tax\n    op: route_to_step\n    params:\n      condition: \"classification_result != null\"\n      true_step: log_classification_result\n\n  - id: prepare_classification_payload\n    op: transform_json\n    params:\n      input: labeled_thread_history\n      mapping:\n        thread_id: \"{{thread_id}}\"\n        sender: \"{{sender_address}}\"\n        current_email_body: \"{{email_body}}\"\n        thread_history: \"{{labeled_thread_history}}\"\n        supported_languages:\n          - \"EN\"\n          - \"FR\"\n          - \"ES\"\n    output: classification_request_payload\n\n  - id: authenticate_for_ai_api\n    op: authenticate_user\n    params:\n      role: \"email_classification_agent\"\n    output: ai_auth_result\n\n  - id: call_ai_classification\n    op: call_webhook\n    params:\n      input: classification_request_payload\n      url: \"https://ai.club.example.com/api/classify-email\"\n      method: \"POST\"\n      headers:\n        Authorization: \"Bearer {{ai_auth_result.token}}\"\n    output: raw_ai_response\n\n  - id: validate_ai_response\n    op: validate_schema\n    params:\n      input: raw_ai_response\n      schema: ai_classification_response_schema\n    output: validated_ai_response\n\n  - id: extract_classification\n    op: extract_field\n    params:\n      input: validated_ai_response\n      field: \"customer_support_required\"\n    output: ai_classification_flag\n\n  - id: build_final_classification\n    op: format_output\n    params:\n      input: validated_ai_response\n      template:\n        customer_support_required: \"{{ai_classification_flag}}\"\n        reason: \"ai_classification\"\n        thread_id: \"{{thread_id}}\"\n        sender: \"{{sender_address}}\"\n        confidence: \"{{validated_ai_response.confidence}}\"\n    output: classification_result\n\n  - id: log_classification_result\n    op: log_audit\n    params:\n      input: classification_result\n      event: \"email_classification_completed\"\n      metadata:\n        thread_id: \"{{thread_id}}\"\n        sender: \"{{sender_address}}\"\n\n  - id: handle_classification_error\n    op: handle_error\n    params:\n      on_error_in:\n        - call_ai_classification\n        - validate_ai_response\n      route_to: retry_ai_classification\n\n  - id: retry_ai_classification\n    op: retry_step\n    params:\n      step: call_ai_classification\n      max_retries: 3\n      backoff_seconds: 30\n\n  - id: terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_sv_003.py::test_parses_and_type_checks": true,
+        "test_wf_sv_003.py::test_passes_taint_analysis": true,
+        "test_wf_sv_003.py::test_builds_thread_history": true,
+        "test_wf_sv_003.py::test_classifies_email": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1176,
+      "output_tokens": 1683
+    }
+  ],
+  "complexity": 2,
+  "domain": "community_sports",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1176,
+  "total_output_tokens": 1683
+}

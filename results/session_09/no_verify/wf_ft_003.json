@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_ft_003",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.5038877921178937,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: food_label_ai_scanning\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"app_user\"\n    output: auth_result\n\n  - id: step_receive_image\n    op: fetch_api\n    params:\n      endpoint: \"/api/camera/capture\"\n    output: raw_image\n\n  - id: step_validate_image\n    op: validate_schema\n    params:\n      input: raw_image\n      schema: image_format_and_size_schema\n    output: validated_image\n\n  - id: step_send_to_vision_api\n    op: call_webhook\n    params:\n      input: validated_image\n      url: \"https://ai-vision.example.com/extract-nutrition\"\n      method: \"POST\"\n    output: raw_ai_response\n\n  - id: step_extract_nutrition\n    op: extract_field\n    params:\n      input: raw_ai_response\n      fields:\n        - \"calories\"\n        - \"protein\"\n        - \"carbohydrates\"\n        - \"fat\"\n        - \"serving_size\"\n    output: extracted_nutrition\n\n  - id: step_validate_nutrition\n    op: validate_schema\n    params:\n      input: extracted_nutrition\n      schema: plausible_nutrition_schema\n      rules:\n        max_calories_per_serving: 2000\n    output: validated_nutrition\n\n  - id: step_check_plausibility\n    op: apply_rule\n    params:\n      rule: \"validated_nutrition.validation_warnings is not empty\"\n    output: plausibility_result\n\n  - id: step_route_flagged\n    op: route_to_step\n    params:\n      condition: \"plausibility_result == true\"\n      true_step: step_flag_for_review\n      false_step: step_format_form\n\n  - id: step_flag_for_review\n    op: log_audit\n    params:\n      input: validated_nutrition\n      action: \"flagged_implausible_nutrition_values\"\n      severity: \"warning\"\n    output: flag_log_result\n\n  - id: step_format_form\n    op: format_output\n    params:\n      input: validated_nutrition\n      template: \"food_entry_prefilled_form\"\n      format: \"json\"\n    output: prefilled_form\n\n  - id: step_notify_user_confirmation\n    op: notify_user\n    params:\n      input: prefilled_form\n      message: \"Please review and confirm the extracted nutritional data before saving.\"\n      channel: \"in_app\"\n    output: user_notification_result\n\n  - id: step_wait_user_confirm\n    op: wait_for_condition\n    params:\n      condition: \"user_confirmation_received == true\"\n      timeout_seconds: 300\n    output: user_confirmation\n\n  - id: step_route_confirmed\n    op: route_to_step\n    params:\n      condition: \"user_confirmation.confirmed == true\"\n      true_step: step_write_food_log\n      false_step: step_terminate_cancelled\n\n  - id: step_write_food_log\n    op: write_database\n    params:\n      input: prefilled_form\n      table: \"food_log_entries\"\n    output: write_result\n\n  - id: step_audit_log_entry\n    op: log_audit\n    params:\n      input: prefilled_form\n      action: \"food_log_entry_created_via_ai_scan\"\n    output: audit_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Food log entry successfully created from label scan.\"\n\n  - id: step_terminate_cancelled\n    op: terminate_workflow\n    params:\n      status: \"cancelled\"\n      message: \"User declined the extracted nutritional data.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_003.py::test_parses_and_type_checks": true,
+        "test_wf_ft_003.py::test_passes_taint_analysis": true,
+        "test_wf_ft_003.py::test_validates_plausibility": true,
+        "test_wf_ft_003.py::test_uses_ai_vision": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1142,
+      "output_tokens": 941
+    }
+  ],
+  "complexity": 3,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1142,
+  "total_output_tokens": 941
+}

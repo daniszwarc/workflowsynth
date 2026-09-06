@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_ae_002",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.564309916459024,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: article_category_matching\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"editorial_pipeline_service\"\n    output: auth_result\n\n  - id: step_fetch_category_spreadsheet\n    op: fetch_api\n    params:\n      endpoint: \"/integrations/google-drive/category-mapping-spreadsheet\"\n    output: raw_spreadsheet\n\n  - id: step_validate_spreadsheet\n    op: validate_schema\n    params:\n      input: raw_spreadsheet\n      schema: category_spreadsheet_schema\n    output: validated_spreadsheet\n\n  - id: step_read_extracted_article\n    op: read_database\n    params:\n      table: extracted_articles\n      filter: \"status = 'pending_category'\"\n    output: raw_article_data\n\n  - id: step_validate_article\n    op: validate_schema\n    params:\n      input: raw_article_data\n      schema: extracted_article_schema\n    output: validated_article\n\n  - id: step_extract_article_title\n    op: extract_field\n    params:\n      input: validated_article\n      field: \"title\"\n    output: article_title\n\n  - id: step_normalise_article_title\n    op: transform_json\n    params:\n      input: article_title\n      mapping:\n        operations:\n          - remove_accents: true\n          - lowercase: true\n          - strip_non_alphanumeric: true\n    output: normalised_article_title\n\n  - id: step_normalise_spreadsheet_titles\n    op: loop_records\n    params:\n      collection: validated_spreadsheet\n      step_ref: step_normalise_single_spreadsheet_row\n    output: normalised_spreadsheet\n\n  - id: step_normalise_single_spreadsheet_row\n    op: transform_json\n    params:\n      input: validated_spreadsheet\n      mapping:\n        operations:\n          - field: \"title\"\n          - remove_accents: true\n          - lowercase: true\n          - strip_non_alphanumeric: true\n        preserve_fields: [\"category\", \"section\", \"original_title\"]\n    output: normalised_spreadsheet_rows\n\n  - id: step_apply_fuzzy_match\n    op: apply_rule\n    params:\n      rule: \"fuzzy_title_match\"\n      input_title: normalised_article_title\n      candidates: normalised_spreadsheet_rows\n      match_strategy: \"accent_insensitive_punctuation_insensitive\"\n    output: match_result\n\n  - id: step_check_match_found\n    op: route_to_step\n    params:\n      condition: \"match_result.matched == true\"\n      true_step: step_extract_matched_category\n      false_step: step_apply_default_category\n\n  - id: step_extract_matched_category\n    op: extract_field\n    params:\n      input: match_result\n      field: \"matched_row\"\n    output: matched_category_data\n\n  - id: step_format_matched_output\n    op: transform_json\n    params:\n      input: matched_category_data\n      mapping:\n        category: \"$.category\"\n        section: \"$.section\"\n        needs_review: false\n        article_id: \"$.article_id\"\n    output: category_assignment\n\n  - id: step_route_to_write\n    op: route_to_step\n    params:\n      condition: \"category_assignment != null\"\n      true_step: step_write_category_assignment\n      false_step: step_terminate\n\n  - id: step_apply_default_category\n    op: transform_json\n    params:\n      input: validated_article\n      mapping:\n        category: \"Ciencia economica\"\n        section: \"Dossier\"\n        needs_review: true\n        article_id: \"$.id\"\n    output: category_assignment_default\n\n  - id: step_log_unmatched\n    op: log_audit\n    params:\n      input: category_assignment_default\n      action: \"category_match_failed\"\n      message: \"No fuzzy match found for article title; applying default category and flagging for editorial review\"\n\n  - id: step_notify_editorial\n    op: notify_user\n    params:\n      input: category_assignment_default\n      recipient: \"editorial_team\"\n      template: \"unmatched_article_review\"\n      message: \"Article requires manual category review. Default category 'Ciencia economica' / section 'Dossier' applied.\"\n\n  - id: step_write_category_assignment\n    op: write_database\n    params:\n      input: category_assignment\n      table: article_categories\n    output: write_result\n\n  - id: step_write_default_category_assignment\n    op: write_database\n    params:\n      input: category_assignment_default\n      table: article_categories\n    output: write_default_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Article category matching workflow finished\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ae_002.py::test_parses_and_type_checks": true,
+        "test_wf_ae_002.py::test_passes_taint_analysis": true,
+        "test_wf_ae_002.py::test_reads_spreadsheet": true,
+        "test_wf_ae_002.py::test_applies_matching_rule": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1174,
+      "output_tokens": 1233
+    }
+  ],
+  "complexity": 2,
+  "domain": "publishing",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1174,
+  "total_output_tokens": 1233
+}

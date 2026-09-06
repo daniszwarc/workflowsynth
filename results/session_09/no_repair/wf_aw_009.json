@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_aw_009",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 0.4881829582154751,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: embeddings_backfill_cron_job\nsteps:\n  - id: step_authenticate_cron\n    op: authenticate_user\n    params:\n      role: \"system_cron\"\n      identity: \"wiki_container_scheduler\"\n    output: auth_result\n\n  - id: step_read_rules_missing\n    op: read_database\n    params:\n      table: rules\n      query: \"SELECT * FROM rules WHERE id NOT IN (SELECT source_id FROM embeddings WHERE source_type = 'rule')\"\n    output: raw_rules\n\n  - id: step_read_articles_missing\n    op: read_database\n    params:\n      table: articles\n      query: \"SELECT * FROM articles WHERE id NOT IN (SELECT source_id FROM embeddings WHERE source_type = 'article')\"\n    output: raw_articles\n\n  - id: step_read_seds_missing\n    op: read_database\n    params:\n      table: seds\n      query: \"SELECT * FROM seds WHERE id NOT IN (SELECT source_id FROM embeddings WHERE source_type = 'sed')\"\n    output: raw_seds\n\n  - id: step_validate_rules\n    op: validate_schema\n    params:\n      input: raw_rules\n      schema: embeddable_record_schema\n    output: validated_rules\n\n  - id: step_validate_articles\n    op: validate_schema\n    params:\n      input: raw_articles\n      schema: embeddable_record_schema\n    output: validated_articles\n\n  - id: step_validate_seds\n    op: validate_schema\n    params:\n      input: raw_seds\n      schema: embeddable_record_schema\n    output: validated_seds\n\n  - id: step_merge_rules_articles\n    op: merge_datasets\n    params:\n      input: validated_rules\n      secondary_input: validated_articles\n      key: id\n      strategy: union\n    output: merged_rules_articles\n\n  - id: step_merge_all_records\n    op: merge_datasets\n    params:\n      input: merged_rules_articles\n      secondary_input: validated_seds\n      key: id\n      strategy: union\n    output: all_missing_records\n\n  - id: step_filter_missing_embeddings\n    op: filter_records\n    params:\n      input: all_missing_records\n      condition: \"record.embedding IS NULL OR record.embedding_exists == false\"\n    output: records_to_backfill\n\n  - id: step_log_backfill_start\n    op: log_audit\n    params:\n      input: records_to_backfill\n      message: \"Embeddings backfill cron started\"\n      log_file: \"/var/log/backfill.log\"\n      record_count_field: \"total\"\n\n  - id: step_wait_ai_service_ready\n    op: wait_for_condition\n    params:\n      condition: \"ai_embedding_service.status == 'ready'\"\n      timeout_seconds: 180\n      poll_interval_seconds: 10\n    output: ai_service_ready\n\n  - id: step_handle_ai_cold_start\n    op: handle_error\n    params:\n      step_ref: step_wait_ai_service_ready\n      on_error: step_log_cold_start_failure\n\n  - id: step_loop_generate_embeddings\n    op: loop_records\n    params:\n      input: records_to_backfill\n      step_ref: step_generate_embedding_for_record\n    output: embedding_results\n\n  - id: step_generate_embedding_for_record\n    op: call_subworkflow\n    params:\n      workflow_id: generate_single_embedding\n      input_field: \"current_record\"\n    output: single_embedding_result\n\n  - id: step_validate_embedding_result\n    op: validate_schema\n    params:\n      input: single_embedding_result\n      schema: embedding_result_schema\n    output: validated_embedding\n\n  - id: step_retry_embedding_on_failure\n    op: retry_step\n    params:\n      step_ref: step_generate_embedding_for_record\n      max_retries: 3\n      delay_seconds: 30\n\n  - id: step_write_embeddings\n    op: write_database\n    params:\n      input: validated_embedding\n      table: embeddings\n    output: write_result\n\n  - id: step_log_backfill_complete\n    op: log_audit\n    params:\n      input: embedding_results\n      message: \"Embeddings backfill cron completed\"\n      log_file: \"/var/log/backfill.log\"\n\n  - id: step_log_cold_start_failure\n    op: log_audit\n    params:\n      input: ai_service_ready\n      message: \"AI service cold start timeout - backfill aborted\"\n      log_file: \"/var/log/backfill.log\"\n\n  - id: step_terminate_on_cold_start_failure\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"AI embedding service did not become ready within timeout\"\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      reason: \"Embeddings backfill cron finished successfully\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_aw_009.py::test_parses_and_type_checks": true,
+        "test_wf_aw_009.py::test_passes_taint_analysis": true,
+        "test_wf_aw_009.py::test_reads_missing_records": true,
+        "test_wf_aw_009.py::test_generates_embeddings": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1121,
+      "output_tokens": 1288
+    }
+  ],
+  "complexity": 2,
+  "domain": "enterprise_knowledge",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1121,
+  "total_output_tokens": 1288
+}

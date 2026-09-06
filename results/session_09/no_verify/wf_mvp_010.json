@@ -1,0 +1,185 @@
+{
+  "task_id": "wf_mvp_010",
+  "condition": "no_verify",
+  "success": false,
+  "attempts_used": 10,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 69.62714187521487,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: post_install_geocoding_service_partner_lookup\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"installation_registrar\"\n    output: auth_result\n\n  - id: step_receive_registration\n    op: fetch_api\n    params:\n      endpoint: \"/api/installations/registration\"\n    output: raw_registration\n\n  - id: step_validate_registration\n    op: validate_schema\n    params:\n      input: raw_registration\n      schema: installation_registration_schema\n    output: validated_registration\n\n  - id: step_extract_address\n    op: extract_field\n    params:\n      input: validated_registration\n      field: \"installation_address\"\n    output: installation_address\n\n  - id: step_geocode_address\n    op: call_webhook\n    params:\n      input: installation_address\n      url: \"https://maps.example.com/api/geocode\"\n      method: \"POST\"\n    output: raw_geocode_response\n\n  - id: step_extract_coordinates\n    op: extract_field\n    params:\n      input: raw_geocode_response\n      field: \"coordinates\"\n    output: raw_coordinates\n\n  - id: step_validate_coordinates\n    op: validate_schema\n    params:\n      input: raw_coordinates\n      schema: coordinates_schema\n    output: validated_coordinates\n\n  - id: step_read_service_partners\n    op: read_database\n    params:\n      table: \"authorized_service_partners\"\n      filter: \"status = 'active'\"\n    output: raw_service_partners\n\n  - id: step_validate_partners\n    op: validate_schema\n    params:\n      input: raw_service_partners\n      schema: service_partner_schema\n    output: validated_partners\n\n  - id: step_merge_coords_with_partners\n    op: merge_datasets\n    params:\n      input: validated_partners\n      secondary: validated_coordinates\n      key: \"cross_join\"\n    output: partners_with_install_coords\n\n  - id: step_apply_haversine\n    op: apply_rule\n    params:\n      rule: \"haversine_distance\"\n      input_coords: validated_coordinates\n      partners: partners_with_install_coords\n    output: partners_with_distances\n\n  - id: step_filter_within_threshold\n    op: filter_records\n    params:\n      input: partners_with_distances\n      condition: \"distance_km <= max_distance_threshold\"\n    output: nearby_partners\n\n  - id: step_aggregate_nearest\n    op: aggregate_data\n    params:\n      input: nearby_partners\n      group_by: \"partner_id\"\n      sort: \"distance_km ASC\"\n      limit: 1\n    output: nearest_partner\n\n  - id: step_format_result\n    op: format_output\n    params:\n      input: nearest_partner\n      format: \"json\"\n      template: \"service_partner_details\"\n    output: formatted_partner_details\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_partner_details\n      event: \"geocoding_partner_lookup_completed\"\n      registration_ref: validated_registration\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: formatted_partner_details\n      recipient: \"installation_registrar\"\n      message: \"Nearest authorized service partner found for installation site.\"\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      result: formatted_partner_details",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_mvp_010.py::test_parses_and_type_checks": false,
+        "test_wf_mvp_010.py::test_passes_taint_analysis": true,
+        "test_wf_mvp_010.py::test_geocodes_address": true,
+        "test_wf_mvp_010.py::test_filters_by_distance": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1141,
+      "output_tokens": 873
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: post_install_geocoding_service_partner_lookup\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"installation_registrar\"\n    output: auth_result\n\n  - id: step_receive_registration\n    op: fetch_api\n    params:\n      endpoint: \"/api/installations/registration\"\n    output: raw_registration\n\n  - id: step_validate_registration\n    op: validate_schema\n    params:\n      input: raw_registration\n      schema: installation_registration_schema\n    output: validated_registration\n\n  - id: step_extract_address\n    op: extract_field\n    params:\n      input: validated_registration\n      field: \"installation_address\"\n    output: installation_address\n\n  - id: step_geocode_address\n    op: call_webhook\n    params:\n      input: installation_address\n      url: \"https://maps.example.com/api/geocode\"\n      method: \"POST\"\n    output: raw_geocode_response\n\n  - id: step_validate_geocode\n    op: validate_schema\n    params:\n      input: raw_geocode_response\n      schema: geocode_response_schema\n    output: validated_geocode_response\n\n  - id: step_extract_coordinates\n    op: extract_field\n    params:\n      input: validated_geocode_response\n      field: \"coordinates\"\n    output: validated_coordinates\n\n  - id: step_read_service_partners\n    op: read_database\n    params:\n      table: \"authorized_service_partners\"\n      filter: \"status = 'active'\"\n    output: raw_service_partners\n\n  - id: step_validate_partners\n    op: validate_schema\n    params:\n      input: raw_service_partners\n      schema: service_partner_schema\n    output: validated_partners\n\n  - id: step_merge_coords_with_partners\n    op: merge_datasets\n    params:\n      input: validated_partners\n      secondary: validated_coordinates\n      key: \"cross_join\"\n    output: partners_with_install_coords\n\n  - id: step_apply_haversine\n    op: apply_rule\n    params:\n      rule: \"haversine_distance\"\n      input_data: partners_with_install_coords\n    output: partners_with_distances\n\n  - id: step_filter_within_threshold\n    op: filter_records\n    params:\n      input: partners_with_distances\n      condition: \"distance_km <= max_distance_threshold\"\n    output: nearby_partners\n\n  - id: step_aggregate_nearest\n    op: aggregate_data\n    params:\n      input: nearby_partners\n      group_by: \"partner_id\"\n      sort: \"distance_km ASC\"\n      limit: 1\n    output: nearest_partner\n\n  - id: step_format_result\n    op: format_output\n    params:\n      input: nearest_partner\n      format: \"json\"\n      template: \"service_partner_details\"\n    output: formatted_partner_details\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_partner_details\n      event: \"geocoding_partner_lookup_completed\"\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: formatted_partner_details\n      recipient: \"installation_registrar\"\n      message: \"Nearest authorized service partner found for installation site.\"\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_mvp_010.py::test_parses_and_type_checks": false,
+        "test_wf_mvp_010.py::test_passes_taint_analysis": true,
+        "test_wf_mvp_010.py::test_geocodes_address": true,
+        "test_wf_mvp_010.py::test_filters_by_distance": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2100,
+      "output_tokens": 858
+    },
+    {
+      "attempt_number": 2,
+      "llm_sketch": "workflow_id: post_install_geocoding_service_partner_lookup\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"installation_registrar\"\n    output: auth_result\n\n  - id: step_receive_registration\n    op: fetch_api\n    params:\n      endpoint: \"/api/installations/registration\"\n    output: raw_registration\n\n  - id: step_validate_registration\n    op: validate_schema\n    params:\n      input: raw_registration\n      schema: installation_registration_schema\n    output: validated_registration\n\n  - id: step_extract_address\n    op: extract_field\n    params:\n      input: validated_registration\n      field: \"installation_address\"\n    output: installation_address\n\n  - id: step_geocode_address\n    op: call_webhook\n    params:\n      input: installation_address\n      url: \"https://maps.example.com/api/geocode\"\n      method: \"POST\"\n    output: raw_geocode_response\n\n  - id: step_validate_geocode\n    op: validate_schema\n    params:\n      input: raw_geocode_response\n      schema: geocode_response_schema\n    output: validated_geocode_response\n\n  - id: step_extract_coordinates\n    op: extract_field\n    params:\n      input: validated_geocode_response\n      field: \"coordinates\"\n    output: coordinates\n\n  - id: step_read_service_partners\n    op: read_database\n    params:\n      table: \"authorized_service_partners\"\n      filter: \"status = 'active'\"\n    output: raw_service_partners\n\n  - id: step_validate_partners\n    op: validate_schema\n    params:\n      input: raw_service_partners\n      schema: service_partner_schema\n    output: validated_partners\n\n  - id: step_merge_coords_with_partners\n    op: merge_datasets\n    params:\n      input: validated_partners\n      secondary: coordinates\n      key: \"cross_join\"\n    output: partners_with_install_coords\n\n  - id: step_apply_haversine\n    op: apply_rule\n    params:\n      rule: \"haversine_distance\"\n      input: partners_with_install_coords\n    output: partners_with_distances\n\n  - id: step_filter_within_threshold\n    op: filter_records\n    params:\n      input: partners_with_distances\n      condition: \"distance_km <= max_distance_threshold\"\n    output: nearby_partners\n\n  - id: step_aggregate_nearest\n    op: aggregate_data\n    params:\n      input: nearby_partners\n      group_by: \"partner_id\"\n      sort: \"distance_km ASC\"\n      limit: 1\n    output: nearest_partner\n\n  - id: step_format_result\n    op: format_output\n    params:\n      input: nearest_partner\n      format: \"json\"\n      template: \"service_partner_details\"\n    output: formatted_partner_details\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_partner_details\n      event: \"geocoding_partner_lookup_completed\"\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: formatted_partner_details\n      recipient: \"installation_registrar\"\n      message: \"Nearest authorized service partner found for installation site.\"\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_mvp_010.py::test_parses_and_type_checks": false,
+        "test_wf_mvp_010.py::test_passes_taint_analysis": true,
+        "test_wf_mvp_010.py::test_geocodes_address": true,
+        "test_wf_mvp_010.py::test_filters_by_distance": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2085,
+      "output_tokens": 852
+    },
+    {
+      "attempt_number": 3,
+      "llm_sketch": "workflow_id: post_install_geocoding_service_partner_lookup\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"installation_registrar\"\n    output: auth_result\n\n  - id: step_receive_registration\n    op: fetch_api\n    params:\n      endpoint: \"/api/installations/registration\"\n    output: raw_registration\n\n  - id: step_validate_registration\n    op: validate_schema\n    params:\n      input: raw_registration\n      schema: installation_registration_schema\n    output: validated_registration\n\n  - id: step_extract_address\n    op: extract_field\n    params:\n      input: validated_registration\n      field: \"installation_address\"\n    output: installation_address\n\n  - id: step_geocode_address\n    op: call_webhook\n    params:\n      input: installation_address\n      url: \"https://maps.example.com/api/geocode\"\n      method: \"POST\"\n    output: raw_geocode_response\n\n  - id: step_validate_geocode\n    op: validate_schema\n    params:\n      input: raw_geocode_response\n      schema: geocode_response_schema\n    output: validated_geocode_response\n\n  - id: step_extract_coordinates\n    op: extract_field\n    params:\n      input: validated_geocode_response\n      field: \"coordinates\"\n    output: coordinates\n\n  - id: step_read_service_partners\n    op: read_database\n    params:\n      table: \"authorized_service_partners\"\n      filter: \"status = 'active'\"\n    output: raw_service_partners\n\n  - id: step_validate_partners\n    op: validate_schema\n    params:\n      input: raw_service_partners\n      schema: service_partner_schema\n    output: validated_partners\n\n  - id: step_merge_coords_with_partners\n    op: merge_datasets\n    params:\n      input: validated_partners\n      secondary: coordinates\n      key: \"cross_join\"\n    output: partners_with_install_coords\n\n  - id: step_apply_haversine\n    op: apply_rule\n    params:\n      rule: \"haversine_distance\"\n      input_data: partners_with_install_coords\n    output: partners_with_distances\n\n  - id: step_filter_within_threshold\n    op: filter_records\n    params:\n      input: partners_with_distances\n      condition: \"distance_km <= max_distance_threshold\"\n    output: nearby_partners\n\n  - id: step_aggregate_nearest\n    op: aggregate_data\n    params:\n      input: nearby_partners\n      group_by: \"partner_id\"\n      sort: \"distance_km ASC\"\n      limit: 1\n    output: nearest_partner\n\n  - id: step_format_result\n    op: format_output\n    params:\n      input: nearest_partner\n      format: \"json\"\n      template: \"service_partner_details\"\n    output: formatted_partner_details\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_partner_details\n      event: \"geocoding_partner_lookup_completed\"\n    output: audit_result\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: formatted_partner_details\n      recipient: \"installation_registrar\"\n      message: \"Nearest authorized service partner found for installation site.\"\n    output: notify_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_mvp_010.py::test_parses_and_type_checks": false,
+        "test_wf_mvp_010.py::test_passes_taint_analysis": true,
+        "test_wf_mvp_010.py::test_geocodes_address": true,
+        "test_wf_mvp_010.py::test_filters_by_distance": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2079,
+      "output_tokens": 868
+    },
+    {
+      "attempt_number": 4,
+      "llm_sketch": "workflow_id: post_install_geocoding_service_partner_lookup\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"installation_registrar\"\n    output: auth_result\n\n  - id: step_receive_registration\n    op: fetch_api\n    params:\n      endpoint: \"/api/installations/registration\"\n    output: raw_registration\n\n  - id: step_validate_registration\n    op: validate_schema\n    params:\n      input: raw_registration\n      schema: installation_registration_schema\n    output: validated_registration\n\n  - id: step_extract_address\n    op: extract_field\n    params:\n      input: validated_registration\n      field: \"installation_address\"\n    output: installation_address\n\n  - id: step_geocode_address\n    op: call_webhook\n    params:\n      input: installation_address\n      url: \"https://maps.example.com/api/geocode\"\n      method: \"POST\"\n    output: raw_geocode_response\n\n  - id: step_validate_geocode\n    op: validate_schema\n    params:\n      input: raw_geocode_response\n      schema: geocode_response_schema\n    output: validated_geocode_response\n\n  - id: step_extract_coordinates\n    op: extract_field\n    params:\n      input: validated_geocode_response\n      field: \"coordinates\"\n    output: coordinates\n\n  - id: step_read_service_partners\n    op: read_database\n    params:\n      table: \"authorized_service_partners\"\n      filter: \"status = 'active'\"\n    output: raw_service_partners\n\n  - id: step_validate_partners\n    op: validate_schema\n    params:\n      input: raw_service_partners\n      schema: service_partner_schema\n    output: validated_partners\n\n  - id: step_merge_coords_with_partners\n    op: merge_datasets\n    params:\n      input: validated_partners\n      secondary: coordinates\n      key: \"cross_join\"\n    output: partners_with_install_coords\n\n  - id: step_apply_haversine\n    op: apply_rule\n    params:\n      rule: \"haversine_distance\"\n      input: partners_with_install_coords\n    output: partners_with_distances\n\n  - id: step_filter_within_threshold\n    op: filter_records\n    params:\n      input: partners_with_distances\n      condition: \"distance_km <= max_distance_threshold\"\n    output: nearby_partners\n\n  - id: step_aggregate_nearest\n    op: aggregate_data\n    params:\n      input: nearby_partners\n      group_by: \"partner_id\"\n      sort: \"distance_km ASC\"\n      limit: 1\n    output: nearest_partner\n\n  - id: step_format_result\n    op: format_output\n    params:\n      input: nearest_partner\n      format: \"json\"\n      template: \"service_partner_details\"\n    output: formatted_partner_details\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_partner_details\n      event: \"geocoding_partner_lookup_completed\"\n    output: audit_result\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: formatted_partner_details\n      recipient: \"installation_registrar\"\n      message: \"Nearest authorized service partner found for installation site.\"\n    output: notify_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_mvp_010.py::test_parses_and_type_checks": false,
+        "test_wf_mvp_010.py::test_passes_taint_analysis": true,
+        "test_wf_mvp_010.py::test_geocodes_address": true,
+        "test_wf_mvp_010.py::test_filters_by_distance": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2095,
+      "output_tokens": 866
+    },
+    {
+      "attempt_number": 5,
+      "llm_sketch": "workflow_id: post_install_geocoding_service_partner_lookup\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"installation_registrar\"\n    output: auth_result\n\n  - id: step_receive_registration\n    op: fetch_api\n    params:\n      endpoint: \"/api/installations/registration\"\n    output: raw_registration\n\n  - id: step_validate_registration\n    op: validate_schema\n    params:\n      input: raw_registration\n      schema: installation_registration_schema\n    output: validated_registration\n\n  - id: step_extract_address\n    op: extract_field\n    params:\n      input: validated_registration\n      field: \"installation_address\"\n    output: installation_address\n\n  - id: step_geocode_address\n    op: call_webhook\n    params:\n      input: installation_address\n      url: \"https://maps.example.com/api/geocode\"\n      method: \"POST\"\n    output: raw_geocode_response\n\n  - id: step_validate_geocode\n    op: validate_schema\n    params:\n      input: raw_geocode_response\n      schema: geocode_response_schema\n    output: validated_geocode_response\n\n  - id: step_extract_coordinates\n    op: extract_field\n    params:\n      input: validated_geocode_response\n      field: \"coordinates\"\n    output: coordinates\n\n  - id: step_read_service_partners\n    op: read_database\n    params:\n      table: \"authorized_service_partners\"\n      filter: \"status = 'active'\"\n    output: raw_service_partners\n\n  - id: step_validate_partners\n    op: validate_schema\n    params:\n      input: raw_service_partners\n      schema: service_partner_schema\n    output: validated_partners\n\n  - id: step_merge_coords_with_partners\n    op: merge_datasets\n    params:\n      input: validated_partners\n      secondary: coordinates\n      key: \"cross_join\"\n    output: partners_with_install_coords\n\n  - id: step_apply_haversine\n    op: apply_rule\n    params:\n      rule: \"haversine_distance\"\n      input_data: partners_with_install_coords\n    output: partners_with_distances\n\n  - id: step_filter_within_threshold\n    op: filter_records\n    params:\n      input: partners_with_distances\n      condition: \"distance_km <= max_distance_threshold\"\n    output: nearby_partners\n\n  - id: step_aggregate_nearest\n    op: aggregate_data\n    params:\n      input: nearby_partners\n      group_by: \"partner_id\"\n      sort: \"distance_km ASC\"\n      limit: 1\n    output: nearest_partner\n\n  - id: step_format_result\n    op: format_output\n    params:\n      input: nearest_partner\n      format: \"json\"\n      template: \"service_partner_details\"\n    output: formatted_partner_details\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_partner_details\n      event: \"geocoding_partner_lookup_completed\"\n    output: audit_result\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: formatted_partner_details\n      recipient: \"installation_registrar\"\n      message: \"Nearest authorized service partner found for installation site.\"\n    output: notify_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_mvp_010.py::test_parses_and_type_checks": false,
+        "test_wf_mvp_010.py::test_passes_taint_analysis": true,
+        "test_wf_mvp_010.py::test_geocodes_address": true,
+        "test_wf_mvp_010.py::test_filters_by_distance": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2093,
+      "output_tokens": 868
+    },
+    {
+      "attempt_number": 6,
+      "llm_sketch": "workflow_id: post_install_geocoding_service_partner_lookup\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"installation_registrar\"\n    output: auth_result\n\n  - id: step_receive_registration\n    op: fetch_api\n    params:\n      endpoint: \"/api/installations/registration\"\n    output: raw_registration\n\n  - id: step_validate_registration\n    op: validate_schema\n    params:\n      input: raw_registration\n      schema: installation_registration_schema\n    output: validated_registration\n\n  - id: step_extract_address\n    op: extract_field\n    params:\n      input: validated_registration\n      field: \"installation_address\"\n    output: installation_address\n\n  - id: step_geocode_address\n    op: call_webhook\n    params:\n      input: installation_address\n      url: \"https://maps.example.com/api/geocode\"\n      method: \"POST\"\n    output: raw_geocode_response\n\n  - id: step_validate_geocode\n    op: validate_schema\n    params:\n      input: raw_geocode_response\n      schema: geocode_response_schema\n    output: validated_geocode_response\n\n  - id: step_extract_coordinates\n    op: extract_field\n    params:\n      input: validated_geocode_response\n      field: \"coordinates\"\n    output: coordinates\n\n  - id: step_read_service_partners\n    op: read_database\n    params:\n      table: \"authorized_service_partners\"\n      filter: \"status = 'active'\"\n    output: raw_service_partners\n\n  - id: step_validate_partners\n    op: validate_schema\n    params:\n      input: raw_service_partners\n      schema: service_partner_schema\n    output: validated_partners\n\n  - id: step_merge_coords_with_partners\n    op: merge_datasets\n    params:\n      input: validated_partners\n      secondary: coordinates\n      key: \"cross_join\"\n    output: partners_with_install_coords\n\n  - id: step_apply_haversine\n    op: apply_rule\n    params:\n      rule: \"haversine_distance\"\n      input: partners_with_install_coords\n    output: partners_with_distances\n\n  - id: step_filter_within_threshold\n    op: filter_records\n    params:\n      input: partners_with_distances\n      condition: \"distance_km <= max_distance_threshold\"\n    output: nearby_partners\n\n  - id: step_aggregate_nearest\n    op: aggregate_data\n    params:\n      input: nearby_partners\n      group_by: \"partner_id\"\n      sort: \"distance_km ASC\"\n      limit: 1\n    output: nearest_partner\n\n  - id: step_format_result\n    op: format_output\n    params:\n      input: nearest_partner\n      format: \"json\"\n      template: \"service_partner_details\"\n    output: formatted_partner_details\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_partner_details\n      event: \"geocoding_partner_lookup_completed\"\n    output: audit_result\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: formatted_partner_details\n      recipient: \"installation_registrar\"\n      message: \"Nearest authorized service partner found for installation site.\"\n    output: notify_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_mvp_010.py::test_parses_and_type_checks": false,
+        "test_wf_mvp_010.py::test_passes_taint_analysis": true,
+        "test_wf_mvp_010.py::test_geocodes_address": true,
+        "test_wf_mvp_010.py::test_filters_by_distance": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2095,
+      "output_tokens": 866
+    },
+    {
+      "attempt_number": 7,
+      "llm_sketch": "workflow_id: post_install_geocoding_service_partner_lookup\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"installation_registrar\"\n    output: auth_result\n\n  - id: step_receive_registration\n    op: fetch_api\n    params:\n      endpoint: \"/api/installations/registration\"\n    output: raw_registration\n\n  - id: step_validate_registration\n    op: validate_schema\n    params:\n      input: raw_registration\n      schema: installation_registration_schema\n    output: validated_registration\n\n  - id: step_extract_address\n    op: extract_field\n    params:\n      input: validated_registration\n      field: \"installation_address\"\n    output: installation_address\n\n  - id: step_geocode_address\n    op: call_webhook\n    params:\n      input: installation_address\n      url: \"https://maps.example.com/api/geocode\"\n      method: \"POST\"\n    output: raw_geocode_response\n\n  - id: step_validate_geocode\n    op: validate_schema\n    params:\n      input: raw_geocode_response\n      schema: geocode_response_schema\n    output: validated_geocode_response\n\n  - id: step_extract_coordinates\n    op: extract_field\n    params:\n      input: validated_geocode_response\n      field: \"coordinates\"\n    output: coordinates\n\n  - id: step_read_service_partners\n    op: read_database\n    params:\n      table: \"authorized_service_partners\"\n      filter: \"status = 'active'\"\n    output: raw_service_partners\n\n  - id: step_validate_partners\n    op: validate_schema\n    params:\n      input: raw_service_partners\n      schema: service_partner_schema\n    output: validated_partners\n\n  - id: step_apply_haversine\n    op: apply_rule\n    params:\n      rule: \"haversine_distance\"\n      coordinates: coordinates\n      partners: validated_partners\n    output: partners_with_distances\n\n  - id: step_filter_within_threshold\n    op: filter_records\n    params:\n      input: partners_with_distances\n      condition: \"distance_km <= max_distance_threshold\"\n    output: nearby_partners\n\n  - id: step_aggregate_nearest\n    op: aggregate_data\n    params:\n      input: nearby_partners\n      group_by: \"partner_id\"\n      sort: \"distance_km ASC\"\n      limit: 1\n    output: nearest_partner\n\n  - id: step_format_result\n    op: format_output\n    params:\n      input: nearest_partner\n      format: \"json\"\n      template: \"service_partner_details\"\n    output: formatted_partner_details\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_partner_details\n      event: \"geocoding_partner_lookup_completed\"\n    output: audit_result\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: formatted_partner_details\n      recipient: \"installation_registrar\"\n      message: \"Nearest authorized service partner found for installation site.\"\n    output: notify_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_mvp_010.py::test_parses_and_type_checks": false,
+        "test_wf_mvp_010.py::test_passes_taint_analysis": true,
+        "test_wf_mvp_010.py::test_geocodes_address": true,
+        "test_wf_mvp_010.py::test_filters_by_distance": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2093,
+      "output_tokens": 810
+    },
+    {
+      "attempt_number": 8,
+      "llm_sketch": "workflow_id: post_install_geocoding_service_partner_lookup\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: installation_registrar\n    output: auth_result\n\n  - id: step_receive_registration\n    op: fetch_api\n    params:\n      endpoint: /api/installations/registration\n    output: raw_registration\n\n  - id: step_validate_registration\n    op: validate_schema\n    params:\n      input: raw_registration\n      schema: installation_registration_schema\n    output: validated_registration\n\n  - id: step_extract_address\n    op: extract_field\n    params:\n      input: validated_registration\n      field: installation_address\n    output: installation_address\n\n  - id: step_geocode_address\n    op: call_webhook\n    params:\n      input: installation_address\n      url: https://maps.example.com/api/geocode\n      method: POST\n    output: raw_geocode_response\n\n  - id: step_validate_geocode\n    op: validate_schema\n    params:\n      input: raw_geocode_response\n      schema: geocode_response_schema\n    output: validated_geocode_response\n\n  - id: step_extract_coordinates\n    op: extract_field\n    params:\n      input: validated_geocode_response\n      field: coordinates\n    output: coordinates\n\n  - id: step_read_service_partners\n    op: read_database\n    params:\n      table: authorized_service_partners\n      filter: status = active\n    output: raw_service_partners\n\n  - id: step_validate_partners\n    op: validate_schema\n    params:\n      input: raw_service_partners\n      schema: service_partner_schema\n    output: validated_partners\n\n  - id: step_apply_haversine\n    op: apply_rule\n    params:\n      rule: haversine_distance\n      input: validated_partners\n      reference_coordinates: coordinates\n      threshold_km: max_distance_threshold\n    output: partners_with_distances\n\n  - id: step_filter_within_threshold\n    op: filter_records\n    params:\n      input: partners_with_distances\n      condition: distance_km <= max_distance_threshold\n    output: nearby_partners\n\n  - id: step_aggregate_nearest\n    op: aggregate_data\n    params:\n      input: nearby_partners\n      group_by: partner_id\n      metric: min(distance_km)\n    output: nearest_partner\n\n  - id: step_format_result\n    op: format_output\n    params:\n      input: nearest_partner\n      format: json\n      template: service_partner_details\n    output: formatted_partner_details\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: completed",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_mvp_010.py::test_parses_and_type_checks": false,
+        "test_wf_mvp_010.py::test_passes_taint_analysis": true,
+        "test_wf_mvp_010.py::test_geocodes_address": true,
+        "test_wf_mvp_010.py::test_filters_by_distance": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1740,
+      "output_tokens": 573
+    },
+    {
+      "attempt_number": 9,
+      "llm_sketch": "workflow_id: post_install_geocoding_service_partner_lookup\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: installation_registrar\n    output: auth_result\n\n  - id: step_receive_registration\n    op: fetch_api\n    params:\n      endpoint: /api/installations/registration\n    output: raw_registration\n\n  - id: step_validate_registration\n    op: validate_schema\n    params:\n      input: raw_registration\n      schema: installation_registration_schema\n    output: validated_registration\n\n  - id: step_extract_address\n    op: extract_field\n    params:\n      input: validated_registration\n      field: installation_address\n    output: installation_address\n\n  - id: step_geocode_address\n    op: call_webhook\n    params:\n      input: installation_address\n      url: https://maps.example.com/api/geocode\n      method: POST\n    output: raw_geocode_response\n\n  - id: step_validate_geocode\n    op: validate_schema\n    params:\n      input: raw_geocode_response\n      schema: geocode_response_schema\n    output: validated_geocode_response\n\n  - id: step_extract_coordinates\n    op: extract_field\n    params:\n      input: validated_geocode_response\n      field: coordinates\n    output: coordinates\n\n  - id: step_read_service_partners\n    op: read_database\n    params:\n      table: authorized_service_partners\n      filter: \"status = 'active'\"\n    output: raw_service_partners\n\n  - id: step_validate_partners\n    op: validate_schema\n    params:\n      input: raw_service_partners\n      schema: service_partner_schema\n    output: validated_partners\n\n  - id: step_apply_haversine\n    op: apply_rule\n    params:\n      rule: haversine_distance\n      partners_input: validated_partners\n      reference_coordinates_input: coordinates\n      threshold_km: 100\n    output: partners_with_distances\n\n  - id: step_filter_within_threshold\n    op: filter_records\n    params:\n      input: partners_with_distances\n      condition: \"distance_km <= 100\"\n    output: nearby_partners\n\n  - id: step_aggregate_nearest\n    op: aggregate_data\n    params:\n      input: nearby_partners\n      group_by: partner_id\n      metric: min_distance_km\n    output: nearest_partner\n\n  - id: step_format_result\n    op: format_output\n    params:\n      input: nearest_partner\n      format: json\n      template: service_partner_details\n    output: formatted_partner_details\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: completed",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_mvp_010.py::test_parses_and_type_checks": false,
+        "test_wf_mvp_010.py::test_passes_taint_analysis": true,
+        "test_wf_mvp_010.py::test_geocodes_address": true,
+        "test_wf_mvp_010.py::test_filters_by_distance": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1635,
+      "output_tokens": 576
+    }
+  ],
+  "complexity": 4,
+  "domain": "manufacturing",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 19156,
+  "total_output_tokens": 8010
+}
