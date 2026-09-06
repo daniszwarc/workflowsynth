@@ -37,10 +37,10 @@ class PureLLMBaseline:
     Tests the raw output directly against the task's pytest suite.
     """
 
-    def __init__(self, dataset_path: str, results_dir: str):
+    def __init__(self, dataset_path: str, results_dir: str, condition: str = "pure_llm_baseline"):
         self.dataset_path = Path(dataset_path)
         self.results_dir = Path(results_dir)
-        self.condition = "pure_llm_baseline"
+        self.condition = condition
         self.index = EvaluationRunner._load_index(self.dataset_path / "index.yaml")
 
         self._out_dir = self.results_dir / self.condition
@@ -61,6 +61,9 @@ class PureLLMBaseline:
         ]
         response = llm.invoke(messages)
         raw_output = response.content.strip()
+        usage = getattr(response, "usage_metadata", {}) or {}
+        input_tokens = usage.get("input_tokens", 0)
+        output_tokens = usage.get("output_tokens", 0)
 
         parse_result = parse_workflow(raw_output)
 
@@ -112,6 +115,8 @@ class PureLLMBaseline:
             complexity=meta.get("complexity", 0),
             domain=meta.get("domain", ""),
             has_security_constraint=meta.get("has_security_constraint", False),
+            total_input_tokens=input_tokens,
+            total_output_tokens=output_tokens,
         )
 
         (self._out_dir / f"{task_id}.json").write_text(json.dumps(asdict(result), indent=2))
@@ -182,10 +187,10 @@ class LangChainAgentBaseline:
     PureLLMBaseline.
     """
 
-    def __init__(self, dataset_path: str, results_dir: str):
+    def __init__(self, dataset_path: str, results_dir: str, condition: str = "langchain_agent_baseline"):
         self.dataset_path = Path(dataset_path)
         self.results_dir = Path(results_dir)
-        self.condition = "langchain_agent_baseline"
+        self.condition = condition
         self.index = EvaluationRunner._load_index(self.dataset_path / "index.yaml")
 
         self._out_dir = self.results_dir / self.condition
