@@ -1,0 +1,59 @@
+workflow_id: wf_ts_003
+# domain: community_sports
+# complexity: 4
+# has_security_constraint: true
+# primitive_count: 8
+# source: Community Sports Club -- apViewRoleHoursRange.cfm, roleHoursExcel.cfm, roleHoursPDF.cfm
+steps:
+  - id: receive_report_request
+    op: fetch_api
+    params:
+      endpoint: "/admin/apViewRoleHoursRange.cfm"
+    output: report_request
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin"
+    output: auth_result
+
+  - id: read_timesheet_records
+    op: read_database
+    params:
+      table: timesheets
+      filter: "date BETWEEN report_request.from AND report_request.to"
+    output: timesheet_records
+
+  - id: filter_by_role_and_status
+    op: filter_records
+    params:
+      input: timesheet_records
+      condition: "role = filter AND pay_status = status_filter"
+    output: filtered_records
+
+  - id: aggregate_by_staff_member
+    op: aggregate_data
+    params:
+      input: filtered_records
+      group_by: userID
+    output: staff_totals
+
+  - id: apply_export_format_rule
+    op: apply_rule
+    params:
+      input: report_request
+      rule: "excel_or_pdf_export"
+    output: export_decision
+
+  - id: generate_export_file
+    op: format_output
+    params:
+      input: staff_totals
+      format: "payroll_report_excel_or_pdf"
+    output: report_file
+
+  - id: log_report_generation
+    op: log_audit
+    params:
+      input: report_request
+      action: "payroll_report_generated" 

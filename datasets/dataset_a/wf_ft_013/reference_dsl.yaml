@@ -1,0 +1,26 @@
+workflow_id: wf_ft_013
+# domain: health_fitness
+# complexity: 1
+# has_security_constraint: false
+# primitive_count: 3
+# source: Mobile Fitness App -- hydration tracking, daily water target
+steps:
+  - id: receive_water_entry
+    op: fetch_api
+    params:
+      endpoint: "/api/hydration"
+    output: water_entry
+
+  - id: validate_amount
+    op: validate_schema
+    params:
+      input: water_entry
+      schema: hydration_entry_schema
+    output: validated_entry
+
+  - id: store_hydration_entry
+    op: write_database
+    params:
+      input: validated_entry
+      table: hydration_log
+    output: hydration_record

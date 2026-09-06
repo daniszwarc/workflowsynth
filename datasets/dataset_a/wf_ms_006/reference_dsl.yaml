@@ -1,0 +1,42 @@
+workflow_id: wf_ms_006
+# domain: clinical_ai
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: Clinical Analysis Research Tool -- analysis_engine.py convergence check
+steps:
+  - id: read_iteration_findings
+    op: read_database
+    params:
+      table: analysis_iterations
+      filter: "case_id = current_case ORDER BY iteration DESC LIMIT 2"
+    output: iteration_findings
+
+  - id: apply_convergence_rule
+    op: apply_rule
+    params:
+      input: iteration_findings
+      rule: "convergence_threshold_or_max_iterations"
+    output: convergence_decision
+
+  - id: route_by_convergence
+    op: route_to_step
+    params:
+      input: convergence_decision
+      condition: "converged = true"
+      converged: "encrypt_findings"
+      not_converged: "continue_loop"
+
+  - id: encrypt_findings
+    op: encrypt_field
+    params:
+      input: iteration_findings
+      field: "findings_content"
+    output: encrypted_findings
+
+  - id: update_wiki_with_findings
+    op: write_database
+    params:
+      input: encrypted_findings
+      table: wiki_pages
+    output: updated_wiki

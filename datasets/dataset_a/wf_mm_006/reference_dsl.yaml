@@ -1,0 +1,38 @@
+workflow_id: wf_mm_006
+# domain: clinical_ai
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: Medical Data Pipeline -- pipeline/uploader.py (git commit per doc, push every 10)
+steps:
+  - id: receive_verified_document
+    op: fetch_api
+    params:
+      endpoint: "local://verified_document"
+    output: verified_doc
+
+  - id: authenticate_git
+    op: authenticate_user
+    params:
+      role: "pipeline_git_service_account"
+    output: auth_result
+
+  - id: write_markdown_file
+    op: write_database
+    params:
+      input: verified_doc
+      table: raw_documents
+    output: markdown_file
+
+  - id: write_metadata_file
+    op: write_database
+    params:
+      input: verified_doc
+      table: document_metadata_files
+    output: metadata_file
+
+  - id: commit_document
+    op: log_audit
+    params:
+      input: markdown_file
+      action: "git_commit_document" 

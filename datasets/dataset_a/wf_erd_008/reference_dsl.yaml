@@ -1,0 +1,52 @@
+workflow_id: wf_erd_008
+# domain: healthcare_billing
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 7
+# source: Rehabilitation Billing Client -- sendAllInvoices.cfm, EN/FR PDF templates, batch email
+steps:
+  - id: receive_batch_request
+    op: fetch_api
+    params:
+      endpoint: "/invoices/send-all"
+    output: batch_request
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin"
+    output: auth_result
+
+  - id: read_email_eligible_invoices
+    op: read_database
+    params:
+      table: invoice
+      filter: "month = batch_request.month AND byEmail = true"
+    output: eligible_invoices
+
+  - id: format_invoice_pdf
+    op: format_output
+    params:
+      input: eligible_invoices
+      format: "invoice_pdf_en_fr"
+    output: invoice_pdfs
+
+  - id: encrypt_pdf
+    op: encrypt_field
+    params:
+      input: invoice_pdfs
+      field: "pdf_content"
+    output: encrypted_pdfs
+
+  - id: send_invoice_emails
+    op: notify_user
+    params:
+      input: encrypted_pdfs
+      recipient: "patient_email"
+      message: "Monthly invoice"
+
+  - id: log_email_sends
+    op: log_audit
+    params:
+      input: encrypted_pdfs
+      action: "invoice_batch_emailed" 

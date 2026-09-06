@@ -1,0 +1,38 @@
+workflow_id: wf_aw_010
+# domain: enterprise_knowledge
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: Enterprise Knowledge Base -- /api/admin/users, Admin role, 5-role RBAC
+steps:
+  - id: receive_user_mgmt_request
+    op: fetch_api
+    params:
+      endpoint: "/api/admin/users"
+    output: user_request
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin_or_developer"
+    output: auth_result
+
+  - id: validate_user_details
+    op: validate_schema
+    params:
+      input: user_request
+      schema: user_management_schema
+    output: validated_user
+
+  - id: apply_user_operation
+    op: write_database
+    params:
+      input: validated_user
+      table: users
+    output: updated_user
+
+  - id: log_user_management
+    op: log_audit
+    params:
+      input: updated_user
+      action: "user_management_action" 

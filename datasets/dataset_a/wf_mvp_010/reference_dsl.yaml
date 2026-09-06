@@ -1,0 +1,54 @@
+workflow_id: wf_mvp_010
+# domain: manufacturing
+# complexity: 4
+# has_security_constraint: false
+# primitive_count: 7
+# source: Commercial Kitchen Equipment Manufacturer -- addPostInstall.cfm, geocoder (haversine distance)
+steps:
+  - id: receive_install_form
+    op: fetch_api
+    params:
+      endpoint: "/mvp/addPostInstall.cfm"
+    output: install_form
+
+  - id: geocode_address
+    op: call_webhook
+    params:
+      input: install_form
+      url: "https://maps.googleapis.com/maps/api/geocode/json"
+    output: geocode_response
+
+  - id: parse_coordinates
+    op: transform_json
+    params:
+      input: geocode_response
+      transformation: "extract_lat_lng"
+    output: coordinates
+
+  - id: read_service_partners
+    op: read_database
+    params:
+      table: service_partners
+      filter: "active = true"
+    output: service_partners
+
+  - id: apply_haversine_rule
+    op: apply_rule
+    params:
+      input: coordinates
+      rule: "haversine_distance_to_partners"
+    output: distances
+
+  - id: filter_within_threshold
+    op: filter_records
+    params:
+      input: distances
+      condition: "distance <= max_threshold_km"
+    output: nearby_partners
+
+  - id: format_partner_result
+    op: format_output
+    params:
+      input: nearby_partners
+      format: "nearest_service_partner"
+    output: partner_result

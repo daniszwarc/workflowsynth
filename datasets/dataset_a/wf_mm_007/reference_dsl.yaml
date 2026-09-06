@@ -1,0 +1,61 @@
+workflow_id: wf_mm_007
+# domain: clinical_ai
+# complexity: 4
+# has_security_constraint: true
+# primitive_count: 8
+# source: Medical Data Pipeline -- pipeline/wiki_compiler.py (Claude API, thematic synthesis)
+steps:
+  - id: read_raw_documents
+    op: read_database
+    params:
+      table: raw_documents
+      filter: "status = complete"
+    output: all_documents
+
+  - id: filter_by_theme
+    op: filter_records
+    params:
+      input: all_documents
+      condition: "document_type matches wiki_theme"
+    output: relevant_documents
+
+  - id: chunk_documents
+    op: transform_json
+    params:
+      input: relevant_documents
+      transformation: "chunk_for_llm_context"
+    output: document_chunks
+
+  - id: synthesize_per_chunk
+    op: call_webhook
+    params:
+      input: document_chunks
+      url: "https://api.anthropic.com/v1/messages"
+    output: chunk_syntheses
+
+  - id: aggregate_syntheses
+    op: aggregate_data
+    params:
+      input: chunk_syntheses
+      group_by: wiki_page
+    output: aggregated_wiki
+
+  - id: validate_citations
+    op: validate_schema
+    params:
+      input: aggregated_wiki
+      schema: wiki_citation_schema
+    output: validated_wiki
+
+  - id: write_wiki_page
+    op: write_database
+    params:
+      input: validated_wiki
+      table: wiki_pages
+    output: wiki_file
+
+  - id: log_compilation
+    op: log_audit
+    params:
+      input: wiki_file
+      action: "wiki_page_compiled" 

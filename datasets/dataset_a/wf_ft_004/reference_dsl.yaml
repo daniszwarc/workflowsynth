@@ -1,0 +1,40 @@
+workflow_id: wf_ft_004
+# domain: health_fitness
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 5
+# source: Mobile Fitness App -- Gym screen, exercise session logging
+steps:
+  - id: receive_workout_session
+    op: fetch_api
+    params:
+      endpoint: "/api/workout-log"
+    output: workout_session
+
+  - id: validate_session
+    op: validate_schema
+    params:
+      input: workout_session
+      schema: workout_session_schema
+    output: validated_session
+
+  - id: lookup_training_plan
+    op: read_database
+    params:
+      table: training_plans
+      filter: "user_id = workout_session.user_id AND status = active"
+    output: training_plan
+
+  - id: store_workout_session
+    op: write_database
+    params:
+      input: validated_session
+      table: workout_log
+    output: session_record
+
+  - id: update_plan_progress
+    op: write_database
+    params:
+      input: session_record
+      table: training_plans
+    output: updated_plan

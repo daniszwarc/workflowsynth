@@ -1,0 +1,40 @@
+workflow_id: wf_lf_001
+# domain: personal_tool
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 5
+# source: French TTS PWA -- pdf.js v3.11.174, client-side, heading detection by font-size ratio
+steps:
+  - id: receive_pdf_file
+    op: fetch_api
+    params:
+      endpoint: "browser://file_input"
+    output: pdf_binary
+
+  - id: extract_pages
+    op: loop_records
+    params:
+      input: pdf_binary
+      batch_size: 1
+    output: pdf_pages
+
+  - id: extract_text_items
+    op: transform_json
+    params:
+      input: pdf_pages
+      transformation: "pdfjs_extract_text_with_font_size"
+    output: text_items
+
+  - id: compute_median_font_size
+    op: aggregate_data
+    params:
+      input: text_items
+      group_by: font_size
+    output: font_size_stats
+
+  - id: apply_heading_detection_rule
+    op: apply_rule
+    params:
+      input: text_items
+      rule: "font_size_ratio_heading_detection"
+    output: structured_sections

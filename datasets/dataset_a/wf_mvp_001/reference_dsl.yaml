@@ -1,0 +1,38 @@
+workflow_id: wf_mvp_001
+# domain: manufacturing
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: Commercial Kitchen Equipment Manufacturer -- Application.cfm, loginform.cfm, login_process.cfm
+steps:
+  - id: intercept_request
+    op: fetch_api
+    params:
+      endpoint: "/mvp/any_request"
+    output: incoming_request
+
+  - id: check_session
+    op: apply_rule
+    params:
+      input: incoming_request
+      rule: "session_authenticated_check"
+    output: session_status
+
+  - id: receive_login_form
+    op: fetch_api
+    params:
+      endpoint: "/mvp/login_process.cfm"
+    output: login_credentials
+
+  - id: lookup_user
+    op: read_database
+    params:
+      table: logininfo
+      filter: "username = credentials.username"
+    output: user_record
+
+  - id: establish_session
+    op: authenticate_user
+    params:
+      role: "admin_or_readonly_or_manage_admin"
+    output: session

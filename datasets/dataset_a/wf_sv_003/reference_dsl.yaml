@@ -1,0 +1,41 @@
+workflow_id: wf_sv_003
+# domain: community_sports
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 5
+# source: Community Soccer Club (Montreal) -- Email workflow (Gmail trigger -> thread history -> AI classification)
+steps:
+  - id: poll_inbox
+    op: fetch_api
+    params:
+      endpoint: "gmail://inbox"
+      filter: "unread"
+    output: new_email
+
+  - id: extract_email_fields
+    op: extract_field
+    params:
+      input: new_email
+      field: "body,threadId,from"
+    output: email_fields
+
+  - id: fetch_thread_history
+    op: fetch_api
+    params:
+      input: email_fields
+      endpoint: "gmail://thread"
+    output: thread_messages
+
+  - id: build_thread_history
+    op: transform_json
+    params:
+      input: thread_messages
+      transformation: "label_messages_by_sender_domain"
+    output: thread_history
+
+  - id: classify_email
+    op: call_webhook
+    params:
+      input: thread_history
+      url: "https://api.openai.com/v1/chat/completions"
+    output: classification_result

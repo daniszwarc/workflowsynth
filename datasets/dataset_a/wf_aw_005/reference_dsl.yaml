@@ -1,0 +1,46 @@
+workflow_id: wf_aw_005
+# domain: enterprise_knowledge
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: Enterprise Knowledge Base -- pipeline, seds table, structured field extraction from DOCX
+steps:
+  - id: receive_sed_document
+    op: fetch_api
+    params:
+      endpoint: "http://pipeline:8000/process/sed"
+    output: sed_document
+
+  - id: authenticate_pipeline_service
+    op: authenticate_user
+    params:
+      role: "pipeline_service"
+    output: auth_result
+
+  - id: extract_sed_fields
+    op: transform_json
+    params:
+      input: sed_document
+      transformation: "extract_sed_structured_fields"
+    output: sed_fields
+
+  - id: validate_sed_fields
+    op: validate_schema
+    params:
+      input: sed_fields
+      schema: sed_required_fields_schema
+    output: validated_sed
+
+  - id: store_sed_record
+    op: write_database
+    params:
+      input: validated_sed
+      table: seds
+    output: stored_sed
+
+  - id: generate_sed_embeddings
+    op: call_webhook
+    params:
+      input: stored_sed
+      url: "https://llm-api.example.com/v1/embeddings"
+    output: sed_embeddings

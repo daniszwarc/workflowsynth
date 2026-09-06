@@ -1,0 +1,59 @@
+workflow_id: wf_cpl_008
+# domain: sports_media
+# complexity: 4
+# has_security_constraint: true
+# primitive_count: 8
+# source: Sports Media Admin System -- addRequest.cfm/apAddRequest.cfm, apRequestStatus.cfm (2 email notifications)
+steps:
+  - id: receive_request_form
+    op: fetch_api
+    params:
+      endpoint: "/admin/apAddRequest.cfm"
+    output: request_form
+
+  - id: validate_request
+    op: validate_schema
+    params:
+      input: request_form
+      schema: request_submission_schema
+    output: validated_request
+
+  - id: insert_request_pending
+    op: write_database
+    params:
+      input: validated_request
+      table: requests
+    output: request_record
+
+  - id: notify_admin_new_request
+    op: notify_user
+    params:
+      input: request_record
+      recipient: "admin_email"
+      message: "New request submitted"
+
+  - id: receive_status_update
+    op: fetch_api
+    params:
+      endpoint: "/admin/apRequestStatus.cfm"
+    output: status_update
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin"
+    output: auth_result
+
+  - id: update_request_status
+    op: write_database
+    params:
+      input: status_update
+      table: requests
+    output: updated_request
+
+  - id: notify_requester_status_change
+    op: notify_user
+    params:
+      input: updated_request
+      recipient: "requester_email"
+      message: "Your request has been updated" 

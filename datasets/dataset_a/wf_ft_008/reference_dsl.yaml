@@ -1,0 +1,26 @@
+workflow_id: wf_ft_008
+# domain: health_fitness
+# complexity: 1
+# has_security_constraint: false
+# primitive_count: 3
+# source: Mobile Fitness App -- body weight tracking, trend analysis
+steps:
+  - id: receive_measurement
+    op: fetch_api
+    params:
+      endpoint: "/api/measurements"
+    output: measurement
+
+  - id: validate_measurement
+    op: validate_schema
+    params:
+      input: measurement
+      schema: weight_measurement_schema
+    output: validated_measurement
+
+  - id: store_measurement
+    op: write_database
+    params:
+      input: validated_measurement
+      table: measurements
+    output: measurement_record

@@ -1,0 +1,39 @@
+workflow_id: wf_ts_002
+# domain: community_sports
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 5
+# source: Community Sports Club -- apEditHours.cfm (same overlap logic, UPDATE existing record)
+steps:
+  - id: receive_edit_form
+    op: fetch_api
+    params:
+      endpoint: "/admin/apEditHours.cfm"
+    output: edit_form
+
+  - id: authenticate_user
+    op: authenticate_user
+    params:
+      role: "any_authenticated_staff"
+    output: auth_result
+
+  - id: read_existing_record
+    op: read_database
+    params:
+      table: timesheets
+      filter: "id = edit_form.record_id"
+    output: existing_record
+
+  - id: check_overlap_excluding_self
+    op: apply_rule
+    params:
+      input: edit_form
+      rule: "no_duplicate_entry_excluding_self"
+    output: overlap_result
+
+  - id: update_timesheet_record
+    op: write_database
+    params:
+      input: edit_form
+      table: timesheets
+    output: updated_record

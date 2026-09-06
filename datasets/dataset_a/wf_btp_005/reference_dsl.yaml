@@ -1,0 +1,32 @@
+workflow_id: wf_btp_005
+# domain: clinical_ai
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 4
+# source: Clinical AI Platform -- GET /trends/{param}, time series for dashboard sparklines
+steps:
+  - id: receive_trend_request
+    op: fetch_api
+    params:
+      endpoint: "/trends/{param}"
+    output: trend_request
+
+  - id: authenticate_user
+    op: authenticate_user
+    params:
+      role: "admin_or_patient"
+    output: auth_result
+
+  - id: read_lab_history
+    op: read_database
+    params:
+      table: lab_results
+      filter: "parameter = trend_request.param AND source != .en.md"
+    output: lab_history
+
+  - id: format_time_series
+    op: format_output
+    params:
+      input: lab_history
+      format: "time_series_chart_data"
+    output: time_series

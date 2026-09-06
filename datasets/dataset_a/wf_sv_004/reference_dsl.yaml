@@ -1,0 +1,62 @@
+workflow_id: wf_sv_004
+# domain: community_sports
+# complexity: 4
+# has_security_constraint: false
+# primitive_count: 8
+# source: Community Soccer Club (Montreal) -- Email workflow (AI agent + 3 Vector Store tools + createDraft)
+steps:
+  - id: receive_email_context
+    op: fetch_api
+    params:
+      endpoint: "/email/classified"
+    output: email_context
+
+  - id: search_support_docs
+    op: call_webhook
+    params:
+      input: email_context
+      url: "vector_store://customerSupportDocs"
+    output: support_docs_results
+
+  - id: search_club_documents
+    op: call_webhook
+    params:
+      input: email_context
+      url: "vector_store://clubDocuments"
+    output: club_docs_results
+
+  - id: search_email_history
+    op: call_webhook
+    params:
+      input: email_context
+      url: "vector_store://emailHistory"
+    output: email_history_results
+
+  - id: merge_knowledge_results
+    op: merge_datasets
+    params:
+      input: support_docs_results
+      secondary: club_docs_results
+      join_key: query
+    output: merged_knowledge
+
+  - id: detect_language_and_season
+    op: apply_rule
+    params:
+      input: email_context
+      rule: "detect_language_and_apply_season_mapping"
+    output: language_season_context
+
+  - id: generate_draft_response
+    op: call_webhook
+    params:
+      input: merged_knowledge
+      url: "https://api.openai.com/v1/chat/completions"
+    output: draft_response
+
+  - id: create_gmail_draft
+    op: call_webhook
+    params:
+      input: draft_response
+      url: "gmail://drafts/create"
+    output: created_draft

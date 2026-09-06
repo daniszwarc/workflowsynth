@@ -1,0 +1,46 @@
+workflow_id: wf_btp_007
+# domain: clinical_ai
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: Clinical AI Platform -- GET /liquid-biopsy, molecular matrix, 24h cache
+steps:
+  - id: receive_request
+    op: fetch_api
+    params:
+      endpoint: "/liquid-biopsy"
+    output: biopsy_request
+
+  - id: authenticate_user
+    op: authenticate_user
+    params:
+      role: "admin_or_patient"
+    output: auth_result
+
+  - id: check_cache
+    op: read_database
+    params:
+      table: liquid_biopsy_cache
+      filter: "age < 24h AND force_refresh = false"
+    output: cache_result
+
+  - id: read_biopsy_documents
+    op: read_database
+    params:
+      table: raw_documents
+      filter: "document_type = Prueba AND subtype = liquid_biopsy"
+    output: biopsy_documents
+
+  - id: extract_molecular_matrix
+    op: call_webhook
+    params:
+      input: biopsy_documents
+      url: "https://llm-api.example.com/v1/chat/completions"
+    output: molecular_matrix
+
+  - id: format_matrix_output
+    op: format_output
+    params:
+      input: molecular_matrix
+      format: "molecular_matrix_dashboard"
+    output: formatted_matrix

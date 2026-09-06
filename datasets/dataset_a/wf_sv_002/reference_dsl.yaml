@@ -1,0 +1,40 @@
+workflow_id: wf_sv_002
+# domain: community_sports
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 5
+# source: Community Soccer Club (Montreal) -- Sent Mail Ingestion workflow (Gmail SENT -> Vector Store)
+steps:
+  - id: fetch_sent_emails
+    op: fetch_api
+    params:
+      endpoint: "gmail://SENT"
+      filter: "after:30_days_ago before:14_days_ago"
+    output: sent_emails
+
+  - id: filter_valid_emails
+    op: filter_records
+    params:
+      input: sent_emails
+      condition: "body.length >= 20"
+    output: valid_emails
+
+  - id: chunk_emails
+    op: transform_json
+    params:
+      input: valid_emails
+      transformation: "chunk_500_overlap_50"
+    output: email_chunks
+
+  - id: embed_chunks
+    op: call_webhook
+    params:
+      input: email_chunks
+      url: "https://api.openai.com/v1/embeddings"
+    output: embedded_chunks
+
+  - id: index_to_vector_store
+    op: send_to_queue
+    params:
+      input: embedded_chunks
+      queue: "vector_store_email_history" 

@@ -1,0 +1,49 @@
+workflow_id: wf_pb_012
+# domain: insurance_brokerage
+# complexity: 3
+# has_security_constraint: false
+# primitive_count: 6
+# source: Insurance Brokerage Client -- processed_emails dedup by message_id
+steps:
+  - id: extract_message_id
+    op: extract_field
+    params:
+      input: normalised_email
+      field: "message_id"
+    output: message_id
+
+  - id: lookup_dedup_registry
+    op: read_database
+    params:
+      table: processed_emails
+      filter: "message_id = message_id"
+    output: dedup_result
+
+  - id: apply_dedup_rule
+    op: apply_rule
+    params:
+      input: dedup_result
+      rule: "is_new_message_id"
+    output: is_new
+
+  - id: route_by_dedup
+    op: route_to_step
+    params:
+      input: is_new
+      condition: "is_new = false"
+      duplicate: "terminate_workflow"
+      new: "register_message_id"
+
+  - id: register_message_id
+    op: write_database
+    params:
+      input: message_id
+      table: processed_emails
+    output: dedup_record
+
+  - id: return_new_email
+    op: format_output
+    params:
+      input: normalised_email
+      format: "confirmed_new_email"
+    output: confirmed_email

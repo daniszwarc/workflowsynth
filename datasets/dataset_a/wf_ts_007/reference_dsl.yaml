@@ -1,0 +1,39 @@
+workflow_id: wf_ts_007
+# domain: community_sports
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 5
+# source: Community Sports Club -- addRequest.cfm/apRequestStatus.cfm (status toggle, email notification)
+steps:
+  - id: receive_request_action
+    op: fetch_api
+    params:
+      endpoint: "/admin/apRequestStatus.cfm"
+    output: request_action
+
+  - id: authenticate_user
+    op: authenticate_user
+    params:
+      role: "staff_or_admin"
+    output: auth_result
+
+  - id: read_request_record
+    op: read_database
+    params:
+      table: requests
+      filter: "id = request_action.request_id"
+    output: request_record
+
+  - id: update_request_status
+    op: write_database
+    params:
+      input: request_action
+      table: requests
+    output: updated_request
+
+  - id: notify_requester
+    op: notify_user
+    params:
+      input: updated_request
+      recipient: "requester_email"
+      message: "Request status update" 

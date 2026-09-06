@@ -1,0 +1,66 @@
+workflow_id: wf_cpl_004
+# domain: sports_media
+# complexity: 4
+# has_security_constraint: true
+# primitive_count: 9
+# source: Sports Media Admin System -- liveGame.cfm/apLiveGame.cfm (goals, cards, VAR, auto-standings)
+steps:
+  - id: receive_live_event
+    op: fetch_api
+    params:
+      endpoint: "/admin/apLiveGame.cfm"
+    output: live_event
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin"
+    output: auth_result
+
+  - id: read_game_record
+    op: read_database
+    params:
+      table: games
+      filter: "id = live_event.game_id AND status = live"
+    output: game_record
+
+  - id: validate_event_type
+    op: validate_schema
+    params:
+      input: live_event
+      schema: game_event_schema
+    output: validated_event
+
+  - id: insert_game_event
+    op: write_database
+    params:
+      input: validated_event
+      table: game_events
+    output: event_record
+
+  - id: update_game_score
+    op: write_database
+    params:
+      input: validated_event
+      table: games
+    output: updated_score
+
+  - id: apply_game_end_rule
+    op: apply_rule
+    params:
+      input: validated_event
+      rule: "game_finished_status_update"
+    output: game_status
+
+  - id: trigger_standings_update
+    op: call_subworkflow
+    params:
+      workflow_id: "wf_cpl_005"
+      input: game_record
+    output: updated_standings
+
+  - id: log_event
+    op: log_audit
+    params:
+      input: event_record
+      action: "live_game_event_recorded" 

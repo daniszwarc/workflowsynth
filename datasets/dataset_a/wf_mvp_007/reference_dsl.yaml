@@ -1,0 +1,60 @@
+workflow_id: wf_mvp_007
+# domain: manufacturing
+# complexity: 4
+# has_security_constraint: true
+# primitive_count: 8
+# source: Commercial Kitchen Equipment Manufacturer -- apApproveInvoice.cfm (dual-datasource, PDF upload)
+steps:
+  - id: receive_approval_request
+    op: fetch_api
+    params:
+      endpoint: "/mvp/apApproveInvoice.cfm"
+    output: approval_request
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin"
+    output: auth_result
+
+  - id: validate_payment
+    op: validate_schema
+    params:
+      input: approval_request
+      schema: invoice_approval_schema
+    output: validated_payment
+
+  - id: write_legacy_payment
+    op: write_database
+    params:
+      input: validated_payment
+      table: work_order_payments
+    output: legacy_payment
+
+  - id: write_new_service_payment
+    op: write_database
+    params:
+      input: validated_payment
+      table: wo_payments
+    output: new_payment
+
+  - id: validate_pdf_upload
+    op: validate_schema
+    params:
+      input: approval_request
+      schema: pdf_file_schema
+    output: validated_pdf
+
+  - id: store_invoice_pdf
+    op: write_database
+    params:
+      input: validated_pdf
+      table: order_invoice
+    output: stored_pdf
+
+  - id: update_history_status
+    op: write_database
+    params:
+      input: validated_payment
+      table: history
+    output: updated_history

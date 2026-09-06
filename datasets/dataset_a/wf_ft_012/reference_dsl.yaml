@@ -1,0 +1,41 @@
+workflow_id: wf_ft_012
+# domain: health_fitness
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 5
+# source: Mobile Fitness App -- streak calculation, achievement badges
+steps:
+  - id: read_last_activity
+    op: read_database
+    params:
+      table: activity_log
+      filter: "user_id = user.id ORDER BY date DESC LIMIT 1"
+    output: last_activity
+
+  - id: apply_streak_rule
+    op: apply_rule
+    params:
+      input: last_activity
+      rule: "streak_continuation_or_reset"
+    output: streak_result
+
+  - id: check_achievement_thresholds
+    op: apply_rule
+    params:
+      input: streak_result
+      rule: "achievement_threshold_check"
+    output: achievements
+
+  - id: update_streak
+    op: write_database
+    params:
+      input: streak_result
+      table: user_stats
+    output: updated_streak
+
+  - id: award_achievements
+    op: write_database
+    params:
+      input: achievements
+      table: user_achievements
+    output: awarded_achievements

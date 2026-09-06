@@ -1,0 +1,90 @@
+workflow_id: wf_pb_003
+# domain: insurance_brokerage
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 12
+# source: Insurance Brokerage Client -- email ingestion workflow (IMAP, dedup, classify)
+steps:
+  - id: read_email
+    op: read_database
+    params:
+      table: imap_inbox
+      filter: "status = UNSEEN"
+    output: raw_email
+
+  - id: normalise_email
+    op: transform_json
+    params:
+      input: raw_email
+      transformation: "normalise_email_fields"
+    output: normalised_email
+
+  - id: mask_sensitive_data
+    op: transform_json
+    params:
+      input: normalised_email
+      transformation: "mask_pii_financial"
+    output: sanitised_email
+
+  - id: check_duplicate
+    op: read_database
+    params:
+      table: processed_emails
+      filter: "message_id = sanitised_email.message_id"
+    output: dedup_check
+
+  - id: apply_dedup_rule
+    op: apply_rule
+    params:
+      input: dedup_check
+      rule: "is_new_message"
+    output: is_new
+
+  - id: register_message_id
+    op: write_database
+    params:
+      input: sanitised_email
+      table: processed_emails
+    output: dedup_record
+
+  - id: classify_email
+    op: call_webhook
+    params:
+      input: sanitised_email
+      url: "https://llm-api.example.com/v1/chat/completions"
+    output: classification_result
+
+  - id: check_is_work_request
+    op: apply_rule
+    params:
+      input: classification_result
+      rule: "es_laboral_check"
+    output: is_work_request
+
+  - id: get_producer
+    op: read_database
+    params:
+      table: producers
+      filter: "email = sanitised_email.to_email"
+    output: producer
+
+  - id: upsert_client
+    op: write_database
+    params:
+      input: classification_result
+      table: clients
+    output: client
+
+  - id: create_ticket
+    op: write_database
+    params:
+      input: classification_result
+      table: tickets
+    output: ticket
+
+  - id: log_message
+    op: write_database
+    params:
+      input: sanitised_email
+      table: messages
+    output: message_log

@@ -1,0 +1,39 @@
+workflow_id: wf_mvp_011
+# domain: manufacturing
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 5
+# source: Commercial Kitchen Equipment Manufacturer -- excelRepairByAccpac.cfm, apRecallExcel.cfm
+steps:
+  - id: receive_report_request
+    op: fetch_api
+    params:
+      endpoint: "/mvp/excelRepairByAccpac.cfm"
+    output: report_request
+
+  - id: authenticate_user
+    op: authenticate_user
+    params:
+      role: "admin_or_office"
+    output: auth_result
+
+  - id: read_repair_data
+    op: read_database
+    params:
+      table: history
+      filter: "date BETWEEN report_request.from AND report_request.to"
+    output: repair_records
+
+  - id: filter_by_criteria
+    op: filter_records
+    params:
+      input: repair_records
+      condition: "matches report_request filters"
+    output: filtered_records
+
+  - id: format_excel_report
+    op: format_output
+    params:
+      input: filtered_records
+      format: "excel_repair_report"
+    output: excel_file

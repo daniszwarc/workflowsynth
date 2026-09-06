@@ -1,0 +1,34 @@
+workflow_id: wf_pb_004
+# domain: insurance_brokerage
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 4
+# source: Insurance Brokerage Client -- daily summary (schedule trigger, per-producer email)
+steps:
+  - id: read_open_tickets
+    op: read_database
+    params:
+      table: tickets
+      filter: "status != cerrado AND visible = true"
+    output: open_tickets
+
+  - id: aggregate_by_producer
+    op: aggregate_data
+    params:
+      input: open_tickets
+      group_by: assigned_to
+    output: tickets_by_producer
+
+  - id: format_summary
+    op: format_output
+    params:
+      input: tickets_by_producer
+      format: "daily_summary_plain_text"
+    output: summary_emails
+
+  - id: send_emails
+    op: notify_user
+    params:
+      input: summary_emails
+      recipient: "producer_email"
+      message: "Daily ticket summary" 

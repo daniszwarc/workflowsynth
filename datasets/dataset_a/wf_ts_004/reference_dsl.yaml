@@ -1,0 +1,25 @@
+workflow_id: wf_ts_004
+# domain: community_sports
+# complexity: 1
+# has_security_constraint: true
+# primitive_count: 3
+# source: Community Sports Club -- setTimesheetDate.cfm (UPDATE timesheet_dates, admin only)
+steps:
+  - id: receive_date_config
+    op: fetch_api
+    params:
+      endpoint: "/admin/setTimesheetDate.cfm"
+    output: date_config
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin"
+    output: auth_result
+
+  - id: update_date_range
+    op: write_database
+    params:
+      input: date_config
+      table: timesheet_dates
+    output: updated_range

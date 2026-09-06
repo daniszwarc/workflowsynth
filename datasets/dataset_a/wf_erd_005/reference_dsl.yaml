@@ -1,0 +1,52 @@
+workflow_id: wf_erd_005
+# domain: healthcare_billing
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 7
+# source: Rehabilitation Billing Client -- submitTimeSheet.cfm (status 1->2), approveTimeSheet.cfm (2->3)
+steps:
+  - id: receive_action
+    op: fetch_api
+    params:
+      endpoint: "/timesheets/action"
+    output: action_request
+
+  - id: authenticate_user
+    op: authenticate_user
+    params:
+      role: "worker_or_office_or_admin"
+    output: auth_result
+
+  - id: read_timesheet
+    op: read_database
+    params:
+      table: TimeSheet
+      filter: "id = action_request.timesheet_id"
+    output: timesheet_record
+
+  - id: apply_transition_rule
+    op: apply_rule
+    params:
+      input: timesheet_record
+      rule: "valid_status_transition"
+    output: transition_allowed
+
+  - id: update_timesheet_status
+    op: write_database
+    params:
+      input: transition_allowed
+      table: TimeSheet
+    output: updated_timesheet
+
+  - id: write_audit_note
+    op: write_database
+    params:
+      input: updated_timesheet
+      table: timeSheetNotes
+    output: audit_note
+
+  - id: log_transition
+    op: log_audit
+    params:
+      input: updated_timesheet
+      action: "timesheet_status_changed" 

@@ -1,0 +1,46 @@
+workflow_id: wf_cpl_003
+# domain: sports_media
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: Sports Media Admin System -- addGame.cfm/apAddGame.cfm (schedule, teams, venue, date)
+steps:
+  - id: receive_game_form
+    op: fetch_api
+    params:
+      endpoint: "/admin/apAddGame.cfm"
+    output: game_form
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin"
+    output: auth_result
+
+  - id: validate_teams_in_league
+    op: validate_schema
+    params:
+      input: game_form
+      schema: game_teams_league_schema
+    output: validated_game
+
+  - id: check_scheduling_conflict
+    op: read_database
+    params:
+      table: games
+      filter: "team_id IN (home, away) AND date = game_form.date"
+    output: conflict_check
+
+  - id: apply_conflict_rule
+    op: apply_rule
+    params:
+      input: conflict_check
+      rule: "no_double_booking_per_team"
+    output: conflict_result
+
+  - id: insert_game_record
+    op: write_database
+    params:
+      input: validated_game
+      table: games
+    output: game_record

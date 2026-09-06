@@ -1,0 +1,46 @@
+workflow_id: wf_aw_006
+# domain: enterprise_knowledge
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: Enterprise Knowledge Base -- /api/search, vector + full-text RRF fusion
+steps:
+  - id: receive_search_query
+    op: fetch_api
+    params:
+      endpoint: "/api/search"
+    output: search_query
+
+  - id: authenticate_user
+    op: authenticate_user
+    params:
+      role: "any_authenticated"
+    output: auth_result
+
+  - id: embed_query
+    op: call_webhook
+    params:
+      input: search_query
+      url: "https://llm-api.example.com/v1/embeddings"
+    output: query_embedding
+
+  - id: vector_search
+    op: read_database
+    params:
+      table: embeddings
+      filter: "cosine_similarity > threshold"
+    output: vector_results
+
+  - id: full_text_search
+    op: read_database
+    params:
+      table: rules
+      filter: "full_text_match = search_query.text"
+    output: fts_results
+
+  - id: apply_rrf_fusion
+    op: apply_rule
+    params:
+      input: vector_results
+      rule: "reciprocal_rank_fusion"
+    output: fused_results

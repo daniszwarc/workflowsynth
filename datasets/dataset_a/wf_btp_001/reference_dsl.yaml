@@ -1,0 +1,52 @@
+workflow_id: wf_btp_001
+# domain: clinical_ai
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 7
+# source: Clinical AI Platform -- POST /upload, AI Vision naming, polling
+steps:
+  - id: receive_upload
+    op: fetch_api
+    params:
+      endpoint: "/upload"
+    output: uploaded_file
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin"
+    output: auth_result
+
+  - id: validate_pdf
+    op: validate_schema
+    params:
+      input: uploaded_file
+      schema: pdf_upload_schema
+    output: validated_pdf
+
+  - id: auto_name_via_vision
+    op: call_webhook
+    params:
+      input: validated_pdf
+      url: "https://api.anthropic.com/v1/messages"
+    output: named_document
+
+  - id: encrypt_document
+    op: encrypt_field
+    params:
+      input: named_document
+      field: "content"
+    output: encrypted_document
+
+  - id: store_document
+    op: write_database
+    params:
+      input: encrypted_document
+      table: documents
+    output: stored_document
+
+  - id: audit_log
+    op: log_audit
+    params:
+      input: stored_document
+      action: "document_uploaded" 

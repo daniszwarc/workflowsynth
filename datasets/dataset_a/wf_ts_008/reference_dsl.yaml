@@ -1,0 +1,33 @@
+workflow_id: wf_ts_008
+# domain: community_sports
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 4
+# source: Community Sports Club -- emailCredentials.cfm (email to registered address)
+steps:
+  - id: receive_forgot_password
+    op: fetch_api
+    params:
+      endpoint: "/admin/emailCredentials.cfm"
+    output: forgot_request
+
+  - id: lookup_user_by_email
+    op: read_database
+    params:
+      table: users
+      filter: "email = forgot_request.email"
+    output: user_record
+
+  - id: apply_account_exists_rule
+    op: apply_rule
+    params:
+      input: user_record
+      rule: "account_exists_check"
+    output: account_decision
+
+  - id: send_credentials_email
+    op: notify_user
+    params:
+      input: user_record
+      recipient: "registered_email"
+      message: "Your login credentials" 

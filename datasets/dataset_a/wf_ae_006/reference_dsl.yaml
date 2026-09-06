@@ -1,0 +1,93 @@
+workflow_id: wf_ae_006
+# domain: publishing
+# complexity: 4
+# has_security_constraint: true
+# primitive_count: 13
+# source: Economics Magazine Client -- complete end-to-end orchestrator: Drive -> AI -> CMS
+steps:
+  - id: search_drive_files
+    op: fetch_api
+    params:
+      endpoint: "/google-drive/search"
+    output: drive_files
+
+  - id: filter_pdf_files
+    op: filter_records
+    params:
+      input: drive_files
+      condition: "mimetype = application/pdf"
+    output: pdf_files
+
+  - id: download_pdf
+    op: fetch_api
+    params:
+      input: pdf_files
+      endpoint: "/google-drive/download"
+    output: pdf_binary
+
+  - id: extract_via_ai_vision
+    op: call_webhook
+    params:
+      input: pdf_binary
+      url: "https://api.anthropic.com/v1/messages"
+    output: extracted_article
+
+  - id: validate_extraction
+    op: validate_schema
+    params:
+      input: extracted_article
+      schema: article_extraction_schema
+    output: validated_article
+
+  - id: match_excel_category
+    op: apply_rule
+    params:
+      input: validated_article
+      rule: "fuzzy_title_category_match"
+    output: categorised_article
+
+  - id: convert_to_html
+    op: transform_json
+    params:
+      input: categorised_article
+      transformation: "plaintext_to_cms_html"
+    output: html_article
+
+  - id: lookup_cms_metadata
+    op: call_webhook
+    params:
+      input: html_article
+      url: "https://economics-magazine.example.com/jsonapi"
+    output: cms_metadata
+
+  - id: get_csrf_token
+    op: fetch_api
+    params:
+      endpoint: "https://economics-magazine.example.com/session/token"
+    output: csrf_token
+
+  - id: authenticate_publisher
+    op: authenticate_user
+    params:
+      role: "cms_publisher"
+    output: auth_result
+
+  - id: create_paragraph_blocks
+    op: call_webhook
+    params:
+      input: html_article
+      url: "https://economics-magazine.example.com/jsonapi/paragraph/block_basic_text"
+    output: paragraph_uuids
+
+  - id: create_article_node
+    op: call_webhook
+    params:
+      input: paragraph_uuids
+      url: "https://economics-magazine.example.com/jsonapi/node/article"
+    output: created_node
+
+  - id: audit_log
+    op: log_audit
+    params:
+      input: created_node
+      action: "article_published_pipeline_complete" 

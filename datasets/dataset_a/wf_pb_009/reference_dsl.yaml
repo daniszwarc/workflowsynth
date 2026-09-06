@@ -1,0 +1,32 @@
+workflow_id: wf_pb_009
+# domain: insurance_brokerage
+# complexity: 1
+# has_security_constraint: false
+# primitive_count: 4
+# source: Insurance Brokerage Client -- close and archive ticket
+steps:
+  - id: receive_close_request
+    op: fetch_api
+    params:
+      endpoint: "/api/tickets/[id]"
+    output: close_request
+
+  - id: validate_request
+    op: validate_schema
+    params:
+      input: close_request
+      schema: ticket_close_schema
+    output: validated_request
+
+  - id: close_and_archive_ticket
+    op: write_database
+    params:
+      input: validated_request
+      table: tickets
+    output: closed_ticket
+
+  - id: log_closure
+    op: log_audit
+    params:
+      input: closed_ticket
+      action: "ticket_closed_and_archived" 

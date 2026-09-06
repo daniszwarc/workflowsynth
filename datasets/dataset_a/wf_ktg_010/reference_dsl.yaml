@@ -1,0 +1,39 @@
+workflow_id: wf_ktg_010
+# domain: workers_compensation
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 5
+# source: Workers' Compensation Client -- KTG/triageNow/TriageNow_FROI_IncidentReport_Distribution.cfm
+steps:
+  - id: trigger_batch_run
+    op: fetch_api
+    params:
+      endpoint: "/KTG/triageNow/TriageNow_FROI_IncidentReport_Distribution.cfm"
+    output: batch_trigger
+
+  - id: authenticate_service
+    op: authenticate_user
+    params:
+      role: "admin_or_scheduled_service"
+    output: auth_result
+
+  - id: read_triage_claims
+    op: read_database
+    params:
+      table: tbl_Work_Comp
+      filter: "triage_status = pending_reprocess"
+    output: triage_claims
+
+  - id: apply_froi_distribution_rule
+    op: apply_rule
+    params:
+      input: triage_claims
+      rule: "froi_recipient_determination"
+    output: distribution_list
+
+  - id: send_froi_reports
+    op: notify_user
+    params:
+      input: distribution_list
+      recipient: "insurer_adjuster_employer"
+      message: "First Report of Injury" 

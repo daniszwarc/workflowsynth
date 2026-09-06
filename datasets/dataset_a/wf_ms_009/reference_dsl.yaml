@@ -1,0 +1,95 @@
+workflow_id: wf_ms_009
+# domain: clinical_ai
+# complexity: 5
+# has_security_constraint: true
+# primitive_count: 13
+# source: Clinical Analysis Research Tool -- full pipeline orchestrator
+steps:
+  - id: receive_pdf_upload
+    op: fetch_api
+    params:
+      endpoint: "/cases/upload"
+    output: uploaded_pdf
+
+  - id: extract_text
+    op: call_webhook
+    params:
+      input: uploaded_pdf
+      url: "pymupdf://extract_text"
+    output: extracted_text
+
+  - id: anonymize_text
+    op: transform_json
+    params:
+      input: extracted_text
+      transformation: "two_pass_pii_anonymization"
+    output: anonymized_text
+
+  - id: validate_anonymization
+    op: validate_schema
+    params:
+      input: anonymized_text
+      schema: anonymization_hard_gate_schema
+    output: validated_anon
+
+  - id: ingest_to_wiki
+    op: call_webhook
+    params:
+      input: validated_anon
+      url: "https://api.anthropic.com/v1/messages"
+    output: wiki_pages
+
+  - id: encrypt_wiki_content
+    op: encrypt_field
+    params:
+      input: wiki_pages
+      field: "page_content"
+    output: encrypted_wiki
+
+  - id: search_pubmed_literature
+    op: call_webhook
+    params:
+      input: encrypted_wiki
+      url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
+    output: literature_results
+
+  - id: run_adversarial_loop
+    op: call_subworkflow
+    params:
+      workflow_id: "wf_ms_005"
+      input: validated_anon
+    output: converged_findings
+
+  - id: validate_nct_numbers
+    op: call_webhook
+    params:
+      input: converged_findings
+      url: "https://clinicaltrials.gov/api/v2/studies"
+    output: validated_findings
+
+  - id: generate_two_tier_report
+    op: call_subworkflow
+    params:
+      workflow_id: "wf_ms_008"
+      input: validated_findings
+    output: clinical_report
+
+  - id: encrypt_report
+    op: encrypt_field
+    params:
+      input: clinical_report
+      field: "report_content"
+    output: encrypted_report
+
+  - id: store_report
+    op: write_database
+    params:
+      input: encrypted_report
+      table: clinical_reports
+    output: stored_report
+
+  - id: log_pipeline_complete
+    op: log_audit
+    params:
+      input: stored_report
+      action: "full_pipeline_complete" 

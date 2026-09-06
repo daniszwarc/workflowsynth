@@ -1,0 +1,67 @@
+workflow_id: wf_erd_006
+# domain: healthcare_billing
+# complexity: 4
+# has_security_constraint: true
+# primitive_count: 9
+# source: Rehabilitation Billing Client -- createInvoice.cfm, insertInvoceToBalance.cfm
+steps:
+  - id: receive_invoice_request
+    op: fetch_api
+    params:
+      endpoint: "/invoices/create"
+    output: invoice_request
+
+  - id: authenticate_office_staff
+    op: authenticate_user
+    params:
+      role: "office_or_admin"
+    output: auth_result
+
+  - id: read_approved_timesheets
+    op: read_database
+    params:
+      table: TimeSheetDetail
+      filter: "patient_id = invoice_request.patient_id AND status = 3"
+    output: approved_hours
+
+  - id: validate_hours_exist
+    op: validate_schema
+    params:
+      input: approved_hours
+      schema: invoice_hours_schema
+    output: validated_hours
+
+  - id: apply_tax_rule
+    op: apply_rule
+    params:
+      input: validated_hours
+      rule: "compute_taxes_if_taxable"
+    output: hours_with_tax
+
+  - id: assign_invoice_number
+    op: read_database
+    params:
+      table: invoice
+      filter: "month = invoice_request.month AND year = invoice_request.year"
+    output: next_invoice_number
+
+  - id: create_invoice_header
+    op: write_database
+    params:
+      input: hours_with_tax
+      table: invoice
+    output: invoice_header
+
+  - id: create_invoice_line_items
+    op: write_database
+    params:
+      input: approved_hours
+      table: invoiceDetail
+    output: line_items
+
+  - id: post_to_patient_balance
+    op: write_database
+    params:
+      input: invoice_header
+      table: patient_balance
+    output: updated_balance

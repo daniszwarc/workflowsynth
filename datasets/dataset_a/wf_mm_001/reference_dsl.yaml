@@ -1,0 +1,32 @@
+workflow_id: wf_mm_001
+# domain: clinical_ai
+# complexity: 1
+# has_security_constraint: true
+# primitive_count: 4
+# source: Medical Data Pipeline -- pipeline/downloader.py
+steps:
+  - id: authenticate_drive
+    op: authenticate_user
+    params:
+      role: "google_drive_service_account"
+    output: auth_result
+
+  - id: list_drive_files
+    op: fetch_api
+    params:
+      endpoint: "https://drive.google.com/folder/medical_documents"
+    output: drive_files
+
+  - id: read_processed_list
+    op: read_database
+    params:
+      table: processed_documents
+      filter: "status = complete"
+    output: processed_docs
+
+  - id: download_new_files
+    op: fetch_api
+    params:
+      input: drive_files
+      endpoint: "google_drive_download"
+    output: downloaded_pdfs

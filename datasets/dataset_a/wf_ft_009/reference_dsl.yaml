@@ -1,0 +1,33 @@
+workflow_id: wf_ft_009
+# domain: health_fitness
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 4
+# source: Mobile Fitness App -- profile update, recalculate macro targets via AI
+steps:
+  - id: receive_profile_update
+    op: fetch_api
+    params:
+      endpoint: "/api/profile"
+    output: profile_update
+
+  - id: validate_profile_data
+    op: validate_schema
+    params:
+      input: profile_update
+      schema: user_profile_schema
+    output: validated_profile
+
+  - id: recalculate_targets
+    op: call_webhook
+    params:
+      input: validated_profile
+      url: "https://llm-api.example.com/v1/chat/completions"
+    output: new_targets
+
+  - id: update_user_profile
+    op: write_database
+    params:
+      input: new_targets
+      table: profiles
+    output: updated_profile

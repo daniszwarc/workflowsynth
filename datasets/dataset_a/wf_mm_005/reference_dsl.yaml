@@ -1,0 +1,41 @@
+workflow_id: wf_mm_005
+# domain: clinical_ai
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 5
+# source: Medical Data Pipeline -- pipeline/verifier.py (number and date diff check)
+steps:
+  - id: extract_source_values
+    op: extract_field
+    params:
+      input: original_text
+      field: "numbers_and_dates"
+    output: source_values
+
+  - id: extract_output_values
+    op: extract_field
+    params:
+      input: structured_markdown
+      field: "numbers_and_dates"
+    output: output_values
+
+  - id: compare_value_sets
+    op: apply_rule
+    params:
+      input: source_values
+      rule: "clinical_values_diff_check"
+    output: diff_result
+
+  - id: assign_confidence_level
+    op: apply_rule
+    params:
+      input: diff_result
+      rule: "confidence_level_assignment"
+    output: confidence_result
+
+  - id: write_verification_metadata
+    op: write_database
+    params:
+      input: confidence_result
+      table: document_metadata
+    output: metadata_record

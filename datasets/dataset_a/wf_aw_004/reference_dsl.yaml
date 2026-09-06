@@ -1,0 +1,46 @@
+workflow_id: wf_aw_004
+# domain: enterprise_knowledge
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: Enterprise Knowledge Base -- pipeline, articles table, full-text + vector embeddings
+steps:
+  - id: receive_article_document
+    op: fetch_api
+    params:
+      endpoint: "http://pipeline:8000/process/article"
+    output: article_document
+
+  - id: authenticate_pipeline_service
+    op: authenticate_user
+    params:
+      role: "pipeline_service"
+    output: auth_result
+
+  - id: extract_article_text
+    op: call_webhook
+    params:
+      input: article_document
+      url: "local://text_extractor"
+    output: article_text
+
+  - id: store_article
+    op: write_database
+    params:
+      input: article_text
+      table: articles
+    output: stored_article
+
+  - id: generate_article_embeddings
+    op: call_webhook
+    params:
+      input: stored_article
+      url: "https://llm-api.example.com/v1/embeddings"
+    output: article_embeddings
+
+  - id: store_embeddings
+    op: write_database
+    params:
+      input: article_embeddings
+      table: embeddings
+    output: indexed_article

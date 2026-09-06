@@ -1,0 +1,47 @@
+workflow_id: wf_erd_010
+# domain: healthcare_billing
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: Rehabilitation Billing Client -- lateFeePatients.cfm, updateLateFee.cfm (2%/month tiered)
+steps:
+  - id: read_unpaid_invoices
+    op: read_database
+    params:
+      table: invoice
+      filter: "invoiceStatus = 1 AND due_date < today"
+    output: unpaid_invoices
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin"
+    output: auth_result
+
+  - id: compute_days_overdue
+    op: transform_json
+    params:
+      input: unpaid_invoices
+      transformation: "compute_days_from_due_date"
+    output: invoices_with_days
+
+  - id: apply_late_fee_tier_rule
+    op: apply_rule
+    params:
+      input: invoices_with_days
+      rule: "late_fee_tier_2pct_monthly"
+    output: late_fee_amounts
+
+  - id: aggregate_late_fees
+    op: aggregate_data
+    params:
+      input: late_fee_amounts
+      group_by: patient_id
+    output: patient_late_fees
+
+  - id: post_late_fees_to_balance
+    op: write_database
+    params:
+      input: patient_late_fees
+      table: patient_balance
+    output: updated_balances

@@ -1,0 +1,32 @@
+workflow_id: wf_ktg_009
+# domain: workers_compensation
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 4
+# source: Workers' Compensation Client -- HR/calendar/act_calendar_add_item.cfm, HR/system/
+steps:
+  - id: receive_hr_form
+    op: fetch_api
+    params:
+      endpoint: "/HR/calendar/act_calendar_add_item.cfm"
+    output: hr_form
+
+  - id: authenticate_hr_staff
+    op: authenticate_user
+    params:
+      role: "hr_staff"
+    output: auth_result
+
+  - id: read_type_config
+    op: read_database
+    params:
+      table: hr_type_config
+      filter: "type = hr_form.type"
+    output: type_config
+
+  - id: insert_hr_record
+    op: write_database
+    params:
+      input: hr_form
+      table: tbl_calendar
+    output: hr_record

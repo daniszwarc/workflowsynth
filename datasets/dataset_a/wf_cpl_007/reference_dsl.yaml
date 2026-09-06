@@ -1,0 +1,32 @@
+workflow_id: wf_cpl_007
+# domain: sports_media
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 4
+# source: Sports Media Admin System -- addSeason.cfm/apAddSeason.cfm, addFinal.cfm/apAddFinal.cfm
+steps:
+  - id: receive_season_form
+    op: fetch_api
+    params:
+      endpoint: "/admin/apAddSeason.cfm"
+    output: season_form
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin"
+    output: auth_result
+
+  - id: validate_season_data
+    op: validate_schema
+    params:
+      input: season_form
+      schema: season_schema
+    output: validated_season
+
+  - id: insert_season_record
+    op: write_database
+    params:
+      input: validated_season
+      table: seasons
+    output: season_record

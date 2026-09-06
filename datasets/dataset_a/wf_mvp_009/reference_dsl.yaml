@@ -1,0 +1,25 @@
+workflow_id: wf_mvp_009
+# domain: manufacturing
+# complexity: 1
+# has_security_constraint: true
+# primitive_count: 3
+# source: Commercial Kitchen Equipment Manufacturer -- finalizeTransfer.cfm
+steps:
+  - id: receive_transfer_request
+    op: fetch_api
+    params:
+      endpoint: "/mvp/finalizeTransfer.cfm"
+    output: transfer_request
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin"
+    output: auth_result
+
+  - id: delete_source_history
+    op: write_database
+    params:
+      input: transfer_request
+      table: history
+    output: transfer_complete

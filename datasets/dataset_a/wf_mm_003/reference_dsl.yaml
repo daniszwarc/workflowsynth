@@ -1,0 +1,46 @@
+workflow_id: wf_mm_003
+# domain: clinical_ai
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: Medical Data Pipeline -- pipeline/anonymizer.py (regex + NER)
+steps:
+  - id: receive_extracted_text
+    op: fetch_api
+    params:
+      endpoint: "local://extracted_text"
+    output: raw_text
+
+  - id: apply_regex_pii_detection
+    op: transform_json
+    params:
+      input: raw_text
+      transformation: "regex_pii_detection"
+    output: regex_detected
+
+  - id: apply_ner_detection
+    op: call_webhook
+    params:
+      input: regex_detected
+      url: "local://ner_model"
+    output: ner_detected
+
+  - id: replace_pii_with_tokens
+    op: transform_json
+    params:
+      input: ner_detected
+      transformation: "replace_pii_tokens"
+    output: anonymized_text
+
+  - id: validate_clinical_values
+    op: validate_schema
+    params:
+      input: anonymized_text
+      schema: clinical_values_preservation_schema
+    output: validated_text
+
+  - id: log_anonymization_metadata
+    op: log_audit
+    params:
+      input: validated_text
+      action: "anonymization_complete" 

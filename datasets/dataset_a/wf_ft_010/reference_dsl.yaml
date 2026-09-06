@@ -1,0 +1,26 @@
+workflow_id: wf_ft_010
+# domain: health_fitness
+# complexity: 1
+# has_security_constraint: false
+# primitive_count: 3
+# source: Mobile Fitness App -- exercise search and detail view
+steps:
+  - id: receive_search_query
+    op: fetch_api
+    params:
+      endpoint: "/api/exercises"
+    output: search_query
+
+  - id: search_exercise_database
+    op: read_database
+    params:
+      table: exercises
+      filter: "name LIKE search_query.term OR muscle_group = search_query.muscle"
+    output: exercise_results
+
+  - id: return_results
+    op: format_output
+    params:
+      input: exercise_results
+      format: "exercise_list"
+    output: exercise_list

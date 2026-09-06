@@ -1,0 +1,52 @@
+workflow_id: wf_ae_004
+# domain: publishing
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 7
+# source: Economics Magazine Client -- CSRF token, paragraph blocks creation, article node POST via JSON:API
+steps:
+  - id: get_csrf_token
+    op: fetch_api
+    params:
+      endpoint: "https://economics-magazine.example.com/session/token"
+    output: csrf_token
+
+  - id: authenticate_publisher
+    op: authenticate_user
+    params:
+      role: "cms_publisher"
+    output: auth_result
+
+  - id: validate_article_payload
+    op: validate_schema
+    params:
+      input: article_metadata
+      schema: cms_article_schema
+    output: validated_payload
+
+  - id: create_paragraph_blocks
+    op: call_webhook
+    params:
+      input: validated_payload
+      url: "https://economics-magazine.example.com/jsonapi/paragraph/block_basic_text"
+    output: paragraph_uuids
+
+  - id: create_article_node
+    op: call_webhook
+    params:
+      input: paragraph_uuids
+      url: "https://economics-magazine.example.com/jsonapi/node/article"
+    output: created_node
+
+  - id: validate_creation
+    op: apply_rule
+    params:
+      input: created_node
+      rule: "node_created_successfully"
+    output: creation_result
+
+  - id: audit_log
+    op: log_audit
+    params:
+      input: created_node
+      action: "article_published_to_cms" 

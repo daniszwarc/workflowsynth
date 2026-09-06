@@ -1,0 +1,32 @@
+workflow_id: wf_ft_011
+# domain: health_fitness
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 4
+# source: Mobile Fitness App -- progress photo upload, private storage
+steps:
+  - id: receive_photo_upload
+    op: fetch_api
+    params:
+      endpoint: "/api/progress-photos"
+    output: photo_upload
+
+  - id: authenticate_user
+    op: authenticate_user
+    params:
+      role: "authenticated_user"
+    output: auth_result
+
+  - id: validate_image
+    op: validate_schema
+    params:
+      input: photo_upload
+      schema: progress_photo_schema
+    output: validated_photo
+
+  - id: store_photo_securely
+    op: write_database
+    params:
+      input: validated_photo
+      table: progress_photos
+    output: stored_photo

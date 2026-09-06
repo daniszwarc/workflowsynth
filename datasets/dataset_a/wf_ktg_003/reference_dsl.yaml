@@ -1,0 +1,39 @@
+workflow_id: wf_ktg_003
+# domain: workers_compensation
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 5
+# source: Workers' Compensation Client -- KTG/administration/act_ins_provider.cfm
+steps:
+  - id: receive_provider_form
+    op: fetch_api
+    params:
+      endpoint: "/KTG/administration/act_ins_provider.cfm"
+    output: provider_form
+
+  - id: authenticate_admin
+    op: authenticate_user
+    params:
+      role: "admin"
+    output: auth_result
+
+  - id: validate_provider_fields
+    op: validate_schema
+    params:
+      input: provider_form
+      schema: provider_schema
+    output: validated_provider
+
+  - id: insert_provider_record
+    op: write_database
+    params:
+      input: validated_provider
+      table: tbl_provider
+    output: provider_record
+
+  - id: insert_provider_speciality
+    op: write_database
+    params:
+      input: provider_record
+      table: tbl_provider_speciality
+    output: speciality_record

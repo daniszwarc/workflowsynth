@@ -1,0 +1,41 @@
+workflow_id: wf_ae_002
+# domain: publishing
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 5
+# source: Economics Magazine Client -- Excel category lookup, fuzzy title normalisation
+steps:
+  - id: read_category_spreadsheet
+    op: read_database
+    params:
+      table: excel_categories
+      filter: "sheet = article_categories"
+    output: category_rows
+
+  - id: extract_article_title
+    op: extract_field
+    params:
+      input: extracted_article
+      field: "titulo"
+    output: article_title
+
+  - id: normalise_titles
+    op: transform_json
+    params:
+      input: category_rows
+      transformation: "normalise_accents_and_punctuation"
+    output: normalised_categories
+
+  - id: apply_category_match_rule
+    op: apply_rule
+    params:
+      input: article_title
+      rule: "fuzzy_title_category_match"
+    output: category_match
+
+  - id: format_category_result
+    op: format_output
+    params:
+      input: category_match
+      format: "article_with_category"
+    output: categorised_article

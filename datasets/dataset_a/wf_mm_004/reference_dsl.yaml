@@ -1,0 +1,47 @@
+workflow_id: wf_mm_004
+# domain: clinical_ai
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: Medical Data Pipeline -- pipeline/structurer.py (Primary AI Model primary, Fallback AI Model fallback)
+steps:
+  - id: receive_anonymized_text
+    op: fetch_api
+    params:
+      endpoint: "local://anonymized_text"
+    output: anonymized_text
+
+  - id: structure_via_primary_model
+    op: call_webhook
+    params:
+      input: anonymized_text
+      url: "https://llm-api.example.com/v1/chat/completions"
+    output: structured_markdown
+
+  - id: apply_quality_rule
+    op: apply_rule
+    params:
+      input: structured_markdown
+      rule: "numbers_and_dates_preserved"
+    output: quality_result
+
+  - id: structure_via_fallback_model
+    op: call_webhook
+    params:
+      input: anonymized_text
+      url: "https://llm-api.example.com/v1/chat/completions"
+    output: fallback_markdown
+
+  - id: add_yaml_frontmatter
+    op: transform_json
+    params:
+      input: structured_markdown
+      transformation: "add_yaml_frontmatter"
+    output: complete_markdown
+
+  - id: encrypt_document
+    op: encrypt_field
+    params:
+      input: complete_markdown
+      field: "content"
+    output: secured_document

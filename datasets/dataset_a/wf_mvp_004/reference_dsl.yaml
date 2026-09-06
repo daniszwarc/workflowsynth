@@ -1,0 +1,45 @@
+workflow_id: wf_mvp_004
+# domain: manufacturing
+# complexity: 3
+# has_security_constraint: true
+# primitive_count: 6
+# source: Commercial Kitchen Equipment Manufacturer -- cardFromAccpac.cfm -> apCardFromAccpac.cfm
+steps:
+  - id: receive_unit_identifiers
+    op: fetch_api
+    params:
+      endpoint: "/mvp/apCardFromAccpac.cfm"
+    output: unit_identifiers
+
+  - id: authenticate_office_staff
+    op: authenticate_user
+    params:
+      role: "office_or_admin"
+    output: auth_result
+
+  - id: fetch_from_erp
+    op: fetch_api
+    params:
+      input: unit_identifiers
+      endpoint: "erp://SNUMBER_VIEW"
+    output: erp_unit_data
+
+  - id: validate_erp_record
+    op: validate_schema
+    params:
+      input: erp_unit_data
+      schema: erp_unit_schema
+    output: validated_unit
+
+  - id: create_local_card
+    op: write_database
+    params:
+      input: validated_unit
+      table: card
+    output: card_record
+
+  - id: log_card_creation
+    op: log_audit
+    params:
+      input: card_record
+      action: "unit_card_created_from_erp" 
