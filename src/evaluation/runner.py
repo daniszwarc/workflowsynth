@@ -198,13 +198,21 @@ class EvaluationRunner:
                        runs -- output must be valid YAML.
     """
 
-    def __init__(self, dataset_path: str, results_dir: str, condition: str = "full"):
+    def __init__(self, dataset_path: str, results_dir: str, condition: str = "full",
+                 budget_limit_usd: Optional[float] = None):
         if condition not in VALID_CONDITIONS:
             raise ValueError(f"Unknown condition {condition!r}. Must be one of {VALID_CONDITIONS}.")
 
         self.dataset_path = Path(dataset_path)
         self.results_dir = Path(results_dir)
         self.condition = condition
+
+        self.budget_limit_usd = budget_limit_usd
+        self.spent_usd = 0.0
+        self._budget_warning_shown = False
+        self._stop_requested = False
+        self._tasks_total = 0
+        self._completed_results: list = []
 
         self.index = self._load_index(self.dataset_path / "index.yaml")
 
@@ -239,6 +247,27 @@ class EvaluationRunner:
         persisting each TaskResult immediately, then returns an
         EvaluationSummary computed from all completed results.
         """
+        ids = task_ids if task_ids is not None else self.task_ids
+        self._tasks_total = len(ids)
+        self._completed_results = []
+        results: list = []
+
+        if max_workers <= 1:
+            for task_id in ids:
+                results.append(self._run_single_safe(task_id))
+                if self._stop_requested:
+                    break
+        else:
+            with ThreadPoolExecutor(max_workers=max_workers) as pool:
+                futures = {pool.submit(self._run_single_safe, tid): tid for tid in ids}
+                for future in as_completed(futures):
+                    results.append(future.result())
+                    if self._stop_requested:
+                        break
+
+        return self._build_summary(results)
+
+    def _build_summary(self, results: list) -> EvaluationSummary:
         from .metrics import (
             pass_at_k as _pass_at_k,
             mean_attempts as _mean_attempts,
@@ -246,18 +275,6 @@ class EvaluationRunner:
             by_complexity as _by_complexity,
             by_domain as _by_domain,
         )
-
-        ids = task_ids if task_ids is not None else self.task_ids
-        results: list = []
-
-        if max_workers <= 1:
-            for task_id in ids:
-                results.append(self._run_single_safe(task_id))
-        else:
-            with ThreadPoolExecutor(max_workers=max_workers) as pool:
-                futures = {pool.submit(self._run_single_safe, tid): tid for tid in ids}
-                for future in as_completed(futures):
-                    results.append(future.result())
 
         total_input_tokens = sum(r.total_input_tokens for r in results)
         total_output_tokens = sum(r.total_output_tokens for r in results)
@@ -279,6 +296,43 @@ class EvaluationRunner:
             estimated_cost_usd=_estimate_cost_usd(total_input_tokens, total_output_tokens),
         )
 
+    def _accumulate_and_check_budget(self, result: "TaskResult") -> None:
+        """
+        Tracks cumulative spend after a task result is available and, the
+        first time spend crosses 80%% of budget_limit_usd, warns and asks
+        the user whether to continue. Only an explicit "n" answer stops
+        the run -- anything else (including a bare Enter) continues.
+        """
+        self.spent_usd += (
+            result.total_input_tokens / 1_000_000 * _OPUS_INPUT_RATE_PER_MILLION
+            + result.total_output_tokens / 1_000_000 * _OPUS_OUTPUT_RATE_PER_MILLION
+        )
+        self._completed_results.append(result)
+
+        if (
+            self.budget_limit_usd
+            and self.spent_usd >= self.budget_limit_usd * 0.80
+            and not self._budget_warning_shown
+        ):
+            self._budget_warning_shown = True
+            tasks_done = len(self._completed_results)
+            tasks_total = self._tasks_total or tasks_done
+            pct = tasks_done / tasks_total * 100
+            print(
+                f"\n*** BUDGET WARNING ***\n"
+                f"Spent so far: ${self.spent_usd:.2f} USD\n"
+                f"Budget limit: ${self.budget_limit_usd:.2f} USD (80% reached)\n"
+                f"Progress: {tasks_done}/{tasks_total} tasks ({pct:.1f}%)\n"
+                f"Continue? [Y/n]: ",
+                file=sys.stderr, end="", flush=True,
+            )
+            answer = input().strip().lower()
+            if answer == "n":
+                self._stop_requested = True
+                print("Stopping experiment. Results saved so far are complete.")
+            else:
+                print("Continuing...\n")
+
     def _run_single_safe(self, task_id: str) -> TaskResult:
         """
         Wraps run_single() so an unhandled exception on one task cannot
@@ -286,7 +340,7 @@ class EvaluationRunner:
         TaskResult, persists it, logs to stderr, and returns it.
         """
         try:
-            return self.run_single(task_id)
+            result = self.run_single(task_id)
         except Exception as exc:
             print(f"error: task {task_id!r} raised an unhandled exception: {exc}", file=sys.stderr)
             meta = self.index.get(task_id, {})
@@ -302,7 +356,9 @@ class EvaluationRunner:
                 has_security_constraint=meta.get("has_security_constraint", False),
             )
             self._persist(result)
-            return result
+
+        self._accumulate_and_check_budget(result)
+        return result
 
     def run_single(self, task_id: str) -> TaskResult:
         """Runs the full synthesis + verification + test loop for one task."""
@@ -335,15 +391,9 @@ class EvaluationRunner:
         repair loop (attempts 2-10) synchronously for each returned
         candidate. Cuts first-attempt cost in half relative to run_dataset.
         """
-        from .metrics import (
-            pass_at_k as _pass_at_k,
-            mean_attempts as _mean_attempts,
-            security_pass_rate as _security_pass_rate,
-            by_complexity as _by_complexity,
-            by_domain as _by_domain,
-        )
-
         ids = task_ids if task_ids is not None else self.task_ids
+        self._tasks_total = len(ids)
+        self._completed_results = []
         client = anthropic.Anthropic()
 
         first_attempt_payloads = [
@@ -396,26 +446,11 @@ class EvaluationRunner:
 
             self._persist_result(task_result)
             results.append(task_result)
+            self._accumulate_and_check_budget(task_result)
+            if self._stop_requested:
+                break
 
-        total_input_tokens = sum(r.total_input_tokens for r in results)
-        total_output_tokens = sum(r.total_output_tokens for r in results)
-
-        return EvaluationSummary(
-            condition=self.condition,
-            total_tasks=len(results),
-            pass_at_1=_pass_at_k(results, 1),
-            pass_at_3=_pass_at_k(results, 3),
-            pass_at_5=_pass_at_k(results, 5),
-            pass_at_10=_pass_at_k(results, 10),
-            mean_attempts=_mean_attempts(results),
-            security_pass_rate=_security_pass_rate(results),
-            by_complexity=_by_complexity(results),
-            by_domain=_by_domain(results),
-            results=results,
-            total_input_tokens=total_input_tokens,
-            total_output_tokens=total_output_tokens,
-            estimated_cost_usd=_estimate_cost_usd(total_input_tokens, total_output_tokens),
-        )
+        return self._build_summary(results)
 
     def _continue_from_first_attempt(
         self,

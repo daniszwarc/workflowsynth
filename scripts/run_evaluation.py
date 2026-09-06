@@ -47,6 +47,12 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Use Batch API for first attempts (50%% cost reduction).",
     )
+    parser.add_argument(
+        "--budget",
+        type=float,
+        default=None,
+        help="Warn and prompt when estimated cost reaches 80%% of this USD amount.",
+    )
     return parser.parse_args()
 
 
@@ -57,6 +63,7 @@ def main() -> None:
         dataset_path=args.dataset,
         results_dir=args.results,
         condition=args.condition,
+        budget_limit_usd=args.budget,
     )
 
     if args.batch:
