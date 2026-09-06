@@ -1,0 +1,19 @@
+workflow_id: wf_web_004
+# domain: web_automation
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 2
+# source: WebArena benchmark -- e-commerce search task -- inspired by WebArena
+steps:
+  - id: search_catalog
+    op: fetch_api
+    params:
+      endpoint: "/ecommerce/search"
+    output: search_results
+
+  - id: filter_by_price
+    op: filter_records
+    params:
+      input: "search_results"
+      criteria: "price_within_budget"
+    output: affordable_results

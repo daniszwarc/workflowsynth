@@ -1,0 +1,32 @@
+workflow_id: wf_gaia_009
+# domain: general_ai
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 4
+# source: GAIA benchmark -- level 2 multi-tool task -- inspired by GAIA
+steps:
+  - id: fetch_external
+    op: fetch_api
+    params:
+      endpoint: "/external/sync"
+    output: external_data
+
+  - id: transform_to_internal
+    op: transform_json
+    params:
+      input: "external_data"
+      transformation: "to_internal_format"
+    output: internal_data
+
+  - id: authenticate_sync
+    op: authenticate_user
+    params:
+      role: "sync_service"
+    output: auth_result
+
+  - id: store_internal
+    op: write_database
+    params:
+      input: "internal_data"
+      table: "synced_records"
+    output: sync_record

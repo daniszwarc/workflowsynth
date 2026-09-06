@@ -1,0 +1,60 @@
+workflow_id: wf_agent_011
+# domain: agent_tasks
+# complexity: 4
+# has_security_constraint: true
+# primitive_count: 8
+# source: AgentBench benchmark -- database migration task -- inspired by AgentBench
+steps:
+  - id: read_source_table
+    op: read_database
+    params:
+      table: "source"
+      filter: "migrated = false"
+    output: source_records_m
+
+  - id: transform_for_target_schema
+    op: transform_json
+    params:
+      input: "source_records_m"
+      transformation: "to_target_schema"
+    output: transformed_records_m
+
+  - id: validate_before_write
+    op: validate_schema
+    params:
+      input: "transformed_records_m"
+      schema: "target_schema"
+    output: validated_records_m
+
+  - id: authenticate_migration_writer
+    op: authenticate_user
+    params:
+      role: "migration_service"
+    output: auth_result
+
+  - id: write_to_target_table
+    op: write_database
+    params:
+      input: "validated_records_m"
+      table: "target"
+    output: migration_write_result
+
+  - id: read_back_migrated_records
+    op: read_database
+    params:
+      table: "target"
+      filter: "migrated = true"
+    output: migrated_records
+
+  - id: verify_migrated_records
+    op: validate_schema
+    params:
+      input: "migrated_records"
+      schema: "target_schema"
+    output: verified_migration
+
+  - id: log_migration
+    op: log_audit
+    params:
+      input: "verified_migration"
+      action: "migration_completed"

@@ -1,0 +1,59 @@
+workflow_id: wf_web_015
+# domain: web_automation
+# complexity: 5
+# has_security_constraint: true
+# primitive_count: 8
+# source: WebArena benchmark -- full e-commerce pipeline task -- inspired by WebArena
+steps:
+  - id: search_product
+    op: fetch_api
+    params:
+      endpoint: "/ecommerce/search"
+    output: search_results
+
+  - id: authenticate_shopper_session
+    op: authenticate_user
+    params:
+      role: "shopper"
+    output: auth_result
+
+  - id: validate_checkout_cart
+    op: validate_schema
+    params:
+      input: "search_results"
+      schema: "checkout_schema"
+    output: validated_cart
+
+  - id: process_validated_order
+    op: write_database
+    params:
+      input: "validated_cart"
+      table: "orders"
+    output: order_record
+
+  - id: fulfill_order
+    op: call_subworkflow
+    params:
+      input: "order_record"
+      workflow: "fulfillment_pipeline"
+    output: fulfillment_result
+
+  - id: extract_fulfillment_status
+    op: extract_field
+    params:
+      input: "fulfillment_result"
+      field: "status"
+    output: fulfillment_status
+
+  - id: notify_customer_fulfilled
+    op: notify_user
+    params:
+      input: "fulfillment_status"
+      recipient: "customer"
+      message: "Order fulfilled"
+
+  - id: log_completed_purchase
+    op: log_audit
+    params:
+      input: "fulfillment_status"
+      action: "purchase_completed"

@@ -1,0 +1,52 @@
+workflow_id: wf_tool_013
+# domain: api_integration
+# complexity: 4
+# has_security_constraint: true
+# primitive_count: 7
+# source: ToolLLM benchmark -- secured aggregation task -- inspired by ToolLLM
+steps:
+  - id: authenticate_aggregation_service
+    op: authenticate_user
+    params:
+      role: "aggregation_service"
+    output: auth_result
+
+  - id: fetch_api_alpha
+    op: fetch_api
+    params:
+      endpoint: "/tools/secure/alpha"
+    output: alpha_data
+
+  - id: fetch_api_beta
+    op: fetch_api
+    params:
+      endpoint: "/tools/secure/beta"
+    output: beta_data
+
+  - id: aggregate_secure_data
+    op: aggregate_data
+    params:
+      input: "alpha_data"
+      secondary: "beta_data"
+    output: aggregated_secure_data
+
+  - id: extract_sensitive_fields_agg
+    op: extract_field
+    params:
+      input: "aggregated_secure_data"
+      field: "sensitive_fields"
+    output: sensitive_fields_agg
+
+  - id: encrypt_aggregated_data
+    op: encrypt_field
+    params:
+      input: "sensitive_fields_agg"
+      field: "sensitive_fields"
+    output: encrypted_aggregated_data
+
+  - id: store_encrypted_aggregate
+    op: write_database
+    params:
+      input: "encrypted_aggregated_data"
+      table: "secure_aggregates"
+    output: stored_aggregate

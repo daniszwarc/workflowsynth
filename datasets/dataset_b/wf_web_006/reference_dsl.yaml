@@ -1,0 +1,32 @@
+workflow_id: wf_web_006
+# domain: web_automation
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 4
+# source: WebArena benchmark -- content management task -- inspired by WebArena
+steps:
+  - id: fetch_draft
+    op: fetch_api
+    params:
+      endpoint: "/cms/drafts"
+    output: article_draft
+
+  - id: validate_article_draft
+    op: validate_schema
+    params:
+      input: "article_draft"
+      schema: "article_schema"
+    output: validated_draft
+
+  - id: authenticate_publisher
+    op: authenticate_user
+    params:
+      role: "publishing_service"
+    output: auth_result
+
+  - id: publish_article
+    op: call_webhook
+    params:
+      input: "validated_draft"
+      url: "https://cms.example.com/api/publish"
+    output: publish_result

@@ -1,0 +1,32 @@
+workflow_id: wf_gaia_004
+# domain: general_ai
+# complexity: 1
+# has_security_constraint: true
+# primitive_count: 4
+# source: GAIA benchmark -- level 1 tool-use task -- inspired by GAIA
+steps:
+  - id: receive_form
+    op: fetch_api
+    params:
+      endpoint: "/forms/intake"
+    output: raw_form
+
+  - id: validate_form
+    op: validate_schema
+    params:
+      input: "raw_form"
+      schema: "intake_form_schema"
+    output: validated_form
+
+  - id: authenticate_service
+    op: authenticate_user
+    params:
+      role: "intake_service"
+    output: auth_result
+
+  - id: store_form
+    op: write_database
+    params:
+      input: "validated_form"
+      table: "form_submissions"
+    output: form_record

@@ -1,0 +1,34 @@
+workflow_id: wf_agent_005
+# domain: agent_tasks
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 4
+# source: AgentBench benchmark -- intent routing task -- inspired by AgentBench
+steps:
+  - id: receive_user_input
+    op: fetch_api
+    params:
+      endpoint: "/agent/input"
+    output: user_input
+
+  - id: validate_input
+    op: validate_schema
+    params:
+      input: "user_input"
+      schema: "agent_input_schema"
+    output: validated_input
+
+  - id: classify_intent
+    op: apply_rule
+    params:
+      input: "validated_input"
+      rule: "intent_classification"
+    output: intent
+
+  - id: route_to_handler
+    op: route_to_step
+    params:
+      input: "intent"
+      condition: "intent = 'known'"
+      branch_true: "known_handler"
+      branch_false: "fallback_handler"

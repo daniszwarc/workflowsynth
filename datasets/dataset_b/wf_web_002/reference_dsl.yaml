@@ -1,0 +1,25 @@
+workflow_id: wf_web_002
+# domain: web_automation
+# complexity: 1
+# has_security_constraint: false
+# primitive_count: 3
+# source: WebArena benchmark -- forms task -- inspired by WebArena
+steps:
+  - id: receive_contact_form
+    op: fetch_api
+    params:
+      endpoint: "/forms/contact"
+    output: form_payload
+
+  - id: sanitise_form
+    op: extract_field
+    params:
+      input: "form_payload"
+      field: "message"
+    output: clean_message
+
+  - id: log_submission
+    op: log_audit
+    params:
+      input: "clean_message"
+      action: "contact_form_submitted"

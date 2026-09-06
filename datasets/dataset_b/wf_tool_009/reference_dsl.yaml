@@ -1,0 +1,37 @@
+workflow_id: wf_tool_009
+# domain: api_integration
+# complexity: 3
+# has_security_constraint: false
+# primitive_count: 5
+# source: ToolLLM benchmark -- fan-out task -- inspired by ToolLLM
+steps:
+  - id: parallel_fan_out
+    op: parallel_execute
+    params:
+      branches: "endpoint_one,endpoint_two,endpoint_three"
+
+  - id: fetch_endpoint_one
+    op: fetch_api
+    params:
+      endpoint: "/tools/fanout/one"
+    output: endpoint_one_data
+
+  - id: fetch_endpoint_two
+    op: fetch_api
+    params:
+      endpoint: "/tools/fanout/two"
+    output: endpoint_two_data
+
+  - id: fetch_endpoint_three
+    op: fetch_api
+    params:
+      endpoint: "/tools/fanout/three"
+    output: endpoint_three_data
+
+  - id: merge_parallel_results
+    op: merge_datasets
+    params:
+      input: "endpoint_one_data"
+      secondary: "endpoint_two_data"
+      tertiary: "endpoint_three_data"
+    output: merged_fanout_data

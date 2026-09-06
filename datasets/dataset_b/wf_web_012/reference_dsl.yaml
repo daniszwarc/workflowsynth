@@ -1,0 +1,54 @@
+workflow_id: wf_web_012
+# domain: web_automation
+# complexity: 4
+# has_security_constraint: false
+# primitive_count: 7
+# source: WebArena benchmark -- order fulfillment task -- inspired by WebArena
+steps:
+  - id: fetch_confirmed_order
+    op: fetch_api
+    params:
+      endpoint: "/orders/confirmed"
+    output: order_data
+
+  - id: validate_order
+    op: validate_schema
+    params:
+      input: "order_data"
+      schema: "fulfillment_schema"
+    output: validated_order
+
+  - id: check_inventory
+    op: read_database
+    params:
+      table: "inventory"
+      filter: "sku IN order.items"
+    output: inventory_status
+
+  - id: validate_inventory_status
+    op: validate_schema
+    params:
+      input: "inventory_status"
+      schema: "inventory_status_schema"
+    output: validated_inventory_status
+
+  - id: route_by_availability
+    op: route_to_step
+    params:
+      input: "validated_inventory_status"
+      condition: "in_stock = true"
+      branch_true: "ship_now"
+      branch_false: "backorder"
+
+  - id: notify_supplier
+    op: notify_user
+    params:
+      input: "validated_inventory_status"
+      recipient: "supplier"
+      message: "Backorder triggered"
+
+  - id: log_fulfillment_decision
+    op: log_audit
+    params:
+      input: "validated_order"
+      action: "fulfillment_routed"

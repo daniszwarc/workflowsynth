@@ -1,0 +1,32 @@
+workflow_id: wf_tool_005
+# domain: api_integration
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 4
+# source: ToolLLM benchmark -- API validation task -- inspired by ToolLLM
+steps:
+  - id: fetch_api_data
+    op: fetch_api
+    params:
+      endpoint: "/tools/data"
+    output: raw_api_data
+
+  - id: validate_api_data
+    op: validate_schema
+    params:
+      input: "raw_api_data"
+      schema: "api_data_schema"
+    output: validated_api_data
+
+  - id: authenticate_storage_service
+    op: authenticate_user
+    params:
+      role: "storage_service"
+    output: auth_result
+
+  - id: store_validated_result
+    op: write_database
+    params:
+      input: "validated_api_data"
+      table: "api_results"
+    output: stored_result

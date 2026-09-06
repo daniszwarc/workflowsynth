@@ -1,0 +1,19 @@
+workflow_id: wf_web_003
+# domain: web_automation
+# complexity: 1
+# has_security_constraint: false
+# primitive_count: 2
+# source: WebArena benchmark -- content scraping task -- inspired by WebArena
+steps:
+  - id: scrape_page
+    op: fetch_api
+    params:
+      endpoint: "/pages/scrape"
+    output: raw_page
+
+  - id: extract_structured_fields
+    op: extract_field
+    params:
+      input: "raw_page"
+      field: "structured_content"
+    output: structured_content

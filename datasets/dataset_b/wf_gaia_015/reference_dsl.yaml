@@ -1,0 +1,67 @@
+workflow_id: wf_gaia_015
+# domain: general_ai
+# complexity: 5
+# has_security_constraint: true
+# primitive_count: 9
+# source: GAIA benchmark -- level 3 full reasoning pipeline -- inspired by GAIA
+steps:
+  - id: fetch_source
+    op: fetch_api
+    params:
+      endpoint: "/pipeline/source"
+    output: raw_data
+
+  - id: classify_source
+    op: apply_rule
+    params:
+      input: "raw_data"
+      rule: "classification_rule"
+    output: classification
+
+  - id: route_pipeline
+    op: route_to_step
+    params:
+      input: "classification"
+      condition: "classification = true"
+      branch_true: "path_a"
+      branch_false: "path_b"
+
+  - id: transform_routed
+    op: transform_json
+    params:
+      input: "raw_data"
+      transformation: "to_canonical_format"
+    output: canonical_data
+
+  - id: verify_transformed
+    op: validate_schema
+    params:
+      input: "canonical_data"
+      schema: "canonical_schema"
+    output: verified_data
+
+  - id: authenticate_pipeline_writer
+    op: authenticate_user
+    params:
+      role: "pipeline_service"
+    output: auth_result
+
+  - id: store_verified_result
+    op: write_database
+    params:
+      input: "verified_data"
+      table: "pipeline_results"
+    output: result_record
+
+  - id: notify_stakeholder
+    op: notify_user
+    params:
+      input: "result_record"
+      recipient: "stakeholder"
+      message: "Pipeline completed"
+
+  - id: log_pipeline_run
+    op: log_audit
+    params:
+      input: "result_record"
+      action: "full_pipeline_run"

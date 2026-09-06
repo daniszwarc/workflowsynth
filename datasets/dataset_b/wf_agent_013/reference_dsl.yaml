@@ -1,0 +1,53 @@
+workflow_id: wf_agent_013
+# domain: agent_tasks
+# complexity: 4
+# has_security_constraint: true
+# primitive_count: 7
+# source: AgentBench benchmark -- knowledge graph update task -- inspired by AgentBench
+steps:
+  - id: fetch_new_kg_data
+    op: fetch_api
+    params:
+      endpoint: "/kg/updates"
+    output: new_kg_data
+
+  - id: validate_kg_data
+    op: validate_schema
+    params:
+      input: "new_kg_data"
+      schema: "kg_schema"
+    output: validated_kg_data
+
+  - id: merge_kg_update
+    op: merge_datasets
+    params:
+      input: "validated_kg_data"
+      secondary: "existing_graph_data"
+    output: merged_kg_data
+
+  - id: verify_kg_consistency
+    op: apply_rule
+    params:
+      input: "merged_kg_data"
+      rule: "consistency_check"
+    output: consistency_result
+
+  - id: authenticate_graph_service
+    op: authenticate_user
+    params:
+      role: "graph_update_service"
+    output: auth_result
+
+  - id: store_kg_update
+    op: write_database
+    params:
+      input: "merged_kg_data"
+      table: "knowledge_graph"
+    output: kg_write_result
+
+  - id: notify_kg_stakeholders
+    op: notify_user
+    params:
+      input: "kg_write_result"
+      recipient: "kg_stakeholders"
+      message: "Knowledge graph updated"

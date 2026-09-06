@@ -1,0 +1,39 @@
+workflow_id: wf_agent_009
+# domain: agent_tasks
+# complexity: 3
+# has_security_constraint: false
+# primitive_count: 5
+# source: AgentBench benchmark -- knowledge retrieval task -- inspired by AgentBench
+steps:
+  - id: receive_user_query
+    op: fetch_api
+    params:
+      endpoint: "/agent/query"
+    output: user_query
+
+  - id: embed_query
+    op: transform_json
+    params:
+      input: "user_query"
+      transformation: "to_embedding"
+    output: query_embedding
+
+  - id: search_knowledge_base
+    op: fetch_api
+    params:
+      endpoint: "/kb/search"
+    output: search_results
+
+  - id: merge_with_context
+    op: merge_datasets
+    params:
+      input: "search_results"
+      secondary: "query_embedding"
+    output: merged_context
+
+  - id: format_response
+    op: format_output
+    params:
+      input: "merged_context"
+      template: "answer_format"
+    output: final_response

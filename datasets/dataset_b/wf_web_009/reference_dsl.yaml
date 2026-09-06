@@ -1,0 +1,27 @@
+workflow_id: wf_web_009
+# domain: web_automation
+# complexity: 3
+# has_security_constraint: false
+# primitive_count: 3
+# source: WebArena benchmark -- content moderation task -- inspired by WebArena
+steps:
+  - id: fetch_post
+    op: fetch_api
+    params:
+      endpoint: "/moderation/queue"
+    output: post_data
+
+  - id: classify_post
+    op: apply_rule
+    params:
+      input: "post_data"
+      rule: "moderation_rule"
+    output: moderation_decision
+
+  - id: route_to_queue
+    op: route_to_step
+    params:
+      input: "moderation_decision"
+      condition: "moderation_decision = true"
+      branch_true: "approve_queue"
+      branch_false: "reject_queue"

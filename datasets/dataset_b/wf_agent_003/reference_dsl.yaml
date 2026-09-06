@@ -1,0 +1,19 @@
+workflow_id: wf_agent_003
+# domain: agent_tasks
+# complexity: 1
+# has_security_constraint: false
+# primitive_count: 2
+# source: AgentBench benchmark -- knowledge graph task -- inspired by AgentBench
+steps:
+  - id: fetch_kg_node
+    op: fetch_api
+    params:
+      endpoint: "/kg/node"
+    output: node_data
+
+  - id: extract_node_fields
+    op: extract_field
+    params:
+      input: "node_data"
+      field: "requested_fields"
+    output: extracted_fields

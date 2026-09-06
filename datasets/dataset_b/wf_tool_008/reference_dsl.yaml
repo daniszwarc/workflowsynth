@@ -1,0 +1,39 @@
+workflow_id: wf_tool_008
+# domain: api_integration
+# complexity: 3
+# has_security_constraint: false
+# primitive_count: 5
+# source: ToolLLM benchmark -- multi-API chain task -- inspired by ToolLLM
+steps:
+  - id: call_api_one
+    op: fetch_api
+    params:
+      endpoint: "/tools/chain/one"
+    output: api_one_data
+
+  - id: call_api_two
+    op: fetch_api
+    params:
+      endpoint: "/tools/chain/two"
+    output: api_two_data
+
+  - id: call_api_three
+    op: fetch_api
+    params:
+      endpoint: "/tools/chain/three"
+    output: api_three_data
+
+  - id: merge_chain_results
+    op: merge_datasets
+    params:
+      input: "api_one_data"
+      secondary: "api_two_data"
+      tertiary: "api_three_data"
+    output: merged_chain_data
+
+  - id: transform_final_output
+    op: transform_json
+    params:
+      input: "merged_chain_data"
+      transformation: "to_final_format"
+    output: final_output

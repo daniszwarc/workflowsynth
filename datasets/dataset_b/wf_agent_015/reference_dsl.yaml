@@ -1,0 +1,84 @@
+workflow_id: wf_agent_015
+# domain: agent_tasks
+# complexity: 5
+# has_security_constraint: true
+# primitive_count: 12
+# source: AgentBench benchmark -- complex reasoning task -- inspired by AgentBench
+steps:
+  - id: fetch_reasoning_batch
+    op: fetch_api
+    params:
+      endpoint: "/agent/batches/pending"
+    output: reasoning_batch
+
+  - id: loop_over_batch
+    op: loop_records
+    params:
+      input: "reasoning_batch"
+
+  - id: apply_reasoning_rule
+    op: apply_rule
+    params:
+      input: "reasoning_batch"
+      rule: "multi_step_reasoning"
+    output: reasoning_flag
+
+  - id: collect_reasoning_outcomes
+    op: transform_json
+    params:
+      input: "reasoning_batch"
+      transformation: "collect_reasoning_outcomes"
+    output: reasoning_results
+
+  - id: aggregate_reasoning_results
+    op: aggregate_data
+    params:
+      input: "reasoning_results"
+    output: aggregated_reasoning
+
+  - id: apply_security_validation
+    op: apply_rule
+    params:
+      input: "aggregated_reasoning"
+      rule: "security_validation"
+    output: security_check
+
+  - id: extract_flagged_fields
+    op: extract_field
+    params:
+      input: "security_check"
+      field: "sensitive_fields"
+    output: flagged_fields
+
+  - id: authenticate_reasoning_service
+    op: authenticate_user
+    params:
+      role: "reasoning_service"
+    output: auth_result
+
+  - id: encrypt_reasoning_results
+    op: encrypt_field
+    params:
+      input: "flagged_fields"
+      field: "sensitive_fields"
+    output: encrypted_reasoning_results
+
+  - id: store_encrypted_reasoning
+    op: write_database
+    params:
+      input: "encrypted_reasoning_results"
+      table: "reasoning_results"
+    output: reasoning_write_result
+
+  - id: notify_reasoning_stakeholders
+    op: notify_user
+    params:
+      input: "reasoning_write_result"
+      recipient: "reasoning_stakeholders"
+      message: "Batch reasoning completed"
+
+  - id: log_reasoning_run
+    op: log_audit
+    params:
+      input: "reasoning_write_result"
+      action: "reasoning_batch_completed"

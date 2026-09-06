@@ -1,0 +1,33 @@
+workflow_id: wf_agent_004
+# domain: agent_tasks
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 4
+# source: AgentBench benchmark -- database task -- inspired by AgentBench
+steps:
+  - id: read_source_records
+    op: read_database
+    params:
+      table: "source_table"
+      filter: "status = 'pending'"
+    output: source_records
+
+  - id: transform_source_records
+    op: transform_json
+    params:
+      input: "source_records"
+      transformation: "to_target_format"
+    output: transformed_records
+
+  - id: authenticate_migration_service
+    op: authenticate_user
+    params:
+      role: "migration_service"
+    output: auth_result
+
+  - id: write_target_records
+    op: write_database
+    params:
+      input: "transformed_records"
+      table: "target_table"
+    output: write_result

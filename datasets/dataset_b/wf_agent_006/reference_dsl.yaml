@@ -1,0 +1,19 @@
+workflow_id: wf_agent_006
+# domain: agent_tasks
+# complexity: 2
+# has_security_constraint: false
+# primitive_count: 2
+# source: AgentBench benchmark -- knowledge base task -- inspired by AgentBench
+steps:
+  - id: fetch_kb_candidates
+    op: fetch_api
+    params:
+      endpoint: "/kb/candidates"
+    output: candidate_results
+
+  - id: filter_ranked_results
+    op: filter_records
+    params:
+      input: "candidate_results"
+      criteria: "relevance_threshold"
+    output: ranked_results

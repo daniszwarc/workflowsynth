@@ -1,0 +1,19 @@
+workflow_id: wf_gaia_003
+# domain: general_ai
+# complexity: 1
+# has_security_constraint: false
+# primitive_count: 2
+# source: GAIA benchmark -- level 1 tool-use task -- inspired by GAIA
+steps:
+  - id: search_kb
+    op: fetch_api
+    params:
+      endpoint: "/kb/search"
+    output: search_results
+
+  - id: extract_top_result
+    op: extract_field
+    params:
+      input: "search_results"
+      field: "top"
+    output: top_result

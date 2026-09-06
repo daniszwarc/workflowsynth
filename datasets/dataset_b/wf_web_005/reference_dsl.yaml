@@ -1,0 +1,46 @@
+workflow_id: wf_web_005
+# domain: web_automation
+# complexity: 2
+# has_security_constraint: true
+# primitive_count: 6
+# source: WebArena benchmark -- forums task -- inspired by WebArena
+steps:
+  - id: receive_comment
+    op: fetch_api
+    params:
+      endpoint: "/forums/comments/new"
+    output: comment_payload
+
+  - id: validate_comment
+    op: validate_schema
+    params:
+      input: "comment_payload"
+      schema: "comment_schema"
+    output: validated_comment
+
+  - id: authenticate_poster
+    op: authenticate_user
+    params:
+      role: "forum_member"
+    output: auth_result
+
+  - id: publish_comment
+    op: call_webhook
+    params:
+      input: "validated_comment"
+      url: "https://forum.example.com/api/comments"
+    output: publish_result
+
+  - id: extract_publish_status
+    op: extract_field
+    params:
+      input: "publish_result"
+      field: "status"
+    output: publish_status
+
+  - id: notify_moderators
+    op: notify_user
+    params:
+      input: "publish_status"
+      recipient: "moderation_team"
+      message: "New comment needs review"
