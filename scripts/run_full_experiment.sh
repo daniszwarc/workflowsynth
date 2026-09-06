@@ -16,7 +16,9 @@ BUDGET=55
 check_spend() {
   $PYTHON -c "
 import json, glob
-files = glob.glob('results/session_09/**/*.json', recursive=True)
+# Per-task result files only -- top-level summary_*.json files aggregate the
+# same tokens per condition, so including them here would double-count spend.
+files = glob.glob('results/session_09/*/*.json')
 if not files:
     print('No results yet.')
 else:
