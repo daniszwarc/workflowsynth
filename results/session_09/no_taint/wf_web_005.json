@@ -1,0 +1,55 @@
+{
+  "task_id": "wf_web_005",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 6.60947516746819,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: forum_comment_posting_with_moderator_alert\nsteps:\n  - id: fetch_comment_payload\n    op: fetch_api\n    params:\n      endpoint: \"/api/forum/comments/submitted\"\n    output: raw_comment\n\n  - id: validate_comment\n    op: validate_schema\n    params:\n      input: raw_comment\n      schema: comment_schema\n    output: validated_comment\n\n  - id: authenticate_poster\n    op: authenticate_user\n    params:\n      role: \"forum_user\"\n    output: auth_result\n\n  - id: publish_comment\n    op: write_database\n    params:\n      input: validated_comment\n      table: forum_comments\n    output: publish_response\n\n  - id: extract_publish_status\n    op: extract_field\n    params:\n      input: publish_response\n      field: \"publish_status\"\n    output: publish_status\n\n  - id: notify_moderation_team\n    op: notify_user\n    params:\n      input: publish_status\n      recipient: \"moderation_team\"\n      message: \"A new forum comment has been posted and requires review.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_005.py::test_parses_and_type_checks": true,
+        "test_wf_web_005.py::test_passes_taint_analysis": true,
+        "test_wf_web_005.py::test_auth_before_publish": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1098,
+      "output_tokens": 277
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: forum_comment_posting_with_moderator_alert\nsteps:\n  - id: fetch_comment_payload\n    op: fetch_api\n    params:\n      endpoint: \"/api/forum/comments/submitted\"\n    output: raw_comment\n\n  - id: validate_comment\n    op: validate_schema\n    params:\n      input: raw_comment\n      schema: comment_schema\n    output: validated_comment\n\n  - id: authenticate_poster\n    op: authenticate_user\n    params:\n      role: \"forum_user\"\n    output: auth_result\n\n  - id: publish_comment\n    op: call_webhook\n    params:\n      input: validated_comment\n      url: \"/api/forum/comments/publish\"\n    output: publish_response\n\n  - id: extract_publish_status\n    op: extract_field\n    params:\n      input: publish_response\n      field: \"publish_status\"\n    output: publish_status\n\n  - id: notify_moderation_team\n    op: notify_user\n    params:\n      input: publish_status\n      recipient: \"moderation_team\"\n      message: \"A new forum comment has been posted and requires review.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_005.py::test_parses_and_type_checks": true,
+        "test_wf_web_005.py::test_passes_taint_analysis": true,
+        "test_wf_web_005.py::test_auth_before_publish": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1457,
+      "output_tokens": 283
+    }
+  ],
+  "complexity": 2,
+  "domain": "web_automation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 2555,
+  "total_output_tokens": 560
+}

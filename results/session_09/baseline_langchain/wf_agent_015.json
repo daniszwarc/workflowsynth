@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_agent_015",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 25.351132665760815,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_agent_015\nsteps:\n  - id: fetch_batch\n    op: read_database\n    params:\n      source: batch_queue\n      query: \"SELECT * FROM pending_records WHERE status = 'queued'\"\n    output: batch_records\n\n  - id: loop_records\n    op: loop_records\n    params:\n      collection: \"{{batch_records}}\"\n      steps:\n        - id: apply_reasoning_rule\n          op: apply_rule\n          params:\n            rule_id: multi_step_reasoning\n            input: \"{{item}}\"\n          output: rule_outcome\n        - id: transform_outcome\n          op: transform_json\n          params:\n            input: \"{{rule_outcome}}\"\n            mapping:\n              record_id: \"{{item.id}}\"\n              result: \"{{rule_outcome.result}}\"\n              flags: \"{{rule_outcome.flags}}\"\n          output: collected_result\n    output: collected_results\n\n  - id: aggregate_results\n    op: aggregate_data\n    params:\n      input: \"{{collected_results}}\"\n      strategy: merge_all\n    output: aggregated_results\n\n  - id: security_validation\n    op: apply_rule\n    params:\n      rule_id: security_validation\n      input: \"{{aggregated_results}}\"\n    output: security_report\n\n  - id: extract_sensitive_fields\n    op: extract_field\n    params:\n      input: \"{{security_report}}\"\n      fields:\n        - sensitive_data\n        - flagged_fields\n    output: sensitive_fields\n\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      service_id: reasoning_service\n      method: service_account\n    output: auth_token\n\n  - id: encrypt_sensitive\n    op: encrypt_field\n    params:\n      input: \"{{sensitive_fields}}\"\n      algorithm: AES-256\n      key_ref: reasoning_service_key\n    output: encrypted_fields\n\n  - id: store_results\n    op: write_database\n    params:\n      target: encrypted_results_store\n      data:\n        aggregated: \"{{aggregated_results}}\"\n        encrypted_sensitive: \"{{encrypted_fields}}\"\n      auth_token: \"{{auth_token}}\"\n    output: storage_confirmation\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      recipients:\n        - stakeholders_group\n      subject: \"Batch Reasoning Run Complete\"\n      message: \"The batch reasoning job has completed. Results stored successfully.\"\n      reference: \"{{storage_confirmation.run_id}}\"\n\n  - id: audit_log\n    op: log_audit\n    params:\n      action: batch_reasoning_complete\n      details:\n        batch_size: \"{{batch_records.length}}\"\n        security_status: \"{{security_report.status}}\"\n        storage_ref: \"{{storage_confirmation.run_id}}\"\n      timestamp: \"{{now}}\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_015.py::test_parses_and_type_checks": false,
+        "test_wf_agent_015.py::test_passes_taint_analysis": true,
+        "test_wf_agent_015.py::test_security_before_encrypt": true,
+        "test_wf_agent_015.py::test_encrypt_before_store": true,
+        "test_wf_agent_015.py::test_has_loop": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 5,
+  "domain": "agent_tasks",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

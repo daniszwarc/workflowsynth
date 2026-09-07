@@ -1,0 +1,55 @@
+{
+  "task_id": "wf_agent_006",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 4.762355666607618,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: knowledge_base_ranked_search\nsteps:\n  - id: fetch_candidates\n    op: read_database\n    params:\n      table: knowledge_base\n      query: \"SELECT * FROM knowledge_base ORDER BY relevance_score DESC\"\n    output: raw_candidates\n\n  - id: validate_candidates\n    op: validate_schema\n    params:\n      input: raw_candidates\n      schema: knowledge_base_entry_schema\n    output: validated_candidates\n\n  - id: filter_by_relevance\n    op: filter_records\n    params:\n      input: validated_candidates\n      condition: \"relevance_score >= relevance_threshold\"\n      order_by: \"relevance_score DESC\"\n    output: ranked_results\n\n  - id: format_ranked_results\n    op: format_output\n    params:\n      input: ranked_results\n      format: json\n    output: final_results",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_006.py::test_parses_and_type_checks": true,
+        "test_wf_agent_006.py::test_passes_taint_analysis": true,
+        "test_wf_agent_006.py::test_has_fetch_and_filter": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1037,
+      "output_tokens": 217
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: knowledge_base_ranked_search\nsteps:\n  - id: fetch_candidates\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge_base/search\"\n    output: raw_candidates\n\n  - id: validate_candidates\n    op: validate_schema\n    params:\n      input: raw_candidates\n      schema: knowledge_base_entry_schema\n    output: validated_candidates\n\n  - id: filter_by_relevance\n    op: filter_records\n    params:\n      input: validated_candidates\n      condition: \"relevance_score >= relevance_threshold\"\n      order_by: \"relevance_score DESC\"\n    output: ranked_results\n\n  - id: format_ranked_results\n    op: format_output\n    params:\n      input: ranked_results\n      format: json\n    output: final_results",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_006.py::test_parses_and_type_checks": true,
+        "test_wf_agent_006.py::test_passes_taint_analysis": true,
+        "test_wf_agent_006.py::test_has_fetch_and_filter": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1338,
+      "output_tokens": 204
+    }
+  ],
+  "complexity": 2,
+  "domain": "agent_tasks",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 2375,
+  "total_output_tokens": 421
+}

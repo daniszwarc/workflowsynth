@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_web_006",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 16.189005667343736,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_web_006\nsteps:\n  - id: fetch_article_draft\n    op: fetch_api\n    params:\n      endpoint: \"/cms/articles/drafts\"\n      method: GET\n      query:\n        article_id: \"{{trigger.article_id}}\"\n    output: article_draft\n\n  - id: validate_article_schema\n    op: validate_schema\n    params:\n      input: \"{{article_draft}}\"\n      schema: article_schema\n    output: validation_result\n\n  - id: authenticate_publisher\n    op: authenticate_user\n    params:\n      service: publishing_service\n      method: service_account\n    output: auth_token\n\n  - id: publish_article\n    op: call_webhook\n    params:\n      url: \"/cms/articles/publish\"\n      method: POST\n      headers:\n        Authorization: \"Bearer {{auth_token}}\"\n      body:\n        article: \"{{article_draft}}\"\n    output: publish_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_006.py::test_parses_and_type_checks": false,
+        "test_wf_web_006.py::test_passes_taint_analysis": true,
+        "test_wf_web_006.py::test_auth_before_publish": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "web_automation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

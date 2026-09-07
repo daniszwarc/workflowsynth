@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_gaia_004",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 15.18643462471664,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_gaia_004\nsteps:\n  - id: fetch_form_payload\n    op: fetch_api\n    params:\n      endpoint: \"/public/intake\"\n      method: POST\n    output: form_payload\n\n  - id: validate_form_schema\n    op: validate_schema\n    params:\n      input: \"{{form_payload}}\"\n      schema: intake_form_schema\n    output: validated_payload\n\n  - id: authenticate_intake_service\n    op: authenticate_user\n    params:\n      service_id: intake_service\n      auth_method: service_account\n    output: auth_token\n\n  - id: store_validated_data\n    op: write_database\n    params:\n      table: intake_submissions\n      data: \"{{validated_payload}}\"\n      auth: \"{{auth_token}}\"\n    output: write_confirmation",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_004.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_004.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_004.py::test_has_validation_before_store": true,
+        "test_wf_gaia_004.py::test_has_auth_before_store": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 1,
+  "domain": "general_ai",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

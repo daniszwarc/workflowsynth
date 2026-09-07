@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_agent_001",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 19.239819791167974,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_agent_001\nsteps:\n  - id: read_config\n    op: fetch_api\n    params:\n      source: \"file://config.yaml\"\n      description: \"Read the configuration file contents at service startup\"\n    output: config_data\n\n  - id: validate_config\n    op: validate_schema\n    params:\n      input: \"{{config_data}}\"\n      schema: \"expected_config_schema\"\n      strict: true\n      description: \"Validate configuration against its expected schema\"\n    output: validation_result\n\n  - id: handle_validation_failure\n    op: handle_error\n    params:\n      condition: \"{{validation_result.valid}} == false\"\n      message: \"Configuration validation failed: {{validation_result.errors}}\"\n      action: \"abort\"\n    output: error_details\n\n  - id: terminate_on_invalid\n    op: terminate_workflow\n    params:\n      trigger_on: \"{{validation_result.valid}} == false\"\n      reason: \"Service must not proceed with a configuration that fails validation\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_001.py::test_parses_and_type_checks": false,
+        "test_wf_agent_001.py::test_passes_taint_analysis": true,
+        "test_wf_agent_001.py::test_has_validate": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 1,
+  "domain": "agent_tasks",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

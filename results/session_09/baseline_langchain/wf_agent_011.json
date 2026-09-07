@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_agent_011",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 15.30167941749096,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_agent_011\nsteps:\n  - id: read_source\n    op: read_database\n    params:\n      table: source_table\n    output: source_records\n  - id: transform_records\n    op: transform_json\n    params:\n      input: \"{{source_records}}\"\n      mapping: target_schema_format\n    output: transformed_records\n  - id: validate_before_write\n    op: validate_schema\n    params:\n      data: \"{{transformed_records}}\"\n      schema: target_schema\n    output: validation_result_pre\n  - id: authenticate_migration\n    op: authenticate_user\n    params:\n      service: migration_service\n    output: auth_token\n  - id: write_target\n    op: write_database\n    params:\n      table: target_table\n      data: \"{{transformed_records}}\"\n      token: \"{{auth_token}}\"\n    output: write_result\n  - id: read_back_target\n    op: read_database\n    params:\n      table: target_table\n    output: migrated_records\n  - id: validate_after_write\n    op: validate_schema\n    params:\n      data: \"{{migrated_records}}\"\n      schema: target_schema\n    output: validation_result_post\n  - id: log_migration\n    op: log_audit\n    params:\n      action: database_migration\n      source: source_table\n      target: target_table\n      validation_pre: \"{{validation_result_pre}}\"\n      validation_post: \"{{validation_result_post}}\"\n      write_result: \"{{write_result}}\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_011.py::test_parses_and_type_checks": false,
+        "test_wf_agent_011.py::test_passes_taint_analysis": true,
+        "test_wf_agent_011.py::test_validate_before_and_after_write": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 4,
+  "domain": "agent_tasks",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

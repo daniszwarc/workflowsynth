@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_gaia_015",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 41.30214654188603,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_gaia_015\nsteps:\n  - id: fetch_source_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/source-data\"\n      method: GET\n    output: source_data\n\n  - id: classify_data\n    op: apply_rule\n    params:\n      input: \"{{source_data}}\"\n      rule: classification_rule\n    output: classification_result\n\n  - id: route_request\n    op: route_to_step\n    params:\n      input: \"{{classification_result}}\"\n      routes:\n        high: process_high_path\n        medium: process_medium_path\n        low: process_low_path\n    output: routed_data\n\n  - id: transform_data\n    op: transform_json\n    params:\n      input: \"{{routed_data}}\"\n      mapping: canonical_output_format\n    output: transformed_data\n\n  - id: validate_transformed\n    op: validate_schema\n    params:\n      input: \"{{transformed_data}}\"\n      schema: canonical_output_schema\n    output: validation_result\n\n  - id: authenticate_pipeline\n    op: authenticate_user\n    params:\n      identity: pipeline_service\n      method: service_account\n    output: auth_token\n\n  - id: store_result\n    op: write_database\n    params:\n      table: pipeline_results\n      data: \"{{transformed_data}}\"\n      auth: \"{{auth_token}}\"\n    output: write_confirmation\n\n  - id: notify_stakeholder\n    op: notify_user\n    params:\n      recipient: stakeholder\n      message: \"Pipeline run completed successfully for request.\"\n      channel: email\n    output: notification_status\n\n  - id: log_audit_trail\n    op: log_audit\n    params:\n      event: pipeline_run_complete\n      details:\n        source_data: \"{{source_data}}\"\n        classification: \"{{classification_result}}\"\n        routed_data: \"{{routed_data}}\"\n        transformed_data: \"{{transformed_data}}\"\n        validation: \"{{validation_result}}\"\n        write_confirmation: \"{{write_confirmation}}\"\n        notification_status: \"{{notification_status}}\"\n    output: audit_log_id",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_015.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_015.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_015.py::test_verify_before_store": true,
+        "test_wf_gaia_015.py::test_notify_and_log_present": true,
+        "test_wf_gaia_015.py::test_classify_before_route": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 5,
+  "domain": "general_ai",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

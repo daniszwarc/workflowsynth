@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_web_008",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 21.224142000079155,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The YAML is valid. Here is the final workflow:\n\nworkflow_id: wf_web_008\nsteps:\n  - id: fetch_cart\n    op: fetch_api\n    params:\n      endpoint: \"/api/cart\"\n      method: GET\n    output: cart_contents\n\n  - id: validate_cart\n    op: validate_schema\n    params:\n      input: \"{{cart_contents}}\"\n      schema: checkout_schema\n    output: validation_result\n\n  - id: apply_promo\n    op: apply_rule\n    params:\n      input: \"{{cart_contents}}\"\n      rule: promo_code_discount\n      condition: \"{{cart_contents.promo_code != null}}\"\n    output: discounted_cart\n\n  - id: authenticate_shopper\n    op: authenticate_user\n    params:\n      user_id: \"{{cart_contents.shopper_id}}\"\n      method: session_token\n    output: auth_result\n\n  - id: process_order\n    op: call_webhook\n    params:\n      url: \"/api/orders/process\"\n      method: POST\n      payload:\n        cart: \"{{discounted_cart}}\"\n        auth: \"{{auth_result}}\"\n    output: order_result\n\n  - id: notify_customer\n    op: notify_user\n    params:\n      recipient: \"{{cart_contents.shopper_id}}\"\n      template: order_confirmation\n      message: \"Your order {{order_result.order_id}} has been placed successfully.\"\n      channel: email\n    output: notification_status",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_008.py::test_parses_and_type_checks": false,
+        "test_wf_web_008.py::test_passes_taint_analysis": true,
+        "test_wf_web_008.py::test_validate_before_promo": true,
+        "test_wf_web_008.py::test_auth_before_process": false
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "web_automation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

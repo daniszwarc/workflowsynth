@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_web_011",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6404411252588034,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: low_stock_inventory_alert\nsteps:\n  - id: fetch_stock_level\n    op: fetch_api\n    params:\n      endpoint: \"/api/inventory/current_stock\"\n    output: raw_stock_data\n\n  - id: validate_stock_data\n    op: validate_schema\n    params:\n      input: raw_stock_data\n      schema: inventory_schema\n    output: validated_stock_data\n\n  - id: apply_low_stock_rule\n    op: apply_rule\n    params:\n      input: validated_stock_data\n      rule: \"stock_quantity < low_stock_threshold\"\n    output: low_stock_result\n\n  - id: check_low_stock\n    op: route_to_step\n    params:\n      condition: \"low_stock_result.is_low_stock == true\"\n      target: notify_inventory_team\n      fallback: end_workflow\n\n  - id: notify_inventory_team\n    op: notify_user\n    params:\n      input: validated_stock_data\n      recipient: \"inventory_team\"\n      message: \"Low stock alert: product stock has fallen below the threshold.\"\n    output: notification_result\n\n  - id: end_workflow\n    op: terminate_workflow\n    params:\n      status: \"completed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_011.py::test_parses_and_type_checks": true,
+        "test_wf_web_011.py::test_passes_taint_analysis": true,
+        "test_wf_web_011.py::test_threshold_before_notify": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1073,
+      "output_tokens": 310
+    }
+  ],
+  "complexity": 3,
+  "domain": "web_automation",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1073,
+  "total_output_tokens": 310
+}

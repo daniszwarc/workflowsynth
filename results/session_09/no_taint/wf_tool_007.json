@@ -1,0 +1,66 @@
+{
+  "task_id": "wf_tool_007",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 3,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 2,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 9.652685540728271,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: authenticated_paginated_aggregation\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_consumer\"\n    output: auth_result\n\n  - id: step_fetch_paginated_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/paginated-results\"\n      pagination: true\n    output: raw_paginated_data\n\n  - id: step_validate_paginated_data\n    op: validate_schema\n    params:\n      input: raw_paginated_data\n      schema: paginated_results_schema\n    output: validated_paginated_data\n\n  - id: step_aggregate_summary\n    op: aggregate_data\n    params:\n      input: validated_paginated_data\n      group_by: null\n      operations:\n        - type: \"summary\"\n    output: aggregated_summary\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: aggregated_summary\n      format: \"json\"\n    output: formatted_summary\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_summary\n      action: \"paginated_aggregation_completed\"\n      message: \"Aggregated summary generated from paginated API results\"",
+      "dsl_type_errors": [
+        "Step 'step_format_summary': op 'format_output' requires input of type 'records' but 'aggregated_summary' has type 'record'. Make sure the step producing 'aggregated_summary' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1050,
+      "output_tokens": 315
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: authenticated_paginated_aggregation\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_consumer\"\n    output: auth_result\n\n  - id: step_fetch_paginated_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/paginated-results\"\n      pagination: true\n    output: raw_paginated_data\n\n  - id: step_validate_paginated_data\n    op: validate_schema\n    params:\n      input: raw_paginated_data\n      schema: paginated_results_schema\n    output: validated_paginated_data\n\n  - id: step_aggregate_summary\n    op: aggregate_data\n    params:\n      input: validated_paginated_data\n      group_by: null\n      operations:\n        - type: \"summary\"\n    output: aggregated_summary\n\n  - id: step_transform_summary\n    op: transform_json\n    params:\n      input: aggregated_summary\n      mapping:\n        summary: \"$.summary\"\n    output: transformed_summary\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: transformed_summary\n      action: \"paginated_aggregation_completed\"\n      message: \"Aggregated summary generated from paginated API results\"",
+      "dsl_type_errors": [
+        "Step 'step_transform_summary': op 'transform_json' requires input of type 'records' but 'aggregated_summary' has type 'record'. Make sure the step producing 'aggregated_summary' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1513,
+      "output_tokens": 320
+    },
+    {
+      "attempt_number": 2,
+      "llm_sketch": "workflow_id: authenticated_paginated_aggregation\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_consumer\"\n    output: auth_result\n\n  - id: step_fetch_paginated_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/paginated-results\"\n      pagination: true\n    output: raw_paginated_data\n\n  - id: step_validate_paginated_data\n    op: validate_schema\n    params:\n      input: raw_paginated_data\n      schema: paginated_results_schema\n    output: validated_paginated_data\n\n  - id: step_aggregate_summary\n    op: aggregate_data\n    params:\n      input: validated_paginated_data\n      group_by: null\n      operations:\n        - type: \"summary\"\n    output: aggregated_summary\n\n  - id: step_extract_summary\n    op: extract_field\n    params:\n      input: aggregated_summary\n      field: \"summary\"\n    output: extracted_summary\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: extracted_summary\n      action: \"paginated_aggregation_completed\"\n      message: \"Aggregated summary generated from paginated API results\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_007.py::test_parses_and_type_checks": true,
+        "test_wf_tool_007.py::test_passes_taint_analysis": true,
+        "test_wf_tool_007.py::test_auth_before_fetch": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1518,
+      "output_tokens": 315
+    }
+  ],
+  "complexity": 2,
+  "domain": "api_integration",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 4081,
+  "total_output_tokens": 950
+}

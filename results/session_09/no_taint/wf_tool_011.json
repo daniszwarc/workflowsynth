@@ -1,0 +1,55 @@
+{
+  "task_id": "wf_tool_011",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 4.941922875121236,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: primary_secondary_api_enrichment\nsteps:\n  - id: fetch_primary_record\n    op: fetch_api\n    params:\n      endpoint: \"/api/primary/record\"\n    output: raw_primary\n\n  - id: fetch_secondary_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/secondary/enrichment\"\n    output: raw_secondary\n\n  - id: sanitize_primary\n    op: validate_schema\n    params:\n      input: raw_primary\n      schema: primary_record_schema\n    output: validated_primary\n\n  - id: sanitize_secondary\n    op: validate_schema\n    params:\n      input: raw_secondary\n      schema: secondary_record_schema\n    output: validated_secondary\n\n  - id: merge_primary_secondary\n    op: merge_datasets\n    params:\n      input: validated_primary\n      secondary_input: validated_secondary\n      join_key: \"record_id\"\n    output: merged_record\n\n  - id: validate_enriched_result\n    op: validate_schema\n    params:\n      input: merged_record\n      schema: enriched_record_schema\n    output: enriched_result\n\n  - id: format_response\n    op: format_output\n    params:\n      input: enriched_result\n      format: \"json\"\n    output: final_output",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_011.py::test_parses_and_type_checks": true,
+        "test_wf_tool_011.py::test_passes_taint_analysis": true,
+        "test_wf_tool_011.py::test_merge_before_validate": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1070,
+      "output_tokens": 326
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: primary_secondary_api_enrichment\nsteps:\n  - id: fetch_primary_record\n    op: fetch_api\n    params:\n      endpoint: \"/api/primary/record\"\n    output: raw_primary\n\n  - id: fetch_secondary_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/secondary/enrichment\"\n    output: raw_secondary\n\n  - id: merge_primary_secondary\n    op: merge_datasets\n    params:\n      input: raw_primary\n      secondary_input: raw_secondary\n      join_key: \"record_id\"\n    output: merged_record\n\n  - id: validate_enriched_result\n    op: validate_schema\n    params:\n      input: merged_record\n      schema: enriched_record_schema\n    output: enriched_result\n\n  - id: format_response\n    op: format_output\n    params:\n      input: enriched_result\n      format: \"json\"\n    output: final_output",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_011.py::test_parses_and_type_checks": true,
+        "test_wf_tool_011.py::test_passes_taint_analysis": true,
+        "test_wf_tool_011.py::test_merge_before_validate": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1478,
+      "output_tokens": 240
+    }
+  ],
+  "complexity": 3,
+  "domain": "api_integration",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 2548,
+  "total_output_tokens": 566
+}

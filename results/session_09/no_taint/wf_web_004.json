@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_web_004",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6338145844638348,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: price_filtered_product_search\nsteps:\n  - id: step_fetch_products\n    op: fetch_api\n    params:\n      endpoint: \"/api/products/search\"\n      query_params:\n        q: \"{{search_query}}\"\n    output: raw_products\n\n  - id: step_validate_products\n    op: validate_schema\n    params:\n      input: raw_products\n      schema: product_search_results_schema\n    output: validated_products\n\n  - id: step_filter_by_price\n    op: filter_records\n    params:\n      input: validated_products\n      condition: \"price <= {{max_price}}\"\n    output: filtered_products\n\n  - id: step_format_results\n    op: format_output\n    params:\n      input: filtered_products\n      format: json\n    output: search_results",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_004.py::test_parses_and_type_checks": true,
+        "test_wf_web_004.py::test_passes_taint_analysis": true,
+        "test_wf_web_004.py::test_filter_after_search": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1036,
+      "output_tokens": 209
+    }
+  ],
+  "complexity": 2,
+  "domain": "web_automation",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1036,
+  "total_output_tokens": 209
+}

@@ -1,0 +1,54 @@
+{
+  "task_id": "wf_web_008",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 5.976383000612259,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: ecommerce_checkout_workflow\nsteps:\n  - id: fetch_cart\n    op: fetch_api\n    params:\n      endpoint: \"/api/cart/contents\"\n    output: raw_cart\n\n  - id: validate_cart\n    op: validate_schema\n    params:\n      input: raw_cart\n      schema: checkout_schema\n    output: validated_cart\n\n  - id: apply_promo_code\n    op: apply_rule\n    params:\n      input: validated_cart\n      rule: promo_code_rule\n    output: cart_with_promo\n\n  - id: authenticate_shopper\n    op: authenticate_user\n    params:\n      role: \"shopper\"\n    output: auth_result\n\n  - id: process_order\n    op: write_database\n    params:\n      input: cart_with_promo\n      table: orders\n    output: order_result\n\n  - id: format_notification\n    op: format_output\n    params:\n      input: order_result\n      format: notification_message\n    output: notification_payload\n\n  - id: notify_customer\n    op: notify_user\n    params:\n      input: notification_payload\n      template: order_confirmation\n    output: notification_result",
+      "dsl_type_errors": [
+        "Step 'format_notification': op 'format_output' requires input of type 'records' but 'order_result' has type 'none'. Make sure the step producing 'order_result' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1103,
+      "output_tokens": 299
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: ecommerce_checkout_workflow\nsteps:\n  - id: fetch_cart\n    op: fetch_api\n    params:\n      endpoint: \"/api/cart/contents\"\n    output: raw_cart\n\n  - id: validate_cart\n    op: validate_schema\n    params:\n      input: raw_cart\n      schema: checkout_schema\n    output: validated_cart\n\n  - id: apply_promo_code\n    op: apply_rule\n    params:\n      input: validated_cart\n      rule: promo_code_rule\n    output: cart_with_promo\n\n  - id: authenticate_shopper\n    op: authenticate_user\n    params:\n      role: \"shopper\"\n    output: auth_result\n\n  - id: process_order\n    op: write_database\n    params:\n      input: cart_with_promo\n      table: orders\n    output: order_write_result\n\n  - id: read_order\n    op: read_database\n    params:\n      table: orders\n      query: \"SELECT * FROM orders WHERE id = order_write_result.id\"\n    output: order_record\n\n  - id: transform_order\n    op: transform_json\n    params:\n      input: order_record\n      mapping:\n        status: \"placed\"\n        template: \"order_confirmation\"\n    output: order_notification_data\n\n  - id: notify_customer\n    op: notify_user\n    params:\n      input: order_notification_data\n      template: order_confirmation\n    output: notification_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_008.py::test_parses_and_type_checks": true,
+        "test_wf_web_008.py::test_passes_taint_analysis": true,
+        "test_wf_web_008.py::test_validate_before_promo": true,
+        "test_wf_web_008.py::test_auth_before_process": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1546,
+      "output_tokens": 369
+    }
+  ],
+  "complexity": 3,
+  "domain": "web_automation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 2649,
+  "total_output_tokens": 668
+}

@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_agent_014",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6821914575994015,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: full_agent_pipeline_three_sources\nsteps:\n  - id: read_agent_config\n    op: read_database\n    params:\n      table: agent_configuration\n      query: \"SELECT * FROM agent_configuration WHERE active = true LIMIT 1\"\n    output: raw_agent_config\n\n  - id: validate_agent_config\n    op: validate_schema\n    params:\n      input: raw_agent_config\n      schema: agent_config_schema\n    output: agent_config\n\n  - id: authenticate_agent\n    op: authenticate_user\n    params:\n      role: \"agent_service\"\n      credentials_from: agent_config\n    output: auth_result\n\n  - id: fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source-one/data\"\n    output: raw_source_one\n\n  - id: fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source-two/data\"\n    output: raw_source_two\n\n  - id: fetch_source_three\n    op: fetch_api\n    params:\n      endpoint: \"/api/source-three/data\"\n    output: raw_source_three\n\n  - id: sanitize_source_one\n    op: filter_records\n    params:\n      input: raw_source_one\n      condition: \"valid == true\"\n    output: clean_source_one\n\n  - id: sanitize_source_two\n    op: filter_records\n    params:\n      input: raw_source_two\n      condition: \"valid == true\"\n    output: clean_source_two\n\n  - id: sanitize_source_three\n    op: filter_records\n    params:\n      input: raw_source_three\n      condition: \"valid == true\"\n    output: clean_source_three\n\n  - id: merge_one_two\n    op: merge_datasets\n    params:\n      input: clean_source_one\n      secondary: clean_source_two\n      key: \"record_id\"\n    output: merged_one_two\n\n  - id: merge_all_sources\n    op: merge_datasets\n    params:\n      input: merged_one_two\n      secondary: clean_source_three\n      key: \"record_id\"\n    output: combined_data\n\n  - id: classify_context\n    op: apply_rule\n    params:\n      rule: \"classify_combined_context\"\n      input_data: combined_data\n    output: classification_result\n\n  - id: route_on_classification\n    op: route_to_step\n    params:\n      condition: classification_result\n      routes:\n        high_priority: transform_high_priority\n        standard: transform_standard\n    output: routed_step\n\n  - id: transform_high_priority\n    op: transform_json\n    params:\n      input: combined_data\n      mapping:\n        priority: \"high\"\n        format: \"storage_v2\"\n    output: transformed_data\n\n  - id: transform_standard\n    op: transform_json\n    params:\n      input: combined_data\n      mapping:\n        priority: \"standard\"\n        format: \"storage_v1\"\n    output: transformed_data\n\n  - id: validate_transformed\n    op: validate_schema\n    params:\n      input: transformed_data\n      schema: storage_record_schema\n    output: validated_data\n\n  - id: store_result\n    op: write_database\n    params:\n      input: validated_data\n      table: agent_results\n    output: write_result\n\n  - id: prepare_audit_entry\n    op: extract_field\n    params:\n      input: validated_data\n      field: \"audit_summary\"\n    output: audit_summary\n\n  - id: log_agent_run\n    op: log_audit\n    params:\n      input: audit_summary\n      event: \"agent_pipeline_completed\"\n      details:\n        classification: classification_result\n        write_status: write_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_014.py::test_parses_and_type_checks": true,
+        "test_wf_agent_014.py::test_passes_taint_analysis": true,
+        "test_wf_agent_014.py::test_auth_before_write": true,
+        "test_wf_agent_014.py::test_validate_before_store": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1153,
+      "output_tokens": 955
+    }
+  ],
+  "complexity": 5,
+  "domain": "agent_tasks",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1153,
+  "total_output_tokens": 955
+}

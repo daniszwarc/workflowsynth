@@ -1,0 +1,195 @@
+{
+  "task_id": "wf_agent_015",
+  "condition": "no_verify",
+  "success": false,
+  "attempts_used": 10,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 75.30246050003916,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: complex_reasoning_with_encrypted_storage\nsteps:\n  - id: fetch_batch_records\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued-records\"\n    output: raw_batch_records\n\n  - id: validate_batch_records\n    op: validate_schema\n    params:\n      input: raw_batch_records\n      schema: batch_records_schema\n    output: validated_batch_records\n\n  - id: loop_over_records\n    op: loop_records\n    params:\n      input: validated_batch_records\n      step: apply_reasoning_rule\n    output: per_record_outcomes\n\n  - id: apply_reasoning_rule\n    op: apply_rule\n    params:\n      input: validated_batch_records\n      rule: multi_step_reasoning_rule\n    output: rule_outcomes\n\n  - id: transform_rule_outcomes\n    op: transform_json\n    params:\n      input: per_record_outcomes\n      mapping: collected_results_format\n    output: collected_results\n\n  - id: aggregate_collected_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: batch_id\n      summarise:\n        - field: outcome\n          function: collect\n    output: aggregated_results\n\n  - id: apply_security_validation\n    op: apply_rule\n    params:\n      input: aggregated_results\n      rule: security_validation_rule\n    output: security_validated_results\n\n  - id: extract_sensitive_fields\n    op: extract_field\n    params:\n      input: security_validated_results\n      field: sensitive_fields\n    output: sensitive_fields\n\n  - id: authenticate_reasoning_service\n    op: authenticate_user\n    params:\n      role: reasoning_service\n    output: auth_result\n\n  - id: encrypt_sensitive_fields\n    op: encrypt_field\n    params:\n      input: sensitive_fields\n      field: all\n    output: encrypted_sensitive_fields\n\n  - id: merge_encrypted_with_aggregated\n    op: merge_datasets\n    params:\n      input: aggregated_results\n      secondary: encrypted_sensitive_fields\n      key: batch_id\n    output: encrypted_aggregated_results\n\n  - id: store_encrypted_results\n    op: write_database\n    params:\n      input: encrypted_aggregated_results\n      table: batch_reasoning_results\n    output: write_result\n\n  - id: format_notification\n    op: format_output\n    params:\n      input: encrypted_aggregated_results\n      format: notification_summary\n    output: notification_payload\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      input: notification_payload\n      recipient: stakeholders\n      message: \"Batch reasoning run completed successfully.\"\n    output: notification_result\n\n  - id: log_batch_audit\n    op: log_audit\n    params:\n      input: notification_payload\n      event: batch_reasoning_run_completed\n      details:\n        batch_id: batch_id\n        status: completed\n    output: audit_log_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_015.py::test_parses_and_type_checks": false,
+        "test_wf_agent_015.py::test_passes_taint_analysis": true,
+        "test_wf_agent_015.py::test_security_before_encrypt": true,
+        "test_wf_agent_015.py::test_encrypt_before_store": true,
+        "test_wf_agent_015.py::test_has_loop": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1191,
+      "output_tokens": 748
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: complex_reasoning_with_encrypted_storage\nsteps:\n  - id: fetch_batch_records\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued-records\"\n    output: raw_batch_records\n\n  - id: validate_batch_records\n    op: validate_schema\n    params:\n      input: raw_batch_records\n      schema: batch_records_schema\n    output: validated_batch_records\n\n  - id: loop_over_records\n    op: loop_records\n    params:\n      input: validated_batch_records\n      step: apply_reasoning_rule\n    output: per_record_outcomes\n\n  - id: apply_reasoning_rule\n    op: apply_rule\n    params:\n      rule: multi_step_reasoning_rule\n    output: rule_outcome\n\n  - id: transform_rule_outcomes\n    op: transform_json\n    params:\n      input: per_record_outcomes\n      mapping: collected_results_format\n    output: collected_results\n\n  - id: aggregate_collected_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: batch_id\n      summarise:\n        - field: outcome\n          function: collect\n    output: aggregated_results\n\n  - id: apply_security_validation\n    op: apply_rule\n    params:\n      rule: security_validation_rule\n    output: security_validated_results\n\n  - id: extract_sensitive_fields\n    op: extract_field\n    params:\n      input: security_validated_results\n      field: sensitive_fields\n    output: sensitive_fields\n\n  - id: authenticate_reasoning_service\n    op: authenticate_user\n    params:\n      role: reasoning_service\n    output: auth_result\n\n  - id: encrypt_sensitive_fields\n    op: encrypt_field\n    params:\n      input: sensitive_fields\n      field: all\n    output: encrypted_sensitive_fields\n\n  - id: merge_encrypted_with_aggregated\n    op: merge_datasets\n    params:\n      input: aggregated_results\n      secondary: encrypted_sensitive_fields\n      key: batch_id\n    output: encrypted_aggregated_results\n\n  - id: filter_for_storage\n    op: filter_records\n    params:\n      input: encrypted_aggregated_results\n      condition: \"status != null\"\n    output: filtered_encrypted_results\n\n  - id: store_encrypted_results\n    op: write_database\n    params:\n      input: filtered_encrypted_results\n      table: batch_reasoning_results\n    output: write_result\n\n  - id: format_notification\n    op: format_output\n    params:\n      input: filtered_encrypted_results\n      format: notification_summary\n    output: notification_payload\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      input: notification_payload\n      recipient: stakeholders\n      message: \"Batch reasoning run completed successfully.\"\n    output: notification_result\n\n  - id: log_batch_audit\n    op: log_audit\n    params:\n      input: notification_payload\n      event: batch_reasoning_run_completed\n      details:\n        batch_id: batch_id\n        status: completed\n    output: audit_log_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_015.py::test_parses_and_type_checks": false,
+        "test_wf_agent_015.py::test_passes_taint_analysis": true,
+        "test_wf_agent_015.py::test_security_before_encrypt": true,
+        "test_wf_agent_015.py::test_encrypt_before_store": true,
+        "test_wf_agent_015.py::test_has_loop": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2024,
+      "output_tokens": 778
+    },
+    {
+      "attempt_number": 2,
+      "llm_sketch": "workflow_id: complex_reasoning_with_encrypted_storage\nsteps:\n  - id: fetch_batch_records\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued-records\"\n    output: raw_batch_records\n\n  - id: validate_batch_records\n    op: validate_schema\n    params:\n      input: raw_batch_records\n      schema: batch_records_schema\n    output: validated_batch_records\n\n  - id: loop_over_records\n    op: loop_records\n    params:\n      input: validated_batch_records\n      step: apply_reasoning_rule\n    output: per_record_outcomes\n\n  - id: apply_reasoning_rule\n    op: apply_rule\n    params:\n      input: validated_batch_records\n      rule: multi_step_reasoning_rule\n    output: rule_outcome\n\n  - id: transform_rule_outcomes\n    op: transform_json\n    params:\n      input: per_record_outcomes\n      mapping: collected_results_format\n    output: collected_results\n\n  - id: aggregate_collected_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: batch_id\n      summarise:\n        - field: outcome\n          function: collect\n    output: aggregated_results\n\n  - id: apply_security_validation\n    op: apply_rule\n    params:\n      input: aggregated_results\n      rule: security_validation_rule\n    output: security_validated_results\n\n  - id: extract_sensitive_fields\n    op: extract_field\n    params:\n      input: security_validated_results\n      field: sensitive_fields\n    output: sensitive_fields\n\n  - id: authenticate_reasoning_service\n    op: authenticate_user\n    params:\n      role: reasoning_service\n    output: auth_result\n\n  - id: encrypt_sensitive_fields\n    op: encrypt_field\n    params:\n      input: sensitive_fields\n      field: all\n    output: encrypted_sensitive_fields\n\n  - id: merge_encrypted_with_aggregated\n    op: merge_datasets\n    params:\n      input: aggregated_results\n      secondary: encrypted_sensitive_fields\n      key: batch_id\n    output: encrypted_aggregated_results\n\n  - id: store_encrypted_results\n    op: write_database\n    params:\n      input: encrypted_aggregated_results\n      table: batch_reasoning_results\n    output: write_result\n\n  - id: format_notification\n    op: format_output\n    params:\n      input: encrypted_aggregated_results\n      format: notification_summary\n    output: notification_payload\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      input: notification_payload\n      recipient: stakeholders\n      message: \"Batch reasoning run completed successfully.\"\n    output: notification_result\n\n  - id: log_batch_audit\n    op: log_audit\n    params:\n      input: notification_payload\n      event: batch_reasoning_run_completed\n      details:\n        batch_id: batch_id\n        status: completed\n    output: audit_log_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_015.py::test_parses_and_type_checks": false,
+        "test_wf_agent_015.py::test_passes_taint_analysis": true,
+        "test_wf_agent_015.py::test_security_before_encrypt": true,
+        "test_wf_agent_015.py::test_encrypt_before_store": true,
+        "test_wf_agent_015.py::test_has_loop": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2054,
+      "output_tokens": 748
+    },
+    {
+      "attempt_number": 3,
+      "llm_sketch": "workflow_id: complex_reasoning_with_encrypted_storage\nsteps:\n  - id: fetch_batch_records\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued-records\"\n    output: raw_batch_records\n\n  - id: validate_batch_records\n    op: validate_schema\n    params:\n      input: raw_batch_records\n      schema: batch_records_schema\n    output: validated_batch_records\n\n  - id: loop_over_records\n    op: loop_records\n    params:\n      input: validated_batch_records\n      step: apply_reasoning_rule\n    output: per_record_outcomes\n\n  - id: apply_reasoning_rule\n    op: apply_rule\n    params:\n      rule: multi_step_reasoning_rule\n    output: rule_outcome\n\n  - id: transform_rule_outcomes\n    op: transform_json\n    params:\n      input: per_record_outcomes\n      mapping: collected_results_format\n    output: collected_results\n\n  - id: aggregate_collected_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: batch_id\n      summarise:\n        - field: outcome\n          function: collect\n    output: aggregated_results\n\n  - id: apply_security_validation\n    op: apply_rule\n    params:\n      rule: security_validation_rule\n    output: security_validated_results\n\n  - id: extract_sensitive_fields\n    op: extract_field\n    params:\n      input: security_validated_results\n      field: sensitive_fields\n    output: sensitive_fields\n\n  - id: authenticate_reasoning_service\n    op: authenticate_user\n    params:\n      role: reasoning_service\n    output: auth_result\n\n  - id: encrypt_sensitive_fields\n    op: encrypt_field\n    params:\n      input: sensitive_fields\n      field: all\n    output: encrypted_sensitive_fields\n\n  - id: merge_encrypted_with_aggregated\n    op: merge_datasets\n    params:\n      input: aggregated_results\n      secondary: encrypted_sensitive_fields\n      key: batch_id\n    output: encrypted_aggregated_results\n\n  - id: filter_for_storage\n    op: filter_records\n    params:\n      input: encrypted_aggregated_results\n      condition: \"status != null\"\n    output: filtered_encrypted_results\n\n  - id: store_encrypted_results\n    op: write_database\n    params:\n      input: filtered_encrypted_results\n      table: batch_reasoning_results\n    output: write_result\n\n  - id: format_notification\n    op: format_output\n    params:\n      input: filtered_encrypted_results\n      format: notification_summary\n    output: notification_payload\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      input: notification_payload\n      recipient: stakeholders\n      message: \"Batch reasoning run completed successfully.\"\n    output: notification_result\n\n  - id: log_batch_audit\n    op: log_audit\n    params:\n      input: notification_payload\n      event: batch_reasoning_run_completed\n      details:\n        batch_id: batch_id\n        status: completed\n    output: audit_log_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_015.py::test_parses_and_type_checks": false,
+        "test_wf_agent_015.py::test_passes_taint_analysis": true,
+        "test_wf_agent_015.py::test_security_before_encrypt": true,
+        "test_wf_agent_015.py::test_encrypt_before_store": true,
+        "test_wf_agent_015.py::test_has_loop": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2024,
+      "output_tokens": 778
+    },
+    {
+      "attempt_number": 4,
+      "llm_sketch": "workflow_id: complex_reasoning_with_encrypted_storage\nsteps:\n  - id: fetch_batch_records\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued-records\"\n    output: raw_batch_records\n\n  - id: validate_batch_records\n    op: validate_schema\n    params:\n      input: raw_batch_records\n      schema: batch_records_schema\n    output: validated_batch_records\n\n  - id: loop_over_records\n    op: loop_records\n    params:\n      input: validated_batch_records\n      step: apply_reasoning_rule\n    output: per_record_outcomes\n\n  - id: apply_reasoning_rule\n    op: apply_rule\n    params:\n      input: validated_batch_records\n      rule: multi_step_reasoning_rule\n    output: rule_outcome\n\n  - id: transform_rule_outcomes\n    op: transform_json\n    params:\n      input: per_record_outcomes\n      mapping: collected_results_format\n    output: collected_results\n\n  - id: aggregate_collected_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: batch_id\n      summarise:\n        - field: outcome\n          function: collect\n    output: aggregated_results\n\n  - id: apply_security_validation\n    op: apply_rule\n    params:\n      input: aggregated_results\n      rule: security_validation_rule\n    output: security_validated_results\n\n  - id: extract_sensitive_fields\n    op: extract_field\n    params:\n      input: security_validated_results\n      field: sensitive_fields\n    output: sensitive_fields\n\n  - id: authenticate_reasoning_service\n    op: authenticate_user\n    params:\n      role: reasoning_service\n    output: auth_result\n\n  - id: encrypt_sensitive_fields\n    op: encrypt_field\n    params:\n      input: sensitive_fields\n      field: all\n    output: encrypted_sensitive_fields\n\n  - id: merge_encrypted_with_aggregated\n    op: merge_datasets\n    params:\n      input: aggregated_results\n      secondary: encrypted_sensitive_fields\n      key: batch_id\n    output: encrypted_aggregated_results\n\n  - id: store_encrypted_results\n    op: write_database\n    params:\n      input: encrypted_aggregated_results\n      table: batch_reasoning_results\n    output: write_result\n\n  - id: format_notification\n    op: format_output\n    params:\n      input: encrypted_aggregated_results\n      format: notification_summary\n    output: notification_payload\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      input: notification_payload\n      recipient: stakeholders\n      message: \"Batch reasoning run completed successfully.\"\n    output: notification_result\n\n  - id: log_batch_audit\n    op: log_audit\n    params:\n      input: notification_payload\n      event: batch_reasoning_run_completed\n      details:\n        batch_id: batch_id\n        status: completed\n    output: audit_log_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_015.py::test_parses_and_type_checks": false,
+        "test_wf_agent_015.py::test_passes_taint_analysis": true,
+        "test_wf_agent_015.py::test_security_before_encrypt": true,
+        "test_wf_agent_015.py::test_encrypt_before_store": true,
+        "test_wf_agent_015.py::test_has_loop": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2054,
+      "output_tokens": 748
+    },
+    {
+      "attempt_number": 5,
+      "llm_sketch": "workflow_id: complex_reasoning_with_encrypted_storage\nsteps:\n  - id: fetch_batch_records\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued-records\"\n    output: raw_batch_records\n\n  - id: validate_batch_records\n    op: validate_schema\n    params:\n      input: raw_batch_records\n      schema: batch_records_schema\n    output: validated_batch_records\n\n  - id: loop_over_records\n    op: loop_records\n    params:\n      input: validated_batch_records\n      step: apply_reasoning_rule\n    output: per_record_outcomes\n\n  - id: apply_reasoning_rule\n    op: apply_rule\n    params:\n      rule: multi_step_reasoning_rule\n    output: rule_outcome\n\n  - id: transform_rule_outcomes\n    op: transform_json\n    params:\n      input: per_record_outcomes\n      mapping: collected_results_format\n    output: collected_results\n\n  - id: aggregate_collected_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: batch_id\n      summarise:\n        - field: outcome\n          function: collect\n    output: aggregated_results\n\n  - id: apply_security_validation\n    op: apply_rule\n    params:\n      rule: security_validation_rule\n      input: aggregated_results\n    output: security_validated_results\n\n  - id: extract_sensitive_fields\n    op: extract_field\n    params:\n      input: security_validated_results\n      field: sensitive_fields\n    output: sensitive_fields\n\n  - id: authenticate_reasoning_service\n    op: authenticate_user\n    params:\n      role: reasoning_service\n    output: auth_result\n\n  - id: encrypt_sensitive_fields\n    op: encrypt_field\n    params:\n      input: sensitive_fields\n      field: all\n    output: encrypted_sensitive_fields\n\n  - id: merge_encrypted_with_aggregated\n    op: merge_datasets\n    params:\n      input: aggregated_results\n      secondary: encrypted_sensitive_fields\n      key: batch_id\n    output: encrypted_aggregated_results\n\n  - id: sanitize_merged_results\n    op: transform_json\n    params:\n      input: encrypted_aggregated_results\n      mapping: storage_format\n    output: sanitized_encrypted_results\n\n  - id: store_encrypted_results\n    op: write_database\n    params:\n      input: sanitized_encrypted_results\n      table: batch_reasoning_results\n    output: write_result\n\n  - id: format_notification\n    op: format_output\n    params:\n      input: sanitized_encrypted_results\n      format: notification_summary\n    output: notification_payload\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      input: notification_payload\n      recipient: stakeholders\n      message: \"Batch reasoning run completed successfully.\"\n    output: notification_result\n\n  - id: log_batch_audit\n    op: log_audit\n    params:\n      input: notification_payload\n      event: batch_reasoning_run_completed\n      details:\n        batch_id: batch_id\n        status: completed\n    output: audit_log_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_015.py::test_parses_and_type_checks": false,
+        "test_wf_agent_015.py::test_passes_taint_analysis": true,
+        "test_wf_agent_015.py::test_security_before_encrypt": true,
+        "test_wf_agent_015.py::test_encrypt_before_store": true,
+        "test_wf_agent_015.py::test_has_loop": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2024,
+      "output_tokens": 788
+    },
+    {
+      "attempt_number": 6,
+      "llm_sketch": "workflow_id: complex_reasoning_with_encrypted_storage\nsteps:\n  - id: fetch_batch_records\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued-records\"\n    output: raw_batch_records\n\n  - id: validate_batch_records\n    op: validate_schema\n    params:\n      input: raw_batch_records\n      schema: batch_records_schema\n    output: validated_batch_records\n\n  - id: loop_over_records\n    op: loop_records\n    params:\n      input: validated_batch_records\n      step: apply_reasoning_rule\n    output: per_record_outcomes\n\n  - id: apply_reasoning_rule\n    op: apply_rule\n    params:\n      input: validated_batch_records\n      rule: multi_step_reasoning_rule\n    output: rule_outcome\n\n  - id: transform_rule_outcomes\n    op: transform_json\n    params:\n      input: per_record_outcomes\n      mapping: collected_results_format\n    output: collected_results\n\n  - id: aggregate_collected_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: batch_id\n      summarise:\n        - field: outcome\n          function: collect\n    output: aggregated_results\n\n  - id: apply_security_validation\n    op: apply_rule\n    params:\n      input: aggregated_results\n      rule: security_validation_rule\n    output: security_validated_results\n\n  - id: extract_sensitive_fields\n    op: extract_field\n    params:\n      input: security_validated_results\n      field: sensitive_fields\n    output: sensitive_fields\n\n  - id: authenticate_reasoning_service\n    op: authenticate_user\n    params:\n      role: reasoning_service\n    output: auth_result\n\n  - id: encrypt_sensitive_fields\n    op: encrypt_field\n    params:\n      input: sensitive_fields\n      field: all\n    output: encrypted_sensitive_fields\n\n  - id: merge_encrypted_with_aggregated\n    op: merge_datasets\n    params:\n      input: aggregated_results\n      secondary: encrypted_sensitive_fields\n      key: batch_id\n    output: encrypted_aggregated_results\n\n  - id: sanitize_merged_results\n    op: transform_json\n    params:\n      input: encrypted_aggregated_results\n      mapping: storage_format\n    output: sanitized_encrypted_results\n\n  - id: store_encrypted_results\n    op: write_database\n    params:\n      input: sanitized_encrypted_results\n      table: batch_reasoning_results\n    output: write_result\n\n  - id: format_notification\n    op: format_output\n    params:\n      input: sanitized_encrypted_results\n      format: notification_summary\n    output: notification_payload\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      input: notification_payload\n      recipient: stakeholders\n      message: \"Batch reasoning run completed successfully.\"\n    output: notification_result\n\n  - id: log_batch_audit\n    op: log_audit\n    params:\n      input: notification_payload\n      event: batch_reasoning_run_completed\n      details:\n        batch_id: batch_id\n        status: completed\n    output: audit_log_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_015.py::test_parses_and_type_checks": false,
+        "test_wf_agent_015.py::test_passes_taint_analysis": true,
+        "test_wf_agent_015.py::test_security_before_encrypt": true,
+        "test_wf_agent_015.py::test_encrypt_before_store": true,
+        "test_wf_agent_015.py::test_has_loop": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2064,
+      "output_tokens": 797
+    },
+    {
+      "attempt_number": 7,
+      "llm_sketch": "workflow_id: complex_reasoning_with_encrypted_storage\nsteps:\n  - id: fetch_batch_records\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued-records\"\n    output: raw_batch_records\n\n  - id: validate_batch_records\n    op: validate_schema\n    params:\n      input: raw_batch_records\n      schema: batch_records_schema\n    output: validated_batch_records\n\n  - id: loop_over_records\n    op: loop_records\n    params:\n      input: validated_batch_records\n      step: apply_reasoning_rule\n    output: per_record_outcomes\n\n  - id: apply_reasoning_rule\n    op: apply_rule\n    params:\n      rule: multi_step_reasoning_rule\n    output: rule_outcome\n\n  - id: transform_rule_outcomes\n    op: transform_json\n    params:\n      input: per_record_outcomes\n      mapping: collected_results_format\n    output: collected_results\n\n  - id: aggregate_collected_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: batch_id\n      summarise:\n        - field: outcome\n          function: collect\n    output: aggregated_results\n\n  - id: apply_security_validation\n    op: apply_rule\n    params:\n      rule: security_validation_rule\n      input: aggregated_results\n    output: security_validated_results\n\n  - id: extract_sensitive_fields\n    op: extract_field\n    params:\n      input: security_validated_results\n      field: sensitive_fields\n    output: sensitive_fields\n\n  - id: authenticate_reasoning_service\n    op: authenticate_user\n    params:\n      role: reasoning_service\n    output: auth_result\n\n  - id: encrypt_sensitive_fields\n    op: encrypt_field\n    params:\n      input: sensitive_fields\n      field: all\n    output: encrypted_sensitive_fields\n\n  - id: merge_encrypted_with_aggregated\n    op: merge_datasets\n    params:\n      input: aggregated_results\n      secondary: encrypted_sensitive_fields\n      key: batch_id\n    output: encrypted_aggregated_results\n\n  - id: sanitize_for_storage\n    op: transform_json\n    params:\n      input: encrypted_aggregated_results\n      mapping: storage_format\n    output: sanitized_encrypted_results\n\n  - id: store_encrypted_results\n    op: write_database\n    params:\n      input: sanitized_encrypted_results\n      table: batch_reasoning_results\n    output: write_result\n\n  - id: format_notification\n    op: format_output\n    params:\n      input: sanitized_encrypted_results\n      format: notification_summary\n    output: notification_payload\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      input: notification_payload\n      recipient: stakeholders\n      message: \"Batch reasoning run completed successfully.\"\n    output: notification_result\n\n  - id: log_batch_audit\n    op: log_audit\n    params:\n      input: notification_payload\n      event: batch_reasoning_run_completed\n      details:\n        batch_id: batch_id\n        status: completed\n    output: audit_log_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_015.py::test_parses_and_type_checks": false,
+        "test_wf_agent_015.py::test_passes_taint_analysis": true,
+        "test_wf_agent_015.py::test_security_before_encrypt": true,
+        "test_wf_agent_015.py::test_encrypt_before_store": true,
+        "test_wf_agent_015.py::test_has_loop": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2073,
+      "output_tokens": 788
+    },
+    {
+      "attempt_number": 8,
+      "llm_sketch": "workflow_id: complex_reasoning_with_encrypted_storage\nsteps:\n  - id: fetch_batch_records\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued-records\"\n    output: raw_batch_records\n\n  - id: validate_batch_records\n    op: validate_schema\n    params:\n      input: raw_batch_records\n      schema: batch_records_schema\n    output: validated_batch_records\n\n  - id: loop_over_records\n    op: loop_records\n    params:\n      input: validated_batch_records\n      step: apply_reasoning_rule\n    output: per_record_outcomes\n\n  - id: apply_reasoning_rule\n    op: apply_rule\n    params:\n      rule: multi_step_reasoning_rule\n    output: rule_outcome\n\n  - id: transform_rule_outcomes\n    op: transform_json\n    params:\n      input: per_record_outcomes\n      mapping: collected_results_format\n    output: collected_results\n\n  - id: aggregate_collected_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: batch_id\n      summarise:\n        - field: outcome\n          function: collect\n    output: aggregated_results\n\n  - id: apply_security_validation\n    op: apply_rule\n    params:\n      input: aggregated_results\n      rule: security_validation_rule\n    output: security_validated_results\n\n  - id: extract_sensitive_fields\n    op: extract_field\n    params:\n      input: security_validated_results\n      field: sensitive_fields\n    output: sensitive_fields\n\n  - id: authenticate_reasoning_service\n    op: authenticate_user\n    params:\n      role: reasoning_service\n    output: auth_result\n\n  - id: encrypt_sensitive_fields\n    op: encrypt_field\n    params:\n      input: sensitive_fields\n      field: all\n    output: encrypted_sensitive_fields\n\n  - id: transform_encrypted_for_storage\n    op: transform_json\n    params:\n      input: encrypted_sensitive_fields\n      mapping: encrypted_aggregated_storage_format\n    output: storage_ready_results\n\n  - id: store_encrypted_results\n    op: write_database\n    params:\n      input: storage_ready_results\n      table: batch_reasoning_results\n    output: write_result\n\n  - id: format_notification\n    op: format_output\n    params:\n      input: security_validated_results\n      format: notification_summary\n    output: notification_payload\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      input: notification_payload\n      recipient: stakeholders\n      message: \"Batch reasoning run completed successfully.\"\n    output: notification_result\n\n  - id: transform_audit_payload\n    op: transform_json\n    params:\n      input: notification_payload\n      mapping: audit_log_format\n    output: audit_payload\n\n  - id: log_batch_audit\n    op: log_audit\n    params:\n      input: audit_payload\n      event: batch_reasoning_run_completed\n    output: audit_log_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_015.py::test_parses_and_type_checks": false,
+        "test_wf_agent_015.py::test_passes_taint_analysis": true,
+        "test_wf_agent_015.py::test_security_before_encrypt": true,
+        "test_wf_agent_015.py::test_encrypt_before_store": true,
+        "test_wf_agent_015.py::test_has_loop": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1753,
+      "output_tokens": 635
+    },
+    {
+      "attempt_number": 9,
+      "llm_sketch": "workflow_id: complex_reasoning_with_encrypted_storage\nsteps:\n  - id: fetch_batch_records\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued-records\"\n    output: raw_batch_records\n\n  - id: validate_batch_records\n    op: validate_schema\n    params:\n      input: raw_batch_records\n      schema: batch_records_schema\n    output: validated_batch_records\n\n  - id: loop_over_records\n    op: loop_records\n    params:\n      input: validated_batch_records\n      step: apply_reasoning_rule\n    output: per_record_outcomes\n\n  - id: apply_reasoning_rule\n    op: apply_rule\n    params:\n      input: validated_batch_records\n      rule: multi_step_reasoning_rule\n    output: rule_outcome\n\n  - id: transform_rule_outcomes\n    op: transform_json\n    params:\n      input: per_record_outcomes\n      mapping: collected_results_format\n    output: collected_results\n\n  - id: aggregate_collected_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: batch_id\n      summarise:\n        - field: outcome\n          function: collect\n    output: aggregated_results\n\n  - id: transform_aggregated_results\n    op: transform_json\n    params:\n      input: aggregated_results\n      mapping: security_validation_input_format\n    output: security_validation_input\n\n  - id: apply_security_validation\n    op: apply_rule\n    params:\n      input: security_validation_input\n      rule: security_validation_rule\n    output: security_validated_results\n\n  - id: extract_sensitive_fields\n    op: extract_field\n    params:\n      input: security_validated_results\n      field: sensitive_fields\n    output: sensitive_fields\n\n  - id: authenticate_reasoning_service\n    op: authenticate_user\n    params:\n      role: reasoning_service\n    output: auth_result\n\n  - id: encrypt_sensitive_fields\n    op: encrypt_field\n    params:\n      input: sensitive_fields\n      field: all\n    output: encrypted_sensitive_fields\n\n  - id: transform_encrypted_for_storage\n    op: transform_json\n    params:\n      input: encrypted_sensitive_fields\n      mapping: encrypted_aggregated_storage_format\n    output: storage_ready_results\n\n  - id: store_encrypted_results\n    op: write_database\n    params:\n      input: storage_ready_results\n      table: batch_reasoning_results\n    output: write_result\n\n  - id: format_notification\n    op: format_output\n    params:\n      input: security_validated_results\n      format: notification_summary\n    output: notification_payload\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      input: notification_payload\n      recipient: stakeholders\n      message: \"Batch reasoning run completed successfully.\"\n    output: notification_result\n\n  - id: transform_audit_payload\n    op: transform_json\n    params:\n      input: notification_payload\n      mapping: audit_log_format\n    output: audit_payload\n\n  - id: log_batch_audit\n    op: log_audit\n    params:\n      input: audit_payload\n      event: batch_reasoning_run_completed\n    output: audit_log_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_015.py::test_parses_and_type_checks": false,
+        "test_wf_agent_015.py::test_passes_taint_analysis": true,
+        "test_wf_agent_015.py::test_security_before_encrypt": true,
+        "test_wf_agent_015.py::test_encrypt_before_store": true,
+        "test_wf_agent_015.py::test_has_loop": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1727,
+      "output_tokens": 683
+    }
+  ],
+  "complexity": 5,
+  "domain": "agent_tasks",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 18988,
+  "total_output_tokens": 7491
+}

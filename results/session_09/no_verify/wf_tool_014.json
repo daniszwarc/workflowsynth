@@ -1,0 +1,185 @@
+{
+  "task_id": "wf_tool_014",
+  "condition": "no_verify",
+  "success": false,
+  "attempts_used": 10,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 56.200298625044525,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: real_time_classified_data_pipeline\nsteps:\n  - id: ingest_event\n    op: fetch_api\n    params:\n      endpoint: \"/api/realtime/events\"\n    output: raw_event\n\n  - id: validate_event\n    op: validate_schema\n    params:\n      input: raw_event\n      schema: realtime_event_schema\n    output: validated_event\n\n  - id: transform_event\n    op: transform_json\n    params:\n      input: validated_event\n      mapping: internal_representation\n    output: transformed_event\n\n  - id: classify_event\n    op: apply_rule\n    params:\n      input: transformed_event\n      rule: classification_rule\n    output: classification_result\n\n  - id: extract_category\n    op: extract_field\n    params:\n      input: classification_result\n      field: category\n    output: event_category\n\n  - id: route_event\n    op: route_to_step\n    params:\n      condition: event_category\n      routes:\n        critical: store_critical_path\n        standard: store_standard_path\n        low: store_standard_path\n      default: store_standard_path\n\n  - id: store_critical_path\n    op: encrypt_field\n    params:\n      input: transformed_event\n      field: payload\n    output: encrypted_event\n\n  - id: authenticate_pipeline_writer\n    op: authenticate_user\n    params:\n      role: pipeline_writer\n    output: auth_result\n\n  - id: store_standard_path\n    op: format_output\n    params:\n      input: transformed_event\n      format: internal_json\n    output: formatted_event\n\n  - id: merge_classified_event\n    op: merge_datasets\n    params:\n      input: formatted_event\n      secondary: classification_result\n      key: event_id\n    output: classified_event\n\n  - id: store_event\n    op: write_database\n    params:\n      input: classified_event\n      table: classified_events\n    output: write_result\n\n  - id: log_pipeline_run\n    op: log_audit\n    params:\n      input: classified_event\n      action: pipeline_event_stored\n      details: \"Real-time classified event stored successfully\"\n    output: audit_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_014.py::test_parses_and_type_checks": false,
+        "test_wf_tool_014.py::test_passes_taint_analysis": true,
+        "test_wf_tool_014.py::test_classify_before_route": true,
+        "test_wf_tool_014.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1127,
+      "output_tokens": 550
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: real_time_classified_data_pipeline\nsteps:\n  - id: ingest_event\n    op: fetch_api\n    params:\n      endpoint: \"/api/realtime/events\"\n    output: raw_event\n\n  - id: validate_event\n    op: validate_schema\n    params:\n      input: raw_event\n      schema: realtime_event_schema\n    output: validated_event\n\n  - id: transform_event\n    op: transform_json\n    params:\n      input: validated_event\n      mapping: internal_representation\n    output: transformed_event\n\n  - id: classify_event\n    op: apply_rule\n    params:\n      rule: classification_rule\n      input: transformed_event\n    output: classification_result\n\n  - id: extract_category\n    op: extract_field\n    params:\n      input: classification_result\n      field: category\n    output: event_category\n\n  - id: route_event\n    op: route_to_step\n    params:\n      condition: event_category\n      routes:\n        critical: handle_critical_path\n        standard: handle_standard_path\n      default: handle_standard_path\n\n  - id: handle_critical_path\n    op: encrypt_field\n    params:\n      input: transformed_event\n      field: payload\n    output: encrypted_event\n\n  - id: handle_standard_path\n    op: filter_records\n    params:\n      input: transformed_event\n      condition: \"true\"\n    output: filtered_event\n\n  - id: format_event\n    op: format_output\n    params:\n      input: transformed_event\n      format: internal_json\n    output: formatted_event\n\n  - id: authenticate_pipeline_writer\n    op: authenticate_user\n    params:\n      role: pipeline_writer\n    output: auth_result\n\n  - id: store_event\n    op: write_database\n    params:\n      input: formatted_event\n      table: classified_events\n    output: write_result\n\n  - id: log_pipeline_run\n    op: log_audit\n    params:\n      input: formatted_event\n      action: pipeline_event_stored\n      details: \"Real-time classified event stored successfully\"\n    output: audit_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_014.py::test_parses_and_type_checks": false,
+        "test_wf_tool_014.py::test_passes_taint_analysis": true,
+        "test_wf_tool_014.py::test_classify_before_route": true,
+        "test_wf_tool_014.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1762,
+      "output_tokens": 532
+    },
+    {
+      "attempt_number": 2,
+      "llm_sketch": "workflow_id: real_time_classified_data_pipeline\nsteps:\n  - id: ingest_event\n    op: fetch_api\n    params:\n      endpoint: \"/api/realtime/events\"\n    output: raw_event\n\n  - id: validate_event\n    op: validate_schema\n    params:\n      input: raw_event\n      schema: realtime_event_schema\n    output: validated_event\n\n  - id: transform_event\n    op: transform_json\n    params:\n      input: validated_event\n      mapping: internal_representation\n    output: transformed_event\n\n  - id: classify_event\n    op: apply_rule\n    params:\n      rule: classification_rule\n      input: transformed_event\n    output: classification_result\n\n  - id: extract_category\n    op: extract_field\n    params:\n      input: classification_result\n      field: category\n    output: event_category\n\n  - id: route_event\n    op: route_to_step\n    params:\n      condition: event_category\n      routes:\n        critical: handle_critical_path\n        standard: handle_standard_path\n      default: handle_standard_path\n\n  - id: handle_critical_path\n    op: encrypt_field\n    params:\n      input: transformed_event\n      field: payload\n    output: encrypted_event\n\n  - id: handle_standard_path\n    op: transform_json\n    params:\n      input: transformed_event\n      mapping: standard_passthrough\n    output: standard_event\n\n  - id: authenticate_pipeline_writer\n    op: authenticate_user\n    params:\n      role: pipeline_writer\n    output: auth_result\n\n  - id: format_event\n    op: format_output\n    params:\n      input: event_category\n      format: internal_json\n    output: formatted_event\n\n  - id: store_event\n    op: write_database\n    params:\n      input: formatted_event\n      table: classified_events\n    output: write_result\n\n  - id: log_pipeline_run\n    op: log_audit\n    params:\n      input: formatted_event\n      action: pipeline_event_stored\n      details: \"Real-time classified event stored successfully\"\n    output: audit_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_014.py::test_parses_and_type_checks": false,
+        "test_wf_tool_014.py::test_passes_taint_analysis": true,
+        "test_wf_tool_014.py::test_classify_before_route": true,
+        "test_wf_tool_014.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1744,
+      "output_tokens": 533
+    },
+    {
+      "attempt_number": 3,
+      "llm_sketch": "workflow_id: real_time_classified_data_pipeline\nsteps:\n  - id: ingest_event\n    op: fetch_api\n    params:\n      endpoint: \"/api/realtime/events\"\n    output: raw_event\n\n  - id: validate_event\n    op: validate_schema\n    params:\n      input: raw_event\n      schema: realtime_event_schema\n    output: validated_event\n\n  - id: transform_event\n    op: transform_json\n    params:\n      input: validated_event\n      mapping: internal_representation\n    output: transformed_event\n\n  - id: classify_event\n    op: apply_rule\n    params:\n      rule: classification_rule\n      input: transformed_event\n    output: classification_result\n\n  - id: extract_category\n    op: extract_field\n    params:\n      input: classification_result\n      field: category\n    output: event_category\n\n  - id: route_event\n    op: route_to_step\n    params:\n      condition: event_category\n      routes:\n        critical: handle_critical_path\n        standard: handle_standard_path\n      default: handle_standard_path\n\n  - id: handle_critical_path\n    op: encrypt_field\n    params:\n      input: transformed_event\n      field: payload\n    output: encrypted_event\n\n  - id: handle_standard_path\n    op: filter_records\n    params:\n      input: transformed_event\n      condition: \"all\"\n    output: standard_event\n\n  - id: authenticate_pipeline_writer\n    op: authenticate_user\n    params:\n      role: pipeline_writer\n    output: auth_result\n\n  - id: store_event\n    op: write_database\n    params:\n      input: event_category\n      table: classified_events\n    output: write_result\n\n  - id: log_pipeline_run\n    op: log_audit\n    params:\n      input: event_category\n      action: pipeline_event_stored\n      details: \"Real-time classified event stored successfully\"\n    output: audit_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_014.py::test_parses_and_type_checks": false,
+        "test_wf_tool_014.py::test_passes_taint_analysis": true,
+        "test_wf_tool_014.py::test_classify_before_route": true,
+        "test_wf_tool_014.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1745,
+      "output_tokens": 492
+    },
+    {
+      "attempt_number": 4,
+      "llm_sketch": "workflow_id: real_time_classified_data_pipeline\nsteps:\n  - id: ingest_event\n    op: fetch_api\n    params:\n      endpoint: \"/api/realtime/events\"\n    output: raw_event\n\n  - id: validate_event\n    op: validate_schema\n    params:\n      input: raw_event\n      schema: realtime_event_schema\n    output: validated_event\n\n  - id: transform_event\n    op: transform_json\n    params:\n      input: validated_event\n      mapping: internal_representation\n    output: transformed_event\n\n  - id: classify_event\n    op: apply_rule\n    params:\n      rule: classification_rule\n      input: transformed_event\n    output: classification_result\n\n  - id: extract_category\n    op: extract_field\n    params:\n      input: classification_result\n      field: category\n    output: event_category\n\n  - id: route_event\n    op: route_to_step\n    params:\n      condition: event_category\n      routes:\n        critical: handle_critical_path\n        standard: handle_standard_path\n      default: handle_standard_path\n\n  - id: handle_critical_path\n    op: encrypt_field\n    params:\n      input: transformed_event\n      field: payload\n    output: processed_critical_event\n\n  - id: handle_standard_path\n    op: filter_records\n    params:\n      input: transformed_event\n      condition: \"all\"\n    output: processed_standard_event\n\n  - id: authenticate_pipeline_writer\n    op: authenticate_user\n    params:\n      role: pipeline_writer\n    output: auth_result\n\n  - id: prepare_for_storage\n    op: transform_json\n    params:\n      input: event_category\n      mapping: storage_representation\n    output: storable_event\n\n  - id: store_event\n    op: write_database\n    params:\n      input: storable_event\n      table: classified_events\n    output: write_result\n\n  - id: prepare_audit_entry\n    op: transform_json\n    params:\n      input: write_result\n      mapping: audit_entry\n    output: audit_entry\n\n  - id: log_pipeline_run\n    op: log_audit\n    params:\n      input: audit_entry\n      action: pipeline_event_stored\n      details: \"Real-time classified event stored successfully\"\n    output: audit_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_014.py::test_parses_and_type_checks": false,
+        "test_wf_tool_014.py::test_passes_taint_analysis": true,
+        "test_wf_tool_014.py::test_classify_before_route": true,
+        "test_wf_tool_014.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1704,
+      "output_tokens": 582
+    },
+    {
+      "attempt_number": 5,
+      "llm_sketch": "workflow_id: real_time_classified_data_pipeline\nsteps:\n  - id: ingest_event\n    op: fetch_api\n    params:\n      endpoint: \"/api/realtime/events\"\n    output: raw_event\n\n  - id: validate_event\n    op: validate_schema\n    params:\n      input: raw_event\n      schema: realtime_event_schema\n    output: validated_event\n\n  - id: transform_event\n    op: transform_json\n    params:\n      input: validated_event\n      mapping: internal_representation\n    output: transformed_event\n\n  - id: classify_event\n    op: apply_rule\n    params:\n      rule: classification_rule\n      input: transformed_event\n    output: classification_result\n\n  - id: extract_category\n    op: extract_field\n    params:\n      input: classification_result\n      field: category\n    output: event_category\n\n  - id: route_event\n    op: route_to_step\n    params:\n      condition: event_category\n      routes:\n        critical: handle_critical_path\n        standard: handle_standard_path\n      default: handle_standard_path\n\n  - id: handle_critical_path\n    op: encrypt_field\n    params:\n      input: transformed_event\n      field: payload\n    output: processed_critical_event\n\n  - id: handle_standard_path\n    op: transform_json\n    params:\n      input: transformed_event\n      mapping: standard_representation\n    output: processed_standard_event\n\n  - id: authenticate_pipeline_writer\n    op: authenticate_user\n    params:\n      role: pipeline_writer\n    output: auth_result\n\n  - id: prepare_for_storage\n    op: transform_json\n    params:\n      input: transformed_event\n      mapping: storage_representation\n    output: storable_event\n\n  - id: store_event\n    op: write_database\n    params:\n      input: storable_event\n      table: classified_events\n    output: write_result\n\n  - id: prepare_audit_entry\n    op: transform_json\n    params:\n      input: write_result\n      mapping: audit_entry\n    output: audit_entry\n\n  - id: log_pipeline_run\n    op: log_audit\n    params:\n      input: audit_entry\n      action: pipeline_event_stored\n      details: \"Real-time classified event stored successfully\"\n    output: audit_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_014.py::test_parses_and_type_checks": false,
+        "test_wf_tool_014.py::test_passes_taint_analysis": true,
+        "test_wf_tool_014.py::test_classify_before_route": true,
+        "test_wf_tool_014.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1794,
+      "output_tokens": 582
+    },
+    {
+      "attempt_number": 6,
+      "llm_sketch": "workflow_id: real_time_classified_data_pipeline\nsteps:\n  - id: ingest_event\n    op: fetch_api\n    params:\n      endpoint: \"/api/realtime/events\"\n    output: raw_event\n\n  - id: validate_event\n    op: validate_schema\n    params:\n      input: raw_event\n      schema: realtime_event_schema\n    output: validated_event\n\n  - id: transform_event\n    op: transform_json\n    params:\n      input: validated_event\n      mapping: internal_representation\n    output: transformed_event\n\n  - id: classify_event\n    op: apply_rule\n    params:\n      rule: classification_rule\n      input: transformed_event\n    output: classification_result\n\n  - id: extract_category\n    op: extract_field\n    params:\n      input: classification_result\n      field: category\n    output: event_category\n\n  - id: route_event\n    op: route_to_step\n    params:\n      condition: event_category\n      true_step: handle_critical_path\n      false_step: handle_standard_path\n\n  - id: handle_critical_path\n    op: encrypt_field\n    params:\n      input: transformed_event\n      field: payload\n    output: processed_critical_event\n\n  - id: handle_standard_path\n    op: transform_json\n    params:\n      input: transformed_event\n      mapping: standard_representation\n    output: processed_standard_event\n\n  - id: authenticate_pipeline_writer\n    op: authenticate_user\n    params:\n      role: pipeline_writer\n    output: auth_result\n\n  - id: prepare_for_storage\n    op: transform_json\n    params:\n      input: transformed_event\n      mapping: storage_representation\n    output: storable_event\n\n  - id: store_event\n    op: write_database\n    params:\n      input: storable_event\n      table: classified_events\n    output: write_result\n\n  - id: sanitize_write_result\n    op: transform_json\n    params:\n      input: write_result\n      mapping: audit_entry_mapping\n    output: audit_entry\n\n  - id: log_pipeline_run\n    op: log_audit\n    params:\n      input: audit_entry\n      action: pipeline_event_stored\n      details: \"Real-time classified event stored successfully\"\n    output: audit_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_014.py::test_parses_and_type_checks": false,
+        "test_wf_tool_014.py::test_passes_taint_analysis": true,
+        "test_wf_tool_014.py::test_classify_before_route": true,
+        "test_wf_tool_014.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1794,
+      "output_tokens": 576
+    },
+    {
+      "attempt_number": 7,
+      "llm_sketch": "workflow_id: real_time_classified_data_pipeline\nsteps:\n  - id: ingest_event\n    op: fetch_api\n    params:\n      endpoint: \"/api/realtime/events\"\n    output: raw_event\n\n  - id: validate_event\n    op: validate_schema\n    params:\n      input: raw_event\n      schema: realtime_event_schema\n    output: validated_event\n\n  - id: transform_event\n    op: transform_json\n    params:\n      input: validated_event\n      mapping: internal_representation\n    output: transformed_event\n\n  - id: classify_event\n    op: apply_rule\n    params:\n      rule: classification_rule\n      input: transformed_event\n    output: classification_result\n\n  - id: extract_category\n    op: extract_field\n    params:\n      input: classification_result\n      field: category\n    output: event_category\n\n  - id: route_event\n    op: route_to_step\n    params:\n      condition: event_category\n      true_step: handle_critical_path\n      false_step: handle_standard_path\n\n  - id: handle_critical_path\n    op: encrypt_field\n    params:\n      input: transformed_event\n      field: payload\n    output: processed_critical_event\n\n  - id: handle_standard_path\n    op: transform_json\n    params:\n      input: transformed_event\n      mapping: standard_representation\n    output: processed_standard_event\n\n  - id: authenticate_pipeline_writer\n    op: authenticate_user\n    params:\n      role: pipeline_writer\n    output: auth_result\n\n  - id: prepare_for_storage\n    op: transform_json\n    params:\n      input: transformed_event\n      mapping: storage_representation\n    output: storable_event\n\n  - id: store_event\n    op: write_database\n    params:\n      input: storable_event\n      table: classified_events\n    output: write_result\n\n  - id: prepare_audit_entry\n    op: extract_field\n    params:\n      input: write_result\n      field: result\n    output: audit_entry\n\n  - id: log_pipeline_run\n    op: log_audit\n    params:\n      input: audit_entry\n      action: pipeline_event_stored\n      details: \"Real-time classified event stored successfully\"\n    output: audit_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_014.py::test_parses_and_type_checks": false,
+        "test_wf_tool_014.py::test_passes_taint_analysis": true,
+        "test_wf_tool_014.py::test_classify_before_route": true,
+        "test_wf_tool_014.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1788,
+      "output_tokens": 571
+    },
+    {
+      "attempt_number": 8,
+      "llm_sketch": "workflow_id: real_time_classified_data_pipeline\nsteps:\n  - id: ingest_event\n    op: fetch_api\n    params:\n      endpoint: \"/api/realtime/events\"\n    output: raw_event\n\n  - id: validate_event\n    op: validate_schema\n    params:\n      input: raw_event\n      schema: realtime_event_schema\n    output: validated_event\n\n  - id: transform_event\n    op: transform_json\n    params:\n      input: validated_event\n      mapping: internal_representation\n    output: transformed_event\n\n  - id: classify_event\n    op: apply_rule\n    params:\n      input: transformed_event\n      rule: classification_rule\n    output: classification_result\n\n  - id: route_event\n    op: route_to_step\n    params:\n      condition: classification_result\n      true_step: prepare_critical_event\n      false_step: prepare_standard_event\n\n  - id: prepare_critical_event\n    op: encrypt_field\n    params:\n      input: transformed_event\n      field: payload\n    output: processed_critical_event\n\n  - id: prepare_standard_event\n    op: transform_json\n    params:\n      input: transformed_event\n      mapping: standard_representation\n    output: processed_standard_event\n\n  - id: authenticate_pipeline_writer\n    op: authenticate_user\n    params:\n      role: pipeline_writer\n    output: auth_result\n\n  - id: prepare_for_storage\n    op: transform_json\n    params:\n      input: classification_result\n      mapping: storage_representation\n    output: storable_event\n\n  - id: store_event\n    op: write_database\n    params:\n      input: storable_event\n      table: classified_events\n    output: write_result\n\n  - id: prepare_audit_entry\n    op: transform_json\n    params:\n      input: write_result\n      mapping: audit_log_representation\n    output: audit_entry\n\n  - id: log_pipeline_run\n    op: log_audit\n    params:\n      input: audit_entry\n      action: pipeline_event_stored\n      details: \"Real-time classified event stored successfully\"\n    output: audit_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_014.py::test_parses_and_type_checks": false,
+        "test_wf_tool_014.py::test_passes_taint_analysis": true,
+        "test_wf_tool_014.py::test_classify_before_route": true,
+        "test_wf_tool_014.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1518,
+      "output_tokens": 451
+    },
+    {
+      "attempt_number": 9,
+      "llm_sketch": "workflow_id: real_time_classified_data_pipeline\nsteps:\n  - id: ingest_event\n    op: fetch_api\n    params:\n      endpoint: \"/api/realtime/events\"\n    output: raw_event\n\n  - id: validate_event\n    op: validate_schema\n    params:\n      input: raw_event\n      schema: realtime_event_schema\n    output: validated_event\n\n  - id: transform_event\n    op: transform_json\n    params:\n      input: validated_event\n      mapping: internal_representation\n    output: transformed_event\n\n  - id: classify_event\n    op: apply_rule\n    params:\n      input: transformed_event\n      rule: classification_rule\n    output: classification_result\n\n  - id: build_classified_event\n    op: transform_json\n    params:\n      input: transformed_event\n      mapping: classified_event_with_category\n      classification: classification_result\n    output: classified_event\n\n  - id: route_event\n    op: route_to_step\n    params:\n      condition: classification_result\n      true_step: prepare_critical_event\n      false_step: prepare_standard_event\n\n  - id: prepare_critical_event\n    op: encrypt_field\n    params:\n      input: classified_event\n      field: payload\n    output: routed_event\n\n  - id: prepare_standard_event\n    op: transform_json\n    params:\n      input: classified_event\n      mapping: standard_routed_representation\n    output: routed_event_standard\n\n  - id: authenticate_pipeline_writer\n    op: authenticate_user\n    params:\n      role: pipeline_writer\n    output: auth_result\n\n  - id: store_event\n    op: write_database\n    params:\n      input: routed_event\n      table: classified_events\n    output: write_result_critical\n\n  - id: store_event_standard\n    op: write_database\n    params:\n      input: routed_event_standard\n      table: classified_events\n    output: write_result_standard\n\n  - id: prepare_audit_entry_critical\n    op: transform_json\n    params:\n      input: write_result_critical\n      mapping: audit_log_representation\n    output: audit_entry_critical\n\n  - id: prepare_audit_entry_standard\n    op: transform_json\n    params:\n      input: write_result_standard\n      mapping: audit_log_representation\n    output: audit_entry_standard\n\n  - id: log_pipeline_run_critical\n    op: log_audit\n    params:\n      input: audit_entry_critical\n      action: pipeline_event_stored\n      details: \"Critical real-time classified event stored successfully\"\n    output: audit_result_critical\n\n  - id: log_pipeline_run_standard\n    op: log_audit\n    params:\n      input: audit_entry_standard\n      action: pipeline_event_stored\n      details: \"Standard real-time classified event stored successfully\"\n    output: audit_result_standard",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_014.py::test_parses_and_type_checks": false,
+        "test_wf_tool_014.py::test_passes_taint_analysis": true,
+        "test_wf_tool_014.py::test_classify_before_route": true,
+        "test_wf_tool_014.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1488,
+      "output_tokens": 603
+    }
+  ],
+  "complexity": 4,
+  "domain": "api_integration",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 16464,
+  "total_output_tokens": 5472
+}

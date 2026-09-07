@@ -1,0 +1,57 @@
+{
+  "task_id": "wf_web_015",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 6.558419124223292,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: full_ecommerce_pipeline\nsteps:\n  - id: search_product_catalog\n    op: fetch_api\n    params:\n      endpoint: \"/api/products/search\"\n    output: raw_search_results\n\n  - id: validate_search_results\n    op: validate_schema\n    params:\n      input: raw_search_results\n      schema: product_search_schema\n    output: validated_search_results\n\n  - id: authenticate_shopper\n    op: authenticate_user\n    params:\n      role: \"shopper\"\n    output: auth_result\n\n  - id: validate_cart\n    op: validate_schema\n    params:\n      input: validated_search_results\n      schema: checkout_schema\n    output: validated_cart\n\n  - id: process_order\n    op: transform_json\n    params:\n      input: validated_cart\n      mapping:\n        operation: \"create_order\"\n    output: processed_order\n\n  - id: fulfill_order\n    op: call_subworkflow\n    params:\n      workflow_id: \"fulfillment_workflow\"\n      input: processed_order\n    output: raw_fulfillment_result\n\n  - id: extract_fulfillment_status\n    op: extract_field\n    params:\n      input: raw_fulfillment_result\n      field: \"fulfillment_status\"\n    output: fulfillment_status\n\n  - id: notify_customer\n    op: notify_user\n    params:\n      input: fulfillment_status\n      template: \"order_fulfilled\"\n      channel: \"email\"\n    output: notification_result\n\n  - id: log_completed_purchase\n    op: log_audit\n    params:\n      input: fulfillment_status\n      event: \"purchase_completed\"\n    output: audit_log_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_015.py::test_parses_and_type_checks": true,
+        "test_wf_web_015.py::test_passes_taint_analysis": true,
+        "test_wf_web_015.py::test_auth_before_process": false,
+        "test_wf_web_015.py::test_has_fulfillment_and_audit": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1141,
+      "output_tokens": 434
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: full_ecommerce_pipeline\nsteps:\n  - id: search_product_catalog\n    op: fetch_api\n    params:\n      endpoint: \"/api/products/search\"\n    output: raw_search_results\n\n  - id: validate_search_results\n    op: validate_schema\n    params:\n      input: raw_search_results\n      schema: product_search_schema\n    output: validated_search_results\n\n  - id: authenticate_shopper\n    op: authenticate_user\n    params:\n      role: \"shopper\"\n    output: auth_result\n\n  - id: validate_cart\n    op: validate_schema\n    params:\n      input: validated_search_results\n      schema: checkout_schema\n    output: validated_cart\n\n  - id: process_order\n    op: write_database\n    params:\n      input: validated_cart\n      table: orders\n    output: processed_order\n\n  - id: fulfill_order\n    op: call_subworkflow\n    params:\n      workflow_id: \"fulfillment_workflow\"\n      input: processed_order\n    output: raw_fulfillment_result\n\n  - id: extract_fulfillment_status\n    op: extract_field\n    params:\n      input: raw_fulfillment_result\n      field: \"fulfillment_status\"\n    output: fulfillment_status\n\n  - id: notify_customer\n    op: notify_user\n    params:\n      input: fulfillment_status\n      template: \"order_fulfilled\"\n      channel: \"email\"\n    output: notification_result\n\n  - id: log_completed_purchase\n    op: log_audit\n    params:\n      input: fulfillment_status\n      event: \"purchase_completed\"\n    output: audit_log_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_015.py::test_parses_and_type_checks": true,
+        "test_wf_web_015.py::test_passes_taint_analysis": true,
+        "test_wf_web_015.py::test_auth_before_process": true,
+        "test_wf_web_015.py::test_has_fulfillment_and_audit": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1657,
+      "output_tokens": 426
+    }
+  ],
+  "complexity": 5,
+  "domain": "web_automation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 2798,
+  "total_output_tokens": 860
+}

@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_web_002",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6489439159631729,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: contact_form_submission_logging\nsteps:\n  - id: step_fetch_submission\n    op: fetch_api\n    params:\n      endpoint: \"/api/contact-form/submissions\"\n    output: raw_submission\n\n  - id: step_validate_submission\n    op: validate_schema\n    params:\n      input: raw_submission\n      schema: contact_form_schema\n    output: validated_submission\n\n  - id: step_log_submission\n    op: log_audit\n    params:\n      input: validated_submission\n      action: \"contact_form_submitted\"\n      message: \"Contact form submission recorded for follow-up\"\n    output: log_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_002.py::test_parses_and_type_checks": true,
+        "test_wf_web_002.py::test_passes_taint_analysis": true,
+        "test_wf_web_002.py::test_has_log": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1029,
+      "output_tokens": 162
+    }
+  ],
+  "complexity": 1,
+  "domain": "web_automation",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1029,
+  "total_output_tokens": 162
+}

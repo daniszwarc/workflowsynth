@@ -1,0 +1,856 @@
+{
+  "condition": "baseline_langchain",
+  "total_tasks": 23,
+  "pass_at_1": 0.0,
+  "pass_at_3": 0.0,
+  "pass_at_5": 0.0,
+  "pass_at_10": 0.0,
+  "mean_attempts": 0.0,
+  "security_pass_rate": 0.0,
+  "by_complexity": {
+    "1": 0.0,
+    "2": 0.0,
+    "3": 0.0,
+    "4": 0.0,
+    "5": 0.0
+  },
+  "by_domain": {
+    "clinical_ai": 0.0,
+    "community_sports": 0.0,
+    "insurance_brokerage": 0.0,
+    "manufacturing": 0.0
+  },
+  "results": [
+    {
+      "task_id": "wf_mm_008",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 3119.0268409997225,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXhm63jPvdbQMTU9TtA'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 5,
+      "domain": "clinical_ai",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ms_009",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.3391449572518468,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXhvW6UnPzr8NmZEQd3'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 5,
+      "domain": "clinical_ai",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_mvp_001",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.33611900079995394,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXhxe5ac1JMg9KizVMb'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "manufacturing",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_mvp_002",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.12157204188406467,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXhyAL8WtbdUwQDofZi'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "manufacturing",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_mvp_003",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.19599295780062675,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXhyhpcsNvx73KCzj8z'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 5,
+      "domain": "manufacturing",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_mvp_010",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.14199737459421158,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXhzbtyKYrgr9cqaz9w'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 4,
+      "domain": "manufacturing",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_pb_001",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.1557093746960163,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXi18eYT2AvowwQRnAm'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "insurance_brokerage",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_pb_002",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.22209662478417158,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXi1rK1zb8gvi51gZiR'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "insurance_brokerage",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_pb_004",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.13195087481290102,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXi2oMq5LvEMmRVc45K'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "insurance_brokerage",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_pb_005",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.1360903326421976,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXi3Qa3Nfw2jqeLEH2h'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "insurance_brokerage",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_pb_006",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.2571737924590707,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXi3uaxMBHzMfnCD49s'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "insurance_brokerage",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_pb_007",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.1668563336133957,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXi5BEUZvvXoJnLjieF'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "insurance_brokerage",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_pb_008",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.11804970819503069,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXi5iUgxTk6SNSpAMRp'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "insurance_brokerage",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_pb_009",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.13399312552064657,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXi6Hi46B2uY85bGrG8'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "insurance_brokerage",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_pb_010",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.3205252084881067,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXi7D2C7SNt1rx5FLCr'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "insurance_brokerage",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_sv_001",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.151805667206645,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXi8F2g2NBhEhS3FpB2'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "community_sports",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_sv_002",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.20757554192095995,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXi8sUuZgFUrpLhm5Gt'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "community_sports",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_sv_003",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.13066199980676174,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXi9jKoe37VmFZJyTbK'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "community_sports",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_sv_004",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.13204845786094666,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXiAK3u5HjdRUE6cioh'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 4,
+      "domain": "community_sports",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_sv_005",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.21710787527263165,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXiAtmp4JgGuznfm5Db'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "community_sports",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_sv_006",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.13157308381050825,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXiBnrVN2vJNDpju7aM'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 4,
+      "domain": "community_sports",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ts_001",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.12257224973291159,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXiCMaZYch2hVfVuh74'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "community_sports",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ts_002",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.12075733300298452,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoXiCrr6Vd4rDBsoBMcC'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "community_sports",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    }
+  ],
+  "total_input_tokens": 0,
+  "total_output_tokens": 0,
+  "estimated_cost_usd": 0.0
+}

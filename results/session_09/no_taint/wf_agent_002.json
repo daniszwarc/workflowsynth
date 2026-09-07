@@ -1,0 +1,53 @@
+{
+  "task_id": "wf_agent_002",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 5.234624832868576,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: database_summary_query\nsteps:\n  - id: step_read_table\n    op: read_database\n    params:\n      table: status_table\n      query: \"SELECT * FROM status_table\"\n    output: raw_records\n\n  - id: step_validate_records\n    op: validate_schema\n    params:\n      input: raw_records\n      schema: status_table_schema\n    output: validated_records\n\n  - id: step_aggregate_summary\n    op: aggregate_data\n    params:\n      input: validated_records\n      group_by: status\n      operations:\n        - type: count\n          field: id\n          alias: record_count\n    output: summary_result\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: summary_result\n      format: json\n    output: formatted_summary",
+      "dsl_type_errors": [
+        "Step 'step_format_summary': op 'format_output' requires input of type 'records' but 'summary_result' has type 'record'. Make sure the step producing 'summary_result' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1024,
+      "output_tokens": 210
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: database_summary_query\nsteps:\n  - id: step_read_table\n    op: read_database\n    params:\n      table: status_table\n      query: \"SELECT * FROM status_table\"\n    output: raw_records\n\n  - id: step_validate_records\n    op: validate_schema\n    params:\n      input: raw_records\n      schema: status_table_schema\n    output: validated_records\n\n  - id: step_aggregate_summary\n    op: aggregate_data\n    params:\n      input: validated_records\n      group_by: status\n      operations:\n        - type: count\n          field: id\n          alias: record_count\n    output: summary_result\n\n  - id: step_filter_summary\n    op: filter_records\n    params:\n      input: validated_records\n      condition: \"true\"\n    output: summary_as_records\n\n  - id: step_aggregate_final\n    op: aggregate_data\n    params:\n      input: summary_as_records\n      group_by: status\n      operations:\n        - type: count\n          field: id\n          alias: record_count\n    output: final_summary\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: summary_as_records\n      format: json\n    output: formatted_summary",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_002.py::test_parses_and_type_checks": true,
+        "test_wf_agent_002.py::test_passes_taint_analysis": true,
+        "test_wf_agent_002.py::test_has_read_and_aggregate": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1380,
+      "output_tokens": 322
+    }
+  ],
+  "complexity": 1,
+  "domain": "agent_tasks",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 2404,
+  "total_output_tokens": 532
+}

@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_gaia_007",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 19.228849082253873,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_gaia_007\nsteps:\n  - id: search_matches\n    op: fetch_api\n    params:\n      endpoint: \"/search\"\n      method: GET\n      query: \"{{trigger.subscription_query}}\"\n    output: search_results\n\n  - id: filter_relevant\n    op: filter_records\n    params:\n      input: \"{{search_results}}\"\n      condition: \"relevance_score >= threshold\"\n    output: relevant_matches\n\n  - id: check_matches_exist\n    op: route_to_step\n    params:\n      condition: \"{{relevant_matches | length > 0}}\"\n      on_true: notify_subscriber\n      on_false: end_workflow\n\n  - id: notify_subscriber\n    op: notify_user\n    params:\n      recipient: \"{{trigger.subscriber_id}}\"\n      subject: \"Relevant matches found for your subscription\"\n      message: \"We found {{relevant_matches | length}} relevant match(es) for your query.\"\n      matches: \"{{relevant_matches}}\"\n    output: notification_result\n\n  - id: end_workflow\n    op: terminate_workflow\n    params:\n      reason: \"No relevant matches found; subscriber not notified.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_007.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_007.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_007.py::test_has_filter_before_notify": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "general_ai",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

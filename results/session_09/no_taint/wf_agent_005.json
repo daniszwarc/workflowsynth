@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_agent_005",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6883663749322295,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: intent_classification_and_routing\nsteps:\n  - id: fetch_user_input\n    op: fetch_api\n    params:\n      endpoint: \"/api/agent/incoming_input\"\n    output: raw_user_input\n\n  - id: validate_user_input\n    op: validate_schema\n    params:\n      input: raw_user_input\n      schema: user_input_schema\n    output: validated_input\n\n  - id: classify_intent\n    op: apply_rule\n    params:\n      input: validated_input\n      rule: \"intent_classification_rule\"\n    output: classified_intent\n\n  - id: extract_intent_label\n    op: extract_field\n    params:\n      input: classified_intent\n      field: \"intent\"\n    output: intent_label\n\n  - id: route_by_intent\n    op: route_to_step\n    params:\n      input: intent_label\n      conditions:\n        - when: \"intent == 'faq'\"\n          goto: handler_faq\n        - when: \"intent == 'order_status'\"\n          goto: handler_order_status\n        - when: \"intent == 'escalation'\"\n          goto: handler_escalation\n      default: handler_fallback\n\n  - id: handler_faq\n    op: call_subworkflow\n    params:\n      workflow_id: faq_handler_workflow\n      input: validated_input\n    output: faq_result\n\n  - id: handler_order_status\n    op: call_subworkflow\n    params:\n      workflow_id: order_status_handler_workflow\n      input: validated_input\n    output: order_status_result\n\n  - id: handler_escalation\n    op: call_subworkflow\n    params:\n      workflow_id: escalation_handler_workflow\n      input: validated_input\n    output: escalation_result\n\n  - id: handler_fallback\n    op: call_subworkflow\n    params:\n      workflow_id: fallback_handler_workflow\n      input: validated_input\n    output: fallback_result\n\n  - id: log_classification\n    op: log_audit\n    params:\n      input: intent_label\n      message: \"User input classified and routed to appropriate handler\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_005.py::test_parses_and_type_checks": true,
+        "test_wf_agent_005.py::test_passes_taint_analysis": true,
+        "test_wf_agent_005.py::test_classify_before_route": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1058,
+      "output_tokens": 539
+    }
+  ],
+  "complexity": 2,
+  "domain": "agent_tasks",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1058,
+  "total_output_tokens": 539
+}

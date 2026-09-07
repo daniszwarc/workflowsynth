@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_agent_014",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 30.30628608353436,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_agent_014\nsteps:\n  - id: read_agent_config\n    op: read_database\n    params:\n      table: agent_configurations\n      key: \"{{agent_id}}\"\n    output: agent_config\n\n  - id: authenticate_agent\n    op: authenticate_user\n    params:\n      service_id: \"{{agent_config.service_id}}\"\n      credentials: \"{{agent_config.credentials}}\"\n    output: auth_token\n\n  - id: fetch_source_one\n    op: fetch_api\n    params:\n      url: \"{{agent_config.source_one_url}}\"\n      headers:\n        Authorization: \"Bearer {{auth_token}}\"\n    output: source_one_data\n\n  - id: fetch_source_two\n    op: fetch_api\n    params:\n      url: \"{{agent_config.source_two_url}}\"\n      headers:\n        Authorization: \"Bearer {{auth_token}}\"\n    output: source_two_data\n\n  - id: fetch_source_three\n    op: fetch_api\n    params:\n      url: \"{{agent_config.source_three_url}}\"\n      headers:\n        Authorization: \"Bearer {{auth_token}}\"\n    output: source_three_data\n\n  - id: classify_combined_data\n    op: apply_rule\n    params:\n      context:\n        source_one: \"{{source_one_data}}\"\n        source_two: \"{{source_two_data}}\"\n        source_three: \"{{source_three_data}}\"\n      rules:\n        - condition: \"context.priority == 'high'\"\n          label: high_priority\n        - condition: \"context.priority == 'low'\"\n          label: low_priority\n        - condition: \"default\"\n          label: standard\n    output: classification\n\n  - id: route_on_classification\n    op: route_to_step\n    params:\n      value: \"{{classification.label}}\"\n      routes:\n        high_priority: transform_data\n        low_priority: transform_data\n        standard: transform_data\n\n  - id: transform_data\n    op: transform_json\n    params:\n      input: \"{{classification}}\"\n      mapping:\n        source_one: \"{{source_one_data}}\"\n        source_two: \"{{source_two_data}}\"\n        source_three: \"{{source_three_data}}\"\n        classification: \"{{classification.label}}\"\n      format: storage\n    output: transformed_data\n\n  - id: validate_transformed\n    op: validate_schema\n    params:\n      data: \"{{transformed_data}}\"\n      schema: agent_result_schema\n    output: validation_result\n\n  - id: store_result\n    op: write_database\n    params:\n      table: agent_results\n      data: \"{{transformed_data}}\"\n      validated: \"{{validation_result.valid}}\"\n    output: store_confirmation\n\n  - id: audit_agent_run\n    op: log_audit\n    params:\n      action: agent_pipeline_complete\n      agent_id: \"{{agent_id}}\"\n      classification: \"{{classification.label}}\"\n      sources_fetched: 3\n      store_status: \"{{store_confirmation}}\"\n      timestamp: \"{{now}}\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_014.py::test_parses_and_type_checks": false,
+        "test_wf_agent_014.py::test_passes_taint_analysis": true,
+        "test_wf_agent_014.py::test_auth_before_write": true,
+        "test_wf_agent_014.py::test_validate_before_store": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 5,
+  "domain": "agent_tasks",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

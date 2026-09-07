@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_web_009",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 18.458726250566542,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_web_009\nsteps:\n  - id: fetch_post\n    op: fetch_api\n    params:\n      endpoint: \"/posts/submitted\"\n      method: GET\n    output: post_data\n\n  - id: classify_post\n    op: apply_rule\n    params:\n      input: \"{{post_data}}\"\n      rule: moderation_policy\n    output: classification\n\n  - id: route_post\n    op: route_to_step\n    params:\n      condition: \"{{classification.result}}\"\n      cases:\n        approved: send_to_approve_queue\n        rejected: send_to_reject_queue\n\n  - id: send_to_approve_queue\n    op: send_to_queue\n    params:\n      queue: approve_queue\n      payload: \"{{post_data}}\"\n\n  - id: send_to_reject_queue\n    op: send_to_queue\n    params:\n      queue: reject_queue\n      payload: \"{{post_data}}\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_009.py::test_parses_and_type_checks": false,
+        "test_wf_web_009.py::test_passes_taint_analysis": true,
+        "test_wf_web_009.py::test_classify_before_route": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "web_automation",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

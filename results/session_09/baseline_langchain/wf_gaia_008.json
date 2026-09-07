@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_gaia_008",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 16.80573599971831,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_gaia_008\nsteps:\n  - id: read_pending_records\n    op: read_database\n    params:\n      table: pending_records\n      filter: \"status = 'pending'\"\n    output: pending_records\n\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      identity: processing_service\n      method: service_account\n    output: auth_token\n\n  - id: validate_records\n    op: validate_schema\n    params:\n      input: \"{{pending_records}}\"\n      schema: pending_record_schema\n    output: validated_records\n\n  - id: apply_business_rule\n    op: apply_rule\n    params:\n      input: \"{{validated_records}}\"\n      rule: record_outcome_rule\n    output: rule_outcomes\n\n  - id: write_outcomes\n    op: write_database\n    params:\n      table: pending_records\n      data: \"{{rule_outcomes}}\"\n      auth: \"{{auth_token}}\"\n    depends_on:\n      - apply_business_rule",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_008.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_008.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_008.py::test_rule_before_write": true,
+        "test_wf_gaia_008.py::test_auth_before_write": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "general_ai",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

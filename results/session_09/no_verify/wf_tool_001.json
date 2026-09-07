@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_tool_001",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6107351249083877,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: weather_api_formatting\nsteps:\n  - id: fetch_weather_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/weather\"\n      query_param: location\n    output: raw_weather\n\n  - id: validate_weather_data\n    op: validate_schema\n    params:\n      input: raw_weather\n      schema: weather_response_schema\n    output: validated_weather\n\n  - id: format_weather_for_display\n    op: format_output\n    params:\n      input: validated_weather\n      format: display_text\n      template: \"Location: {{location}}\\nTemperature: {{temperature}}\u00b0\\nConditions: {{conditions}}\\nHumidity: {{humidity}}%\\nWind: {{wind_speed}} {{wind_direction}}\"\n    output: formatted_weather",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_001.py::test_parses_and_type_checks": true,
+        "test_wf_tool_001.py::test_passes_taint_analysis": true,
+        "test_wf_tool_001.py::test_has_fetch_and_format": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1030,
+      "output_tokens": 201
+    }
+  ],
+  "complexity": 1,
+  "domain": "api_integration",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1030,
+  "total_output_tokens": 201
+}

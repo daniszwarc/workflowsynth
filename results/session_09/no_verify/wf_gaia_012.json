@@ -1,0 +1,185 @@
+{
+  "task_id": "wf_gaia_012",
+  "condition": "no_verify",
+  "success": false,
+  "attempts_used": 10,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 68.8158200411126,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: three_source_aggregation_with_error_handling\nsteps:\n  - id: fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/one\"\n    output: raw_source_one\n\n  - id: handle_error_source_one\n    op: handle_error\n    params:\n      step: fetch_source_one\n      fallback_value: []\n    output: safe_source_one\n\n  - id: fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/two\"\n    output: raw_source_two\n\n  - id: handle_error_source_two\n    op: handle_error\n    params:\n      step: fetch_source_two\n      fallback_value: []\n    output: safe_source_two\n\n  - id: fetch_source_three\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/three\"\n    output: raw_source_three\n\n  - id: handle_error_source_three\n    op: handle_error\n    params:\n      step: fetch_source_three\n      fallback_value: []\n    output: safe_source_three\n\n  - id: validate_source_one\n    op: validate_schema\n    params:\n      input: safe_source_one\n      schema: source_record_schema\n    output: valid_source_one\n\n  - id: validate_source_two\n    op: validate_schema\n    params:\n      input: safe_source_two\n      schema: source_record_schema\n    output: valid_source_two\n\n  - id: validate_source_three\n    op: validate_schema\n    params:\n      input: safe_source_three\n      schema: source_record_schema\n    output: valid_source_three\n\n  - id: merge_one_two\n    op: merge_datasets\n    params:\n      input: valid_source_one\n      secondary: valid_source_two\n      key: record_id\n      strategy: outer\n    output: merged_one_two\n\n  - id: merge_all_sources\n    op: merge_datasets\n    params:\n      input: merged_one_two\n      secondary: valid_source_three\n      key: record_id\n      strategy: outer\n    output: merged_all\n\n  - id: aggregate_consolidated\n    op: aggregate_data\n    params:\n      input: merged_all\n      group_by: record_id\n      operations:\n        - type: collect\n          field: \"*\"\n    output: aggregated_view\n\n  - id: handle_aggregation_error\n    op: handle_error\n    params:\n      step: aggregate_consolidated\n      fallback_value: {}\n    output: safe_aggregated_view\n\n  - id: format_consolidated_output\n    op: format_output\n    params:\n      input: safe_aggregated_view\n      format: json\n    output: final_output\n\n  - id: log_consolidation\n    op: log_audit\n    params:\n      input: final_output\n      action: \"three_source_aggregation_completed\"\n      detail: \"Consolidated view built from available sources\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_012.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_012.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_012.py::test_three_fetches_and_aggregate": true,
+        "test_wf_gaia_012.py::test_has_error_handling": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1084,
+      "output_tokens": 757
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: three_source_aggregation_with_error_handling\nsteps:\n  - id: fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/one\"\n    output: raw_source_one\n\n  - id: handle_error_source_one\n    op: handle_error\n    params:\n      step: fetch_source_one\n      fallback_value: []\n    output: safe_source_one\n\n  - id: validate_source_one\n    op: validate_schema\n    params:\n      input: safe_source_one\n      schema: source_record_schema\n    output: valid_source_one\n\n  - id: fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/two\"\n    output: raw_source_two\n\n  - id: handle_error_source_two\n    op: handle_error\n    params:\n      step: fetch_source_two\n      fallback_value: []\n    output: safe_source_two\n\n  - id: validate_source_two\n    op: validate_schema\n    params:\n      input: safe_source_two\n      schema: source_record_schema\n    output: valid_source_two\n\n  - id: fetch_source_three\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/three\"\n    output: raw_source_three\n\n  - id: handle_error_source_three\n    op: handle_error\n    params:\n      step: fetch_source_three\n      fallback_value: []\n    output: safe_source_three\n\n  - id: validate_source_three\n    op: validate_schema\n    params:\n      input: safe_source_three\n      schema: source_record_schema\n    output: valid_source_three\n\n  - id: merge_one_two\n    op: merge_datasets\n    params:\n      input: valid_source_one\n      secondary: valid_source_two\n      key: record_id\n      strategy: outer\n    output: merged_one_two\n\n  - id: merge_all_sources\n    op: merge_datasets\n    params:\n      input: merged_one_two\n      secondary: valid_source_three\n      key: record_id\n      strategy: outer\n    output: merged_all\n\n  - id: aggregate_consolidated\n    op: aggregate_data\n    params:\n      input: merged_all\n      group_by: record_id\n      operations:\n        - type: collect\n          field: \"*\"\n    output: aggregated_view\n\n  - id: handle_aggregation_error\n    op: handle_error\n    params:\n      step: aggregate_consolidated\n      fallback_value: {}\n    output: safe_aggregated_view\n\n  - id: transform_aggregated\n    op: transform_json\n    params:\n      input: safe_aggregated_view\n      mapping:\n        pass_through: true\n    output: sanitized_aggregated_view\n\n  - id: format_consolidated_output\n    op: format_output\n    params:\n      input: sanitized_aggregated_view\n      format: json\n    output: final_output\n\n  - id: log_consolidation\n    op: log_audit\n    params:\n      input: final_output\n      action: \"three_source_aggregation_completed\"\n      detail: \"Consolidated view built from available sources\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_012.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_012.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_012.py::test_three_fetches_and_aggregate": true,
+        "test_wf_gaia_012.py::test_has_error_handling": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1927,
+      "output_tokens": 810
+    },
+    {
+      "attempt_number": 2,
+      "llm_sketch": "workflow_id: three_source_aggregation_with_error_handling\nsteps:\n  - id: fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/one\"\n    output: raw_source_one\n\n  - id: handle_error_source_one\n    op: handle_error\n    params:\n      step: fetch_source_one\n      fallback_value: []\n    output: safe_source_one\n\n  - id: validate_source_one\n    op: validate_schema\n    params:\n      input: safe_source_one\n      schema: source_record_schema\n    output: valid_source_one\n\n  - id: fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/two\"\n    output: raw_source_two\n\n  - id: handle_error_source_two\n    op: handle_error\n    params:\n      step: fetch_source_two\n      fallback_value: []\n    output: safe_source_two\n\n  - id: validate_source_two\n    op: validate_schema\n    params:\n      input: safe_source_two\n      schema: source_record_schema\n    output: valid_source_two\n\n  - id: fetch_source_three\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/three\"\n    output: raw_source_three\n\n  - id: handle_error_source_three\n    op: handle_error\n    params:\n      step: fetch_source_three\n      fallback_value: []\n    output: safe_source_three\n\n  - id: validate_source_three\n    op: validate_schema\n    params:\n      input: safe_source_three\n      schema: source_record_schema\n    output: valid_source_three\n\n  - id: merge_one_two\n    op: merge_datasets\n    params:\n      input: valid_source_one\n      secondary: valid_source_two\n      key: record_id\n      strategy: outer\n    output: merged_one_two\n\n  - id: merge_all_sources\n    op: merge_datasets\n    params:\n      input: merged_one_two\n      secondary: valid_source_three\n      key: record_id\n      strategy: outer\n    output: merged_all\n\n  - id: aggregate_consolidated\n    op: aggregate_data\n    params:\n      input: merged_all\n      group_by: record_id\n      operations:\n        - type: collect\n          field: \"*\"\n    output: aggregated_view\n\n  - id: handle_aggregation_error\n    op: handle_error\n    params:\n      step: aggregate_consolidated\n      fallback_value: {}\n    output: safe_aggregated_view\n\n  - id: format_consolidated_output\n    op: format_output\n    params:\n      input: safe_aggregated_view\n      format: json\n    output: final_output\n\n  - id: transform_final\n    op: transform_json\n    params:\n      input: final_output\n      mapping:\n        pass_through: true\n    output: sanitized_final_output\n\n  - id: log_consolidation\n    op: log_audit\n    params:\n      input: sanitized_final_output\n      action: \"three_source_aggregation_completed\"\n      detail: \"Consolidated view built from available sources\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_012.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_012.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_012.py::test_three_fetches_and_aggregate": true,
+        "test_wf_gaia_012.py::test_has_error_handling": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1980,
+      "output_tokens": 807
+    },
+    {
+      "attempt_number": 3,
+      "llm_sketch": "workflow_id: three_source_aggregation_with_error_handling\nsteps:\n  - id: fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/one\"\n    output: raw_source_one\n\n  - id: handle_error_source_one\n    op: handle_error\n    params:\n      step: fetch_source_one\n      fallback_value: []\n    output: safe_source_one\n\n  - id: validate_source_one\n    op: validate_schema\n    params:\n      input: safe_source_one\n      schema: source_record_schema\n    output: valid_source_one\n\n  - id: fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/two\"\n    output: raw_source_two\n\n  - id: handle_error_source_two\n    op: handle_error\n    params:\n      step: fetch_source_two\n      fallback_value: []\n    output: safe_source_two\n\n  - id: validate_source_two\n    op: validate_schema\n    params:\n      input: safe_source_two\n      schema: source_record_schema\n    output: valid_source_two\n\n  - id: fetch_source_three\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/three\"\n    output: raw_source_three\n\n  - id: handle_error_source_three\n    op: handle_error\n    params:\n      step: fetch_source_three\n      fallback_value: []\n    output: safe_source_three\n\n  - id: validate_source_three\n    op: validate_schema\n    params:\n      input: safe_source_three\n      schema: source_record_schema\n    output: valid_source_three\n\n  - id: merge_one_two\n    op: merge_datasets\n    params:\n      input: valid_source_one\n      secondary: valid_source_two\n      key: record_id\n      strategy: outer\n    output: merged_one_two\n\n  - id: merge_all_sources\n    op: merge_datasets\n    params:\n      input: merged_one_two\n      secondary: valid_source_three\n      key: record_id\n      strategy: outer\n    output: merged_all\n\n  - id: aggregate_consolidated\n    op: aggregate_data\n    params:\n      input: merged_all\n      group_by: record_id\n      operations:\n        - type: collect\n          field: \"*\"\n    output: aggregated_view\n\n  - id: handle_aggregation_error\n    op: handle_error\n    params:\n      step: aggregate_consolidated\n      fallback_value: []\n    output: safe_aggregated_view\n\n  - id: format_consolidated_output\n    op: format_output\n    params:\n      input: safe_aggregated_view\n      format: json\n    output: final_output\n\n  - id: log_consolidation\n    op: log_audit\n    params:\n      input: final_output\n      action: three_source_aggregation_completed\n      detail: \"Consolidated view built from available sources\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_012.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_012.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_012.py::test_three_fetches_and_aggregate": true,
+        "test_wf_gaia_012.py::test_has_error_handling": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1977,
+      "output_tokens": 755
+    },
+    {
+      "attempt_number": 4,
+      "llm_sketch": "workflow_id: three_source_aggregation_with_error_handling\nsteps:\n  - id: fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/one\"\n    output: raw_source_one\n\n  - id: handle_error_source_one\n    op: handle_error\n    params:\n      step: fetch_source_one\n      fallback_value: []\n    output: safe_source_one\n\n  - id: validate_source_one\n    op: validate_schema\n    params:\n      input: safe_source_one\n      schema: source_record_schema\n    output: valid_source_one\n\n  - id: fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/two\"\n    output: raw_source_two\n\n  - id: handle_error_source_two\n    op: handle_error\n    params:\n      step: fetch_source_two\n      fallback_value: []\n    output: safe_source_two\n\n  - id: validate_source_two\n    op: validate_schema\n    params:\n      input: safe_source_two\n      schema: source_record_schema\n    output: valid_source_two\n\n  - id: fetch_source_three\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/three\"\n    output: raw_source_three\n\n  - id: handle_error_source_three\n    op: handle_error\n    params:\n      step: fetch_source_three\n      fallback_value: []\n    output: safe_source_three\n\n  - id: validate_source_three\n    op: validate_schema\n    params:\n      input: safe_source_three\n      schema: source_record_schema\n    output: valid_source_three\n\n  - id: merge_one_two\n    op: merge_datasets\n    params:\n      input: valid_source_one\n      secondary: valid_source_two\n      key: record_id\n    output: merged_one_two\n\n  - id: merge_all_sources\n    op: merge_datasets\n    params:\n      input: merged_one_two\n      secondary: valid_source_three\n      key: record_id\n    output: merged_all\n\n  - id: aggregate_consolidated\n    op: aggregate_data\n    params:\n      input: merged_all\n      group_by: record_id\n      operations:\n        - type: collect\n          field: \"*\"\n    output: aggregated_view\n\n  - id: handle_aggregation_error\n    op: handle_error\n    params:\n      step: aggregate_consolidated\n      fallback_value: []\n    output: safe_aggregated_view\n\n  - id: transform_safe_view\n    op: transform_json\n    params:\n      input: safe_aggregated_view\n      mapping:\n        records: \"$.records\"\n    output: transformed_view\n\n  - id: format_consolidated_output\n    op: format_output\n    params:\n      input: transformed_view\n      format: json\n    output: final_output\n\n  - id: log_consolidation\n    op: log_audit\n    params:\n      input: final_output\n      action: three_source_aggregation_completed\n      detail: \"Consolidated view built from available sources\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_012.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_012.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_012.py::test_three_fetches_and_aggregate": true,
+        "test_wf_gaia_012.py::test_has_error_handling": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1925,
+      "output_tokens": 792
+    },
+    {
+      "attempt_number": 5,
+      "llm_sketch": "workflow_id: three_source_aggregation_with_error_handling\nsteps:\n  - id: fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/one\"\n    output: raw_source_one\n\n  - id: handle_error_source_one\n    op: handle_error\n    params:\n      step: fetch_source_one\n      fallback_value: []\n    output: safe_source_one\n\n  - id: validate_source_one\n    op: validate_schema\n    params:\n      input: safe_source_one\n      schema: source_record_schema\n    output: valid_source_one\n\n  - id: fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/two\"\n    output: raw_source_two\n\n  - id: handle_error_source_two\n    op: handle_error\n    params:\n      step: fetch_source_two\n      fallback_value: []\n    output: safe_source_two\n\n  - id: validate_source_two\n    op: validate_schema\n    params:\n      input: safe_source_two\n      schema: source_record_schema\n    output: valid_source_two\n\n  - id: fetch_source_three\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/three\"\n    output: raw_source_three\n\n  - id: handle_error_source_three\n    op: handle_error\n    params:\n      step: fetch_source_three\n      fallback_value: []\n    output: safe_source_three\n\n  - id: validate_source_three\n    op: validate_schema\n    params:\n      input: safe_source_three\n      schema: source_record_schema\n    output: valid_source_three\n\n  - id: merge_one_two\n    op: merge_datasets\n    params:\n      input: valid_source_one\n      secondary: valid_source_two\n      key: record_id\n    output: merged_one_two\n\n  - id: merge_all_sources\n    op: merge_datasets\n    params:\n      input: merged_one_two\n      secondary: valid_source_three\n      key: record_id\n    output: merged_all\n\n  - id: aggregate_consolidated\n    op: aggregate_data\n    params:\n      input: merged_all\n      group_by: record_id\n      operations:\n        - type: collect\n          field: \"*\"\n    output: aggregated_view\n\n  - id: handle_aggregation_error\n    op: handle_error\n    params:\n      step: aggregate_consolidated\n      fallback_value: []\n    output: safe_aggregated_view\n\n  - id: transform_safe_view\n    op: transform_json\n    params:\n      input: safe_aggregated_view\n      mapping:\n        records: \"$.records\"\n    output: transformed_view\n\n  - id: format_consolidated_output\n    op: format_output\n    params:\n      input: transformed_view\n      format: json\n    output: final_output\n\n  - id: sanitize_for_log\n    op: extract_field\n    params:\n      input: final_output\n      field: records\n    output: log_safe_output\n\n  - id: log_consolidation\n    op: log_audit\n    params:\n      input: log_safe_output\n      action: three_source_aggregation_completed\n      detail: \"Consolidated view built from available sources\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_012.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_012.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_012.py::test_three_fetches_and_aggregate": true,
+        "test_wf_gaia_012.py::test_has_error_handling": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1962,
+      "output_tokens": 837
+    },
+    {
+      "attempt_number": 6,
+      "llm_sketch": "workflow_id: three_source_aggregation_with_error_handling\nsteps:\n  - id: fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/one\"\n    output: raw_source_one\n\n  - id: handle_error_source_one\n    op: handle_error\n    params:\n      step: fetch_source_one\n      fallback_value: []\n    output: safe_source_one\n\n  - id: validate_source_one\n    op: validate_schema\n    params:\n      input: safe_source_one\n      schema: source_record_schema\n    output: valid_source_one\n\n  - id: fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/two\"\n    output: raw_source_two\n\n  - id: handle_error_source_two\n    op: handle_error\n    params:\n      step: fetch_source_two\n      fallback_value: []\n    output: safe_source_two\n\n  - id: validate_source_two\n    op: validate_schema\n    params:\n      input: safe_source_two\n      schema: source_record_schema\n    output: valid_source_two\n\n  - id: fetch_source_three\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/three\"\n    output: raw_source_three\n\n  - id: handle_error_source_three\n    op: handle_error\n    params:\n      step: fetch_source_three\n      fallback_value: []\n    output: safe_source_three\n\n  - id: validate_source_three\n    op: validate_schema\n    params:\n      input: safe_source_three\n      schema: source_record_schema\n    output: valid_source_three\n\n  - id: merge_one_two\n    op: merge_datasets\n    params:\n      input: valid_source_one\n      secondary: valid_source_two\n      key: record_id\n    output: merged_one_two\n\n  - id: merge_all_sources\n    op: merge_datasets\n    params:\n      input: merged_one_two\n      secondary: valid_source_three\n      key: record_id\n    output: merged_all\n\n  - id: aggregate_consolidated\n    op: aggregate_data\n    params:\n      input: merged_all\n      group_by: record_id\n      operations:\n        - type: collect\n          field: \"*\"\n    output: aggregated_view\n\n  - id: handle_aggregation_error\n    op: handle_error\n    params:\n      step: aggregate_consolidated\n      fallback_value: []\n    output: safe_aggregated_view\n\n  - id: format_consolidated_output\n    op: format_output\n    params:\n      input: safe_aggregated_view\n      format: json\n    output: final_output\n\n  - id: extract_for_log\n    op: extract_field\n    params:\n      input: final_output\n      field: records\n    output: log_safe_output\n\n  - id: log_consolidation\n    op: log_audit\n    params:\n      input: log_safe_output\n      action: three_source_aggregation_completed\n      detail: \"Consolidated view built from available sources\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_012.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_012.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_012.py::test_three_fetches_and_aggregate": true,
+        "test_wf_gaia_012.py::test_has_error_handling": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2007,
+      "output_tokens": 789
+    },
+    {
+      "attempt_number": 7,
+      "llm_sketch": "workflow_id: three_source_aggregation_with_error_handling\nsteps:\n  - id: fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/one\"\n    output: raw_source_one\n\n  - id: handle_error_source_one\n    op: handle_error\n    params:\n      step: fetch_source_one\n      fallback_value: []\n    output: safe_source_one\n\n  - id: validate_source_one\n    op: validate_schema\n    params:\n      input: safe_source_one\n      schema: source_record_schema\n    output: valid_source_one\n\n  - id: fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/two\"\n    output: raw_source_two\n\n  - id: handle_error_source_two\n    op: handle_error\n    params:\n      step: fetch_source_two\n      fallback_value: []\n    output: safe_source_two\n\n  - id: validate_source_two\n    op: validate_schema\n    params:\n      input: safe_source_two\n      schema: source_record_schema\n    output: valid_source_two\n\n  - id: fetch_source_three\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/three\"\n    output: raw_source_three\n\n  - id: handle_error_source_three\n    op: handle_error\n    params:\n      step: fetch_source_three\n      fallback_value: []\n    output: safe_source_three\n\n  - id: validate_source_three\n    op: validate_schema\n    params:\n      input: safe_source_three\n      schema: source_record_schema\n    output: valid_source_three\n\n  - id: merge_one_two\n    op: merge_datasets\n    params:\n      input: valid_source_one\n      secondary: valid_source_two\n      key: record_id\n    output: merged_one_two\n\n  - id: merge_all_sources\n    op: merge_datasets\n    params:\n      input: merged_one_two\n      secondary: valid_source_three\n      key: record_id\n    output: merged_all\n\n  - id: aggregate_consolidated\n    op: aggregate_data\n    params:\n      input: merged_all\n      group_by: record_id\n      operations:\n        - type: collect\n          field: \"*\"\n    output: aggregated_view\n\n  - id: handle_aggregation_error\n    op: handle_error\n    params:\n      step: aggregate_consolidated\n      fallback_value: []\n    output: safe_aggregated_view\n\n  - id: format_consolidated_output\n    op: format_output\n    params:\n      input: safe_aggregated_view\n      format: json\n    output: final_output\n\n  - id: log_consolidation\n    op: log_audit\n    params:\n      input: final_output\n      action: three_source_aggregation_completed\n      detail: \"Consolidated view built from available sources\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_012.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_012.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_012.py::test_three_fetches_and_aggregate": true,
+        "test_wf_gaia_012.py::test_has_error_handling": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1959,
+      "output_tokens": 745
+    },
+    {
+      "attempt_number": 8,
+      "llm_sketch": "workflow_id: three_source_aggregation_with_error_handling\nsteps:\n  - id: fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/one\"\n    output: raw_source_one\n\n  - id: validate_source_one\n    op: validate_schema\n    params:\n      input: raw_source_one\n      schema: source_record_schema\n    output: valid_source_one\n\n  - id: handle_error_source_one\n    op: handle_error\n    params:\n      step: validate_source_one\n      fallback_value: []\n    output: safe_source_one\n\n  - id: fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/two\"\n    output: raw_source_two\n\n  - id: validate_source_two\n    op: validate_schema\n    params:\n      input: raw_source_two\n      schema: source_record_schema\n    output: valid_source_two\n\n  - id: handle_error_source_two\n    op: handle_error\n    params:\n      step: validate_source_two\n      fallback_value: []\n    output: safe_source_two\n\n  - id: fetch_source_three\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/three\"\n    output: raw_source_three\n\n  - id: validate_source_three\n    op: validate_schema\n    params:\n      input: raw_source_three\n      schema: source_record_schema\n    output: valid_source_three\n\n  - id: handle_error_source_three\n    op: handle_error\n    params:\n      step: validate_source_three\n      fallback_value: []\n    output: safe_source_three\n\n  - id: merge_one_two\n    op: merge_datasets\n    params:\n      input: safe_source_one\n      secondary: safe_source_two\n      key: record_id\n    output: merged_one_two\n\n  - id: handle_merge_one_two_error\n    op: handle_error\n    params:\n      step: merge_one_two\n      fallback_value: []\n    output: safe_merged_one_two\n\n  - id: merge_all_sources\n    op: merge_datasets\n    params:\n      input: safe_merged_one_two\n      secondary: safe_source_three\n      key: record_id\n    output: merged_all_sources\n\n  - id: handle_merge_all_sources_error\n    op: handle_error\n    params:\n      step: merge_all_sources\n      fallback_value: []\n    output: safe_merged_all_sources\n\n  - id: aggregate_consolidated\n    op: aggregate_data\n    params:\n      input: safe_merged_all_sources\n      group_by: record_id\n      operations:\n        - type: collect\n          field: \"*\"\n    output: aggregated_view\n\n  - id: handle_aggregation_error\n    op: handle_error\n    params:\n      step: aggregate_consolidated\n      fallback_value: []\n    output: safe_aggregated_view\n\n  - id: format_consolidated_output\n    op: format_output\n    params:\n      input: safe_aggregated_view\n      format: json\n    output: final_output\n\n  - id: extract_audit_summary\n    op: extract_field\n    params:\n      input: final_output\n      field: format\n    output: audit_summary\n\n  - id: log_consolidation\n    op: log_audit\n    params:\n      input: audit_summary\n      action: three_source_aggregation_completed\n      detail: \"Consolidated view built from available sources\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_012.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_012.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_012.py::test_three_fetches_and_aggregate": true,
+        "test_wf_gaia_012.py::test_has_error_handling": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1611,
+      "output_tokens": 728
+    },
+    {
+      "attempt_number": 9,
+      "llm_sketch": "workflow_id: three_source_aggregation_with_error_handling\nsteps:\n  - id: fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/one\"\n    output: raw_source_one\n\n  - id: validate_source_one\n    op: validate_schema\n    params:\n      input: raw_source_one\n      schema: source_record_schema\n    output: valid_source_one\n\n  - id: handle_error_source_one\n    op: handle_error\n    params:\n      step: validate_source_one\n      fallback_value: []\n    output: safe_source_one\n\n  - id: fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/two\"\n    output: raw_source_two\n\n  - id: validate_source_two\n    op: validate_schema\n    params:\n      input: raw_source_two\n      schema: source_record_schema\n    output: valid_source_two\n\n  - id: handle_error_source_two\n    op: handle_error\n    params:\n      step: validate_source_two\n      fallback_value: []\n    output: safe_source_two\n\n  - id: fetch_source_three\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/three\"\n    output: raw_source_three\n\n  - id: validate_source_three\n    op: validate_schema\n    params:\n      input: raw_source_three\n      schema: source_record_schema\n    output: valid_source_three\n\n  - id: handle_error_source_three\n    op: handle_error\n    params:\n      step: validate_source_three\n      fallback_value: []\n    output: safe_source_three\n\n  - id: merge_one_two\n    op: merge_datasets\n    params:\n      input: safe_source_one\n      secondary: safe_source_two\n      key: record_id\n    output: merged_one_two\n\n  - id: handle_merge_one_two_error\n    op: handle_error\n    params:\n      step: merge_one_two\n      fallback_value: []\n    output: safe_merged_one_two\n\n  - id: merge_all_sources\n    op: merge_datasets\n    params:\n      input: safe_merged_one_two\n      secondary: safe_source_three\n      key: record_id\n    output: merged_all_sources\n\n  - id: handle_merge_all_sources_error\n    op: handle_error\n    params:\n      step: merge_all_sources\n      fallback_value: []\n    output: safe_merged_all_sources\n\n  - id: aggregate_consolidated\n    op: aggregate_data\n    params:\n      input: safe_merged_all_sources\n      group_by: record_id\n      operations:\n        - type: collect\n          field: all_records\n    output: aggregated_view\n\n  - id: handle_aggregation_error\n    op: handle_error\n    params:\n      step: aggregate_consolidated\n      fallback_value: []\n    output: safe_aggregated_view\n\n  - id: transform_for_audit\n    op: transform_json\n    params:\n      input: safe_aggregated_view\n      mapping:\n        consolidated_view: records\n    output: audit_ready_view\n\n  - id: log_consolidation\n    op: log_audit\n    params:\n      input: audit_ready_view\n      action: three_source_aggregation_completed\n      detail: \"Consolidated view built from available sources\"\n\n  - id: format_consolidated_output\n    op: format_output\n    params:\n      input: safe_aggregated_view\n      format: json\n    output: final_output",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_012.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_012.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_012.py::test_three_fetches_and_aggregate": true,
+        "test_wf_gaia_012.py::test_has_error_handling": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1732,
+      "output_tokens": 737
+    }
+  ],
+  "complexity": 3,
+  "domain": "general_ai",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 18164,
+  "total_output_tokens": 7757
+}

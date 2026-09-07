@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_tool_014",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 36.93284612521529,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_tool_014\nsteps:\n  - id: ingest_event\n    op: fetch_api\n    params:\n      endpoint: \"/realtime/events/ingest\"\n      method: GET\n      stream: true\n    output: raw_event\n\n  - id: validate_event\n    op: validate_schema\n    params:\n      input: \"{{raw_event}}\"\n      schema: \"realtime_event_schema\"\n    output: validated_event\n\n  - id: transform_event\n    op: transform_json\n    params:\n      input: \"{{validated_event}}\"\n      mapping:\n        format: \"internal_representation\"\n    output: transformed_event\n\n  - id: classify_event\n    op: apply_rule\n    params:\n      input: \"{{transformed_event}}\"\n      rules:\n        - field: \"event_type\"\n          conditions:\n            - match: \"critical\"\n              label: \"high_priority\"\n            - match: \"standard\"\n              label: \"normal\"\n            - match: \"informational\"\n              label: \"low_priority\"\n    output: classification_result\n\n  - id: route_event\n    op: route_to_step\n    params:\n      input: \"{{classification_result}}\"\n      route_key: \"label\"\n      routes:\n        high_priority: \"priority_queue\"\n        normal: \"standard_queue\"\n        low_priority: \"batch_queue\"\n    output: routed_destination\n\n  - id: authenticate_pipeline_writer\n    op: authenticate_user\n    params:\n      identity: \"pipeline_writer\"\n      method: \"service_account\"\n    output: auth_token\n\n  - id: store_event\n    op: write_database\n    params:\n      auth: \"{{auth_token}}\"\n      table: \"classified_events\"\n      record: \"{{classification_result}}\"\n      destination: \"{{routed_destination}}\"\n    output: store_confirmation\n\n  - id: log_pipeline_audit\n    op: log_audit\n    params:\n      action: \"pipeline_run_complete\"\n      details:\n        event_id: \"{{raw_event.id}}\"\n        classification: \"{{classification_result.label}}\"\n        destination: \"{{routed_destination}}\"\n        store_status: \"{{store_confirmation}}\"\n      severity: \"info\"\n    output: audit_record",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_014.py::test_parses_and_type_checks": false,
+        "test_wf_tool_014.py::test_passes_taint_analysis": true,
+        "test_wf_tool_014.py::test_classify_before_route": true,
+        "test_wf_tool_014.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 4,
+  "domain": "api_integration",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

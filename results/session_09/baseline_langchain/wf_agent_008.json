@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_agent_008",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 22.897555165924132,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_agent_008\nsteps:\n  - id: classify_task\n    op: transform_json\n    params:\n      input: \"{{trigger.task}}\"\n      mapping:\n        task_id: \"{{trigger.task.id}}\"\n        category: \"{{trigger.task.category}}\"\n        priority: \"{{trigger.task.priority}}\"\n    output: classification\n\n  - id: apply_routing_rule\n    op: apply_rule\n    params:\n      rule_id: task_routing_rule\n      input: \"{{classification}}\"\n    output: routing_decision\n\n  - id: route_to_subworkflow\n    op: call_subworkflow\n    params:\n      workflow_id: \"{{routing_decision.target_workflow}}\"\n      input:\n        task: \"{{trigger.task}}\"\n        classification: \"{{classification}}\"\n        routing: \"{{routing_decision}}\"\n    output: subworkflow_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_008.py::test_parses_and_type_checks": false,
+        "test_wf_agent_008.py::test_passes_taint_analysis": false,
+        "test_wf_agent_008.py::test_two_rules_before_route": false
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "agent_tasks",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

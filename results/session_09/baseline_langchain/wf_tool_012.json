@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_tool_012",
+  "condition": "baseline_langchain",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 22.34766774997115,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_tool_012\nsteps:\n  - id: call_primary_api\n    op: fetch_api\n    params:\n      endpoint: \"{{primary_api_url}}\"\n      method: POST\n      payload: \"{{request_payload}}\"\n    output: api_response\n\n  - id: retry_on_transient_failure\n    op: retry_step\n    params:\n      step_id: call_primary_api\n      max_retries: 3\n      backoff_strategy: exponential\n      retry_on: transient_error\n    output: retry_result\n\n  - id: handle_persistent_error\n    op: handle_error\n    params:\n      source_step: retry_on_transient_failure\n      strategy: flag\n      error_category: unrecoverable\n    output: error_disposition\n\n  - id: route_to_fallback\n    op: route_to_step\n    params:\n      condition: \"{{error_disposition.flag == 'unrecoverable'}}\"\n      target_step: fallback_path\n    output: routing_decision\n\n  - id: fallback_path\n    op: fetch_api\n    params:\n      endpoint: \"{{fallback_api_url}}\"\n      method: POST\n      payload: \"{{request_payload}}\"\n    output: fallback_response",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_012.py::test_parses_and_type_checks": true,
+        "test_wf_tool_012.py::test_passes_taint_analysis": true,
+        "test_wf_tool_012.py::test_retry_before_route": true,
+        "test_wf_tool_012.py::test_has_error_handling": true
+      },
+      "failure_category": "success",
+      "success": true
+    }
+  ],
+  "complexity": 4,
+  "domain": "api_integration",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

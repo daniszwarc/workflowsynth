@@ -1,0 +1,175 @@
+{
+  "task_id": "wf_tool_007",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 10,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 45.68606187496334,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: authenticated_paginated_aggregation\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_consumer\"\n    output: auth_result\n\n  - id: step_fetch_paginated_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/paginated/results\"\n      pagination: true\n    output: raw_paginated_data\n\n  - id: step_validate_paginated_data\n    op: validate_schema\n    params:\n      input: raw_paginated_data\n      schema: paginated_results_schema\n    output: validated_paginated_data\n\n  - id: step_aggregate_summary\n    op: aggregate_data\n    params:\n      input: validated_paginated_data\n      group_by: null\n      operations:\n        - type: \"summary\"\n    output: aggregated_summary\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: aggregated_summary\n      format: \"json\"\n    output: formatted_summary\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_summary\n      message: \"Paginated aggregation summary generated successfully\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_007.py::test_parses_and_type_checks": false,
+        "test_wf_tool_007.py::test_passes_taint_analysis": true,
+        "test_wf_tool_007.py::test_auth_before_fetch": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1050,
+      "output_tokens": 300
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: authenticated_paginated_aggregation\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_consumer\"\n    output: auth_result\n\n  - id: step_fetch_paginated_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/paginated/results\"\n      pagination: true\n    output: raw_paginated_data\n\n  - id: step_validate_paginated_data\n    op: validate_schema\n    params:\n      input: raw_paginated_data\n      schema: paginated_results_schema\n    output: validated_paginated_data\n\n  - id: step_aggregate_summary\n    op: aggregate_data\n    params:\n      input: validated_paginated_data\n      group_by: \"all\"\n      operations:\n        - type: \"summary\"\n    output: aggregated_summary\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: aggregated_summary\n      format: \"json\"\n    output: formatted_summary\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_summary\n      message: \"Paginated aggregation summary generated successfully\"\n    output: audit_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_007.py::test_parses_and_type_checks": false,
+        "test_wf_tool_007.py::test_passes_taint_analysis": true,
+        "test_wf_tool_007.py::test_auth_before_fetch": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1435,
+      "output_tokens": 309
+    },
+    {
+      "attempt_number": 2,
+      "llm_sketch": "workflow_id: authenticated_paginated_aggregation\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_consumer\"\n    output: auth_result\n\n  - id: step_fetch_paginated_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/paginated/results\"\n      pagination: true\n    output: raw_paginated_data\n\n  - id: step_validate_paginated_data\n    op: validate_schema\n    params:\n      input: raw_paginated_data\n      schema: paginated_results_schema\n    output: validated_paginated_data\n\n  - id: step_aggregate_summary\n    op: aggregate_data\n    params:\n      input: validated_paginated_data\n      group_by: \"all\"\n      operations: \"summary\"\n    output: aggregated_summary\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: aggregated_summary\n      format: \"json\"\n    output: formatted_summary\n\n  - id: step_validate_summary\n    op: validate_schema\n    params:\n      input: aggregated_summary\n      schema: summary_schema\n    output: validated_summary\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: validated_summary\n      message: \"Paginated aggregation summary generated successfully\"\n    output: audit_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_007.py::test_parses_and_type_checks": false,
+        "test_wf_tool_007.py::test_passes_taint_analysis": true,
+        "test_wf_tool_007.py::test_auth_before_fetch": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1444,
+      "output_tokens": 347
+    },
+    {
+      "attempt_number": 3,
+      "llm_sketch": "workflow_id: authenticated_paginated_aggregation\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_consumer\"\n    output: auth_result\n\n  - id: step_fetch_paginated_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/paginated/results\"\n      pagination: true\n    output: raw_paginated_data\n\n  - id: step_validate_paginated_data\n    op: validate_schema\n    params:\n      input: raw_paginated_data\n      schema: paginated_results_schema\n    output: validated_paginated_data\n\n  - id: step_aggregate_summary\n    op: aggregate_data\n    params:\n      input: validated_paginated_data\n      group_by: \"all\"\n      operations: \"summary\"\n    output: aggregated_summary\n\n  - id: step_validate_summary\n    op: validate_schema\n    params:\n      input: aggregated_summary\n      schema: summary_schema\n    output: validated_summary\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: validated_summary\n      format: \"json\"\n    output: formatted_summary\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: validated_summary\n      message: \"Paginated aggregation summary generated successfully\"\n    output: audit_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_007.py::test_parses_and_type_checks": false,
+        "test_wf_tool_007.py::test_passes_taint_analysis": true,
+        "test_wf_tool_007.py::test_auth_before_fetch": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1482,
+      "output_tokens": 346
+    },
+    {
+      "attempt_number": 4,
+      "llm_sketch": "workflow_id: authenticated_paginated_aggregation\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_consumer\"\n    output: auth_result\n\n  - id: step_fetch_paginated_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/paginated/results\"\n      pagination: true\n    output: raw_paginated_data\n\n  - id: step_validate_paginated_data\n    op: validate_schema\n    params:\n      input: raw_paginated_data\n      schema: paginated_results_schema\n    output: validated_paginated_data\n\n  - id: step_aggregate_summary\n    op: aggregate_data\n    params:\n      input: validated_paginated_data\n      group_by: \"all\"\n      operations:\n        - \"summary\"\n    output: aggregated_summary\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: aggregated_summary\n      format: \"json\"\n    output: formatted_summary\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_summary\n      message: \"Paginated aggregation summary generated successfully\"\n    output: audit_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_007.py::test_parses_and_type_checks": false,
+        "test_wf_tool_007.py::test_passes_taint_analysis": true,
+        "test_wf_tool_007.py::test_auth_before_fetch": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1481,
+      "output_tokens": 307
+    },
+    {
+      "attempt_number": 5,
+      "llm_sketch": "workflow_id: authenticated_paginated_aggregation\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_consumer\"\n    output: auth_result\n\n  - id: step_fetch_paginated_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/paginated/results\"\n      pagination: true\n    output: raw_paginated_data\n\n  - id: step_validate_paginated_data\n    op: validate_schema\n    params:\n      input: raw_paginated_data\n      schema: paginated_results_schema\n    output: validated_paginated_data\n\n  - id: step_aggregate_summary\n    op: aggregate_data\n    params:\n      input: validated_paginated_data\n      group_by: \"all\"\n      operations: \"summary\"\n    output: aggregated_summary\n\n  - id: step_validate_aggregated\n    op: validate_schema\n    params:\n      input: aggregated_summary\n      schema: aggregated_summary_schema\n    output: validated_summary\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: validated_summary\n      format: \"json\"\n    output: formatted_summary\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_summary\n      message: \"Paginated aggregation summary generated successfully\"\n    output: audit_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_007.py::test_parses_and_type_checks": false,
+        "test_wf_tool_007.py::test_passes_taint_analysis": true,
+        "test_wf_tool_007.py::test_auth_before_fetch": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1442,
+      "output_tokens": 350
+    },
+    {
+      "attempt_number": 6,
+      "llm_sketch": "workflow_id: authenticated_paginated_aggregation\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_consumer\"\n    output: auth_result\n\n  - id: step_fetch_paginated_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/paginated/results\"\n      pagination: true\n    output: raw_paginated_data\n\n  - id: step_validate_paginated_data\n    op: validate_schema\n    params:\n      input: raw_paginated_data\n      schema: paginated_results_schema\n    output: validated_paginated_data\n\n  - id: step_aggregate_summary\n    op: aggregate_data\n    params:\n      input: validated_paginated_data\n      group_by: \"all\"\n      operations:\n        - \"summary\"\n    output: aggregated_summary\n\n  - id: step_validate_aggregated\n    op: validate_schema\n    params:\n      input: aggregated_summary\n      schema: aggregated_summary_schema\n    output: validated_summary\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: validated_summary\n      format: \"json\"\n    output: formatted_summary\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_summary\n      message: \"Paginated aggregation summary generated successfully\"\n    output: audit_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_007.py::test_parses_and_type_checks": false,
+        "test_wf_tool_007.py::test_passes_taint_analysis": true,
+        "test_wf_tool_007.py::test_auth_before_fetch": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1485,
+      "output_tokens": 353
+    },
+    {
+      "attempt_number": 7,
+      "llm_sketch": "workflow_id: authenticated_paginated_aggregation\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_consumer\"\n    output: auth_result\n\n  - id: step_fetch_paginated_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/paginated/results\"\n      pagination: true\n    output: raw_paginated_data\n\n  - id: step_validate_paginated_data\n    op: validate_schema\n    params:\n      input: raw_paginated_data\n      schema: paginated_results_schema\n    output: validated_paginated_data\n\n  - id: step_aggregate_summary\n    op: aggregate_data\n    params:\n      input: validated_paginated_data\n      group_by: \"all\"\n      operations: \"summary\"\n    output: aggregated_summary\n\n  - id: step_validate_aggregated\n    op: validate_schema\n    params:\n      input: aggregated_summary\n      schema: aggregated_summary_schema\n    output: validated_summary\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: validated_summary\n      format: \"json\"\n    output: formatted_summary\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_summary\n      message: \"Paginated aggregation summary generated successfully\"\n    output: audit_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_007.py::test_parses_and_type_checks": false,
+        "test_wf_tool_007.py::test_passes_taint_analysis": true,
+        "test_wf_tool_007.py::test_auth_before_fetch": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1488,
+      "output_tokens": 350
+    },
+    {
+      "attempt_number": 8,
+      "llm_sketch": "workflow_id: authenticated_paginated_aggregation\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: api_consumer\n    output: auth_result\n\n  - id: step_fetch_paginated_data\n    op: fetch_api\n    params:\n      endpoint: /api/paginated/results\n      pagination: true\n    output: raw_paginated_data\n\n  - id: step_validate_paginated_data\n    op: validate_schema\n    params:\n      input: raw_paginated_data\n      schema: paginated_results_schema\n    output: validated_paginated_data\n\n  - id: step_aggregate_summary\n    op: aggregate_data\n    params:\n      input: validated_paginated_data\n      group_by: all\n      operations:\n        - summary\n    output: aggregated_summary\n\n  - id: step_validate_aggregated\n    op: validate_schema\n    params:\n      input: aggregated_summary\n      schema: aggregated_summary_schema\n    output: validated_summary\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: validated_summary\n      format: json\n    output: formatted_summary",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_007.py::test_parses_and_type_checks": false,
+        "test_wf_tool_007.py::test_passes_taint_analysis": true,
+        "test_wf_tool_007.py::test_auth_before_fetch": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1258,
+      "output_tokens": 245
+    },
+    {
+      "attempt_number": 9,
+      "llm_sketch": "workflow_id: authenticated_paginated_aggregation\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: api_consumer\n    output: auth_result\n\n  - id: step_fetch_paginated_data\n    op: fetch_api\n    params:\n      endpoint: /api/paginated/results\n      pagination: true\n    output: raw_paginated_data\n\n  - id: step_validate_paginated_data\n    op: validate_schema\n    params:\n      input: raw_paginated_data\n      schema: paginated_results_schema\n    output: validated_paginated_data\n\n  - id: step_aggregate_summary\n    op: aggregate_data\n    params:\n      input: validated_paginated_data\n      group_by: [\"all\"]\n      operations:\n        - type: count\n          field: id\n          as: total_records\n    output: aggregated_summary",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_007.py::test_parses_and_type_checks": true,
+        "test_wf_tool_007.py::test_passes_taint_analysis": true,
+        "test_wf_tool_007.py::test_auth_before_fetch": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1214,
+      "output_tokens": 187
+    }
+  ],
+  "complexity": 2,
+  "domain": "api_integration",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 13779,
+  "total_output_tokens": 3094
+}

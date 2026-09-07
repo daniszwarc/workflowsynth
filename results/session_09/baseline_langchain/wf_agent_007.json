@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_agent_007",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 15.29779591690749,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_agent_007\nsteps:\n  - id: read_current_record\n    op: read_database\n    params:\n      table: records\n      key: \"{{request.record_id}}\"\n    output: current_record\n\n  - id: validate_change\n    op: validate_schema\n    params:\n      data: \"{{request.change}}\"\n      schema: update_schema\n    output: validated_change\n\n  - id: transform_change\n    op: transform_json\n    params:\n      input: \"{{validated_change}}\"\n      mapping: storage_format\n    output: transformed_change\n\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      username: update_service\n      token: \"{{secrets.update_service_token}}\"\n    output: auth_context\n\n  - id: write_update\n    op: write_database\n    params:\n      table: records\n      key: \"{{request.record_id}}\"\n      data: \"{{transformed_change}}\"\n      auth: \"{{auth_context}}\"\n    output: write_result\n\n  - id: log_update\n    op: log_audit\n    params:\n      action: database_update\n      record_id: \"{{request.record_id}}\"\n      before: \"{{current_record}}\"\n      after: \"{{transformed_change}}\"\n      result: \"{{write_result}}\"\n      auth: \"{{auth_context}}\"\n    output: audit_entry",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_007.py::test_parses_and_type_checks": false,
+        "test_wf_agent_007.py::test_passes_taint_analysis": true,
+        "test_wf_agent_007.py::test_validate_before_write": true,
+        "test_wf_agent_007.py::test_log_after_write": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "agent_tasks",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

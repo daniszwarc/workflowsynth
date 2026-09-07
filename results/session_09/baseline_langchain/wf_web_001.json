@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_web_001",
+  "condition": "baseline_langchain",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 9.103833959437907,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: wf_web_001\nsteps:\n  - id: fetch_product_listing\n    op: fetch_api\n    params:\n      method: GET\n      url: \"https://api.ecommerce.example.com/products/{{product_id}}\"\n      cache: false\n    output: product_listing",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_001.py::test_parses_and_type_checks": true,
+        "test_wf_web_001.py::test_passes_taint_analysis": true,
+        "test_wf_web_001.py::test_has_fetch": true
+      },
+      "failure_category": "success",
+      "success": true
+    }
+  ],
+  "complexity": 1,
+  "domain": "web_automation",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

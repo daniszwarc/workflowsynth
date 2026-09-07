@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_web_014",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6582688754424453,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: multi_step_content_publishing_with_approval\nsteps:\n  - id: step_authenticate_editor\n    op: authenticate_user\n    params:\n      role: \"editor\"\n    output: auth_result\n\n  - id: step_fetch_draft\n    op: fetch_api\n    params:\n      endpoint: \"/api/content/drafts/pending\"\n    output: raw_draft\n\n  - id: step_validate_draft\n    op: validate_schema\n    params:\n      input: raw_draft\n      schema: editorial_schema\n    output: validated_draft\n\n  - id: step_apply_approval_rule\n    op: apply_rule\n    params:\n      input: validated_draft\n      rule: \"editorial_approval\"\n    output: approval_result\n\n  - id: step_extract_decision\n    op: extract_field\n    params:\n      input: approval_result\n      field: \"approved\"\n    output: is_approved\n\n  - id: step_route_decision\n    op: route_to_step\n    params:\n      condition: \"is_approved == true\"\n      true_step: step_publish_subworkflow\n      false_step: step_send_to_revision_queue\n\n  - id: step_publish_subworkflow\n    op: call_subworkflow\n    params:\n      workflow_id: \"publishing_subworkflow\"\n      input: validated_draft\n    output: publish_result\n\n  - id: step_transform_publish_result\n    op: transform_json\n    params:\n      input: publish_result\n      mapping:\n        status: \"$.status\"\n        content_id: \"$.content_id\"\n        published_at: \"$.published_at\"\n    output: sanitized_publish_result\n\n  - id: step_log_published\n    op: log_audit\n    params:\n      input: sanitized_publish_result\n      event: \"content_published\"\n      message: \"Content draft approved and published successfully.\"\n\n  - id: step_terminate_published\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Content approved and published.\"\n\n  - id: step_send_to_revision_queue\n    op: send_to_queue\n    params:\n      input: validated_draft\n      queue: \"revision_queue\"\n    output: revision_queue_result\n\n  - id: step_log_rejected\n    op: log_audit\n    params:\n      input: validated_draft\n      event: \"content_rejected\"\n      message: \"Content draft did not pass editorial approval; sent to revision queue.\"\n\n  - id: step_terminate_rejected\n    op: terminate_workflow\n    params:\n      status: \"rejected\"\n      message: \"Content not approved; routed to revision queue.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_014.py::test_parses_and_type_checks": true,
+        "test_wf_web_014.py::test_passes_taint_analysis": true,
+        "test_wf_web_014.py::test_approval_before_route": true,
+        "test_wf_web_014.py::test_has_subworkflow_delegation": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1110,
+      "output_tokens": 658
+    }
+  ],
+  "complexity": 4,
+  "domain": "web_automation",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1110,
+  "total_output_tokens": 658
+}

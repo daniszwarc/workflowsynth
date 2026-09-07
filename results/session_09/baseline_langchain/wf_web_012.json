@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_web_012",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 22.244259541854262,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_web_012\nsteps:\n  - id: fetch_order\n    op: fetch_api\n    params:\n      endpoint: \"/orders/confirmed\"\n      method: GET\n      query:\n        status: confirmed\n    output: order_details\n\n  - id: validate_order\n    op: validate_schema\n    params:\n      input: \"{{order_details}}\"\n      schema: fulfillment_order_schema\n    output: validated_order\n\n  - id: check_inventory\n    op: fetch_api\n    params:\n      endpoint: \"/inventory/availability\"\n      method: POST\n      body:\n        items: \"{{validated_order.items}}\"\n      cache: false\n    output: inventory_status\n\n  - id: validate_inventory\n    op: validate_schema\n    params:\n      input: \"{{inventory_status}}\"\n      schema: inventory_status_schema\n    output: validated_inventory\n\n  - id: route_fulfillment\n    op: route_to_step\n    params:\n      condition: \"{{validated_inventory.all_in_stock}}\"\n      on_true: fulfill_in_stock\n      on_false: fulfill_backorder\n    output: routing_decision\n\n  - id: fulfill_backorder\n    op: notify_user\n    params:\n      recipient: supplier\n      channel: email\n      subject: \"Backorder Notification - Order {{order_details.order_id}}\"\n      message: \"Order {{order_details.order_id}} has been routed to backorder fulfillment. Items requiring restock: {{validated_inventory.backordered_items}}\"\n    output: supplier_notification\n\n  - id: log_fulfillment_decision\n    op: log_audit\n    params:\n      action: fulfillment_routing\n      order_id: \"{{order_details.order_id}}\"\n      routing_path: \"{{routing_decision.selected_path}}\"\n      inventory_snapshot: \"{{validated_inventory}}\"\n      timestamp: \"{{now}}\"\n    output: audit_log_entry",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_012.py::test_parses_and_type_checks": false,
+        "test_wf_web_012.py::test_passes_taint_analysis": true,
+        "test_wf_web_012.py::test_inventory_before_route": false,
+        "test_wf_web_012.py::test_has_audit_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 4,
+  "domain": "web_automation",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

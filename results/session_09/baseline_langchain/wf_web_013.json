@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_web_013",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 24.559157541021705,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_web_013\nsteps:\n  - id: fetch_thread\n    op: fetch_api\n    params:\n      endpoint: \"/forum/threads/{{trigger.thread_id}}\"\n      method: GET\n      headers:\n        Accept: \"application/json\"\n    output: thread_data\n\n  - id: validate_report\n    op: validate_schema\n    params:\n      input: \"{{thread_data}}\"\n      schema: \"report_schema\"\n    output: validation_result\n\n  - id: classify_severity\n    op: apply_rule\n    params:\n      input: \"{{thread_data}}\"\n      rule: \"escalation_rule\"\n    output: severity_result\n\n  - id: route_thread\n    op: route_to_step\n    params:\n      condition: \"{{severity_result.severity == 'severe'}}\"\n      on_true: escalate_to_senior\n      on_false: send_to_standard_queue\n\n  - id: send_to_standard_queue\n    op: send_to_queue\n    params:\n      queue: \"standard_moderation_queue\"\n      payload:\n        thread_id: \"{{trigger.thread_id}}\"\n        thread_data: \"{{thread_data}}\"\n        severity: \"{{severity_result.severity}}\"\n\n  - id: escalate_to_senior\n    op: send_to_queue\n    params:\n      queue: \"senior_escalation_queue\"\n      payload:\n        thread_id: \"{{trigger.thread_id}}\"\n        thread_data: \"{{thread_data}}\"\n        severity: \"{{severity_result.severity}}\"\n\n  - id: notify_senior_moderator\n    op: notify_user\n    params:\n      recipient: \"senior_moderator\"\n      method: \"email\"\n      subject: \"Escalated Forum Thread: {{trigger.thread_id}}\"\n      message: \"A forum thread has been flagged as severe and escalated for your review. Thread ID: {{trigger.thread_id}}, Severity: {{severity_result.severity}}\"\n\n  - id: log_decision\n    op: log_audit\n    params:\n      action: \"moderation_decision\"\n      details:\n        thread_id: \"{{trigger.thread_id}}\"\n        severity: \"{{severity_result.severity}}\"\n        routed_to: \"{{severity_result.severity == 'severe' ? 'senior_escalation_queue' : 'standard_moderation_queue'}}\"\n        timestamp: \"{{now()}}\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_013.py::test_parses_and_type_checks": false,
+        "test_wf_web_013.py::test_passes_taint_analysis": true,
+        "test_wf_web_013.py::test_classify_before_route": true,
+        "test_wf_web_013.py::test_has_notify_and_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 4,
+  "domain": "web_automation",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

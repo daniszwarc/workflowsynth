@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_gaia_010",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.8602481251582503,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: multi_step_research_pipeline\nsteps:\n  - id: fetch_source_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/research/sources\"\n      topic: \"{{request.topic}}\"\n    output: raw_source_data\n\n  - id: validate_source_data\n    op: validate_schema\n    params:\n      input: raw_source_data\n      schema: research_source_schema\n    output: validated_source_data\n\n  - id: transform_to_report\n    op: transform_json\n    params:\n      input: validated_source_data\n      mapping: research_report_format\n    output: research_report\n\n  - id: authenticate_research_service\n    op: authenticate_user\n    params:\n      role: \"research_service\"\n    output: auth_result\n\n  - id: store_research_report\n    op: write_database\n    params:\n      input: research_report\n      table: research_reports\n    output: write_result\n\n  - id: notify_requester\n    op: notify_user\n    params:\n      input: research_report\n      recipient: \"{{request.requester}}\"\n      message: \"Your research report is ready.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_010.py::test_parses_and_type_checks": true,
+        "test_wf_gaia_010.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_010.py::test_store_before_notify": true,
+        "test_wf_gaia_010.py::test_validate_before_transform": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1096,
+      "output_tokens": 292
+    }
+  ],
+  "complexity": 3,
+  "domain": "general_ai",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1096,
+  "total_output_tokens": 292
+}

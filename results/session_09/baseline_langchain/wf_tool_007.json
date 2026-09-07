@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_tool_007",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 11.813829542137682,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_tool_007\nsteps:\n  - id: authenticate\n    op: authenticate_user\n    params:\n      target: paginated_api\n      method: oauth2\n    output: auth_token\n  - id: fetch_paginated_data\n    op: fetch_api\n    params:\n      url: \"{{paginated_api_url}}\"\n      auth_token: \"{{auth_token}}\"\n      paginate: true\n    output: paginated_results\n  - id: aggregate_results\n    op: aggregate_data\n    params:\n      source: \"{{paginated_results}}\"\n      strategy: summary\n    output: aggregated_summary",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_007.py::test_parses_and_type_checks": false,
+        "test_wf_tool_007.py::test_passes_taint_analysis": true,
+        "test_wf_tool_007.py::test_auth_before_fetch": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "api_integration",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

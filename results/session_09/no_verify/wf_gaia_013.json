@@ -1,0 +1,185 @@
+{
+  "task_id": "wf_gaia_013",
+  "condition": "no_verify",
+  "success": false,
+  "attempts_used": 10,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 46.12855066731572,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: step_fetch_batch\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued_records\"\n    output: raw_batch\n\n  - id: step_validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: step_loop_records\n    op: loop_records\n    params:\n      input: validated_batch\n      steps:\n        - id: step_apply_rule\n          op: apply_rule\n          params:\n            input: current_record\n            rule: \"business_rule_evaluation\"\n          output: rule_result\n\n        - id: step_transform_outcome\n          op: transform_json\n          params:\n            input: rule_result\n            mapping:\n              format: \"collected_results_format\"\n          output: transformed_result\n    output: collected_results\n\n  - id: step_aggregate_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: \"status\"\n      operations:\n        - type: \"count\"\n          field: \"record_id\"\n        - type: \"summary\"\n          field: \"rule_outcome\"\n    output: summary_results\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: summary_results\n      format: \"json\"\n    output: formatted_summary\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_summary\n      action: \"batch_rule_processing_complete\"\n      message: \"All queued records processed and aggregated\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_013.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_013.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_013.py::test_has_loop_and_rule": false,
+        "test_wf_gaia_013.py::test_loop_before_aggregate": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1077,
+      "output_tokens": 420
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: step_fetch_batch\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued_records\"\n    output: raw_batch\n\n  - id: step_validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: step_loop_records\n    op: loop_records\n    params:\n      input: validated_batch\n    output: collected_results\n\n  - id: step_apply_rule\n    op: apply_rule\n    params:\n      input: collected_results\n      rule: \"business_rule_evaluation\"\n    output: rule_results\n\n  - id: step_transform_outcome\n    op: transform_json\n    params:\n      input: rule_results\n      mapping:\n        format: \"collected_results_format\"\n    output: transformed_results\n\n  - id: step_aggregate_results\n    op: aggregate_data\n    params:\n      input: transformed_results\n      group_by: \"status\"\n      operations:\n        - type: \"count\"\n          field: \"record_id\"\n        - type: \"summary\"\n          field: \"rule_outcome\"\n    output: summary_results\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: summary_results\n      format: \"json\"\n    output: formatted_summary\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_summary\n      action: \"batch_rule_processing_complete\"\n      message: \"All queued records processed and aggregated\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_013.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_013.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_013.py::test_has_loop_and_rule": true,
+        "test_wf_gaia_013.py::test_loop_before_aggregate": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1606,
+      "output_tokens": 416
+    },
+    {
+      "attempt_number": 2,
+      "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: step_fetch_batch\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued_records\"\n    output: raw_batch\n\n  - id: step_validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: step_loop_records\n    op: loop_records\n    params:\n      input: validated_batch\n      steps:\n        - id: step_apply_rule\n          op: apply_rule\n          params:\n            input: current_record\n            rule: \"business_rule_evaluation\"\n          output: rule_result\n        - id: step_transform_outcome\n          op: transform_json\n          params:\n            input: rule_result\n            mapping:\n              format: \"collected_results_format\"\n          output: transformed_record\n    output: collected_results\n\n  - id: step_aggregate_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: \"status\"\n      operations:\n        - type: \"count\"\n          field: \"record_id\"\n        - type: \"summary\"\n          field: \"rule_outcome\"\n    output: summary_results\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: summary_results\n      format: \"json\"\n    output: formatted_summary\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_summary\n      action: \"batch_rule_processing_complete\"\n      message: \"All queued records processed and aggregated\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_013.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_013.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_013.py::test_has_loop_and_rule": false,
+        "test_wf_gaia_013.py::test_loop_before_aggregate": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1579,
+      "output_tokens": 420
+    },
+    {
+      "attempt_number": 3,
+      "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: step_fetch_batch\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued_records\"\n    output: raw_batch\n\n  - id: step_validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: step_loop_records\n    op: loop_records\n    params:\n      input: validated_batch\n    output: collected_results\n\n  - id: step_apply_rule\n    op: apply_rule\n    params:\n      input: collected_results\n      rule: \"business_rule_evaluation\"\n    output: rule_results\n\n  - id: step_transform_outcome\n    op: transform_json\n    params:\n      input: rule_results\n      mapping:\n        format: \"collected_results_format\"\n    output: transformed_results\n\n  - id: step_aggregate_results\n    op: aggregate_data\n    params:\n      input: transformed_results\n      group_by: \"status\"\n      operations:\n        - type: \"count\"\n          field: \"record_id\"\n        - type: \"summary\"\n          field: \"rule_outcome\"\n    output: summary_results\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: summary_results\n      format: \"json\"\n    output: formatted_summary\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_summary\n      action: \"batch_rule_processing_complete\"\n      message: \"All queued records processed and aggregated\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_013.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_013.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_013.py::test_has_loop_and_rule": true,
+        "test_wf_gaia_013.py::test_loop_before_aggregate": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1606,
+      "output_tokens": 416
+    },
+    {
+      "attempt_number": 4,
+      "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: step_fetch_batch\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued_records\"\n    output: raw_batch\n\n  - id: step_validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: step_loop_records\n    op: loop_records\n    params:\n      input: validated_batch\n      steps:\n        - id: step_apply_rule\n          op: apply_rule\n          params:\n            input: current_record\n            rule: \"business_rule_evaluation\"\n          output: rule_result\n        - id: step_transform_outcome\n          op: transform_json\n          params:\n            input: rule_result\n            mapping:\n              format: \"collected_results_format\"\n          output: transformed_record\n    output: collected_results\n\n  - id: step_aggregate_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: \"status\"\n      operations:\n        - type: \"count\"\n          field: \"record_id\"\n        - type: \"summary\"\n          field: \"rule_outcome\"\n    output: summary_results\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: summary_results\n      format: \"json\"\n    output: formatted_summary\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_summary\n      action: \"batch_rule_processing_complete\"\n      message: \"All queued records processed and aggregated\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_013.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_013.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_013.py::test_has_loop_and_rule": false,
+        "test_wf_gaia_013.py::test_loop_before_aggregate": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1579,
+      "output_tokens": 420
+    },
+    {
+      "attempt_number": 5,
+      "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: step_fetch_batch\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued_records\"\n    output: raw_batch\n\n  - id: step_validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: step_loop_records\n    op: loop_records\n    params:\n      input: validated_batch\n    output: collected_results\n\n  - id: step_apply_rule\n    op: apply_rule\n    params:\n      input: collected_results\n      rule: \"business_rule_evaluation\"\n    output: rule_results\n\n  - id: step_transform_outcome\n    op: transform_json\n    params:\n      input: rule_results\n      mapping:\n        format: \"collected_results_format\"\n    output: transformed_results\n\n  - id: step_aggregate_results\n    op: aggregate_data\n    params:\n      input: transformed_results\n      group_by: \"status\"\n      operations:\n        - type: \"count\"\n          field: \"record_id\"\n        - type: \"summary\"\n          field: \"rule_outcome\"\n    output: summary_results\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: summary_results\n      format: \"json\"\n    output: formatted_summary\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_summary\n      action: \"batch_rule_processing_complete\"\n      message: \"All queued records processed and aggregated\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_013.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_013.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_013.py::test_has_loop_and_rule": true,
+        "test_wf_gaia_013.py::test_loop_before_aggregate": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1606,
+      "output_tokens": 416
+    },
+    {
+      "attempt_number": 6,
+      "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: step_fetch_batch\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued_records\"\n    output: raw_batch\n\n  - id: step_validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: step_loop_records\n    op: loop_records\n    params:\n      input: validated_batch\n      steps:\n        - id: step_apply_rule\n          op: apply_rule\n          params:\n            rule: \"business_rule_evaluation\"\n          output: rule_result\n        - id: step_transform_outcome\n          op: transform_json\n          params:\n            input: rule_result\n            mapping:\n              format: \"collected_results_format\"\n          output: transformed_result\n    output: collected_results\n\n  - id: step_aggregate_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: \"status\"\n      operations:\n        - type: \"count\"\n          field: \"record_id\"\n        - type: \"summary\"\n          field: \"rule_outcome\"\n    output: summary_results\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: summary_results\n      format: \"json\"\n    output: formatted_summary\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_summary\n      action: \"batch_rule_processing_complete\"\n      message: \"All queued records processed and aggregated\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_013.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_013.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_013.py::test_has_loop_and_rule": false,
+        "test_wf_gaia_013.py::test_loop_before_aggregate": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1579,
+      "output_tokens": 413
+    },
+    {
+      "attempt_number": 7,
+      "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: step_fetch_batch\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued_records\"\n    output: raw_batch\n\n  - id: step_validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: step_loop_records\n    op: loop_records\n    params:\n      input: validated_batch\n    output: collected_results\n\n  - id: step_apply_rule\n    op: apply_rule\n    params:\n      input: collected_results\n      rule: \"business_rule_evaluation\"\n    output: rule_result\n\n  - id: step_transform_outcome\n    op: transform_json\n    params:\n      input: rule_result\n      mapping:\n        format: \"collected_results_format\"\n    output: transformed_result\n\n  - id: step_aggregate_results\n    op: aggregate_data\n    params:\n      input: transformed_result\n      group_by: \"status\"\n      operations:\n        - type: \"count\"\n          field: \"record_id\"\n        - type: \"summary\"\n          field: \"rule_outcome\"\n    output: summary_results\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: summary_results\n      format: \"json\"\n    output: formatted_summary\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_summary\n      action: \"batch_rule_processing_complete\"\n      message: \"All queued records processed and aggregated\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_013.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_013.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_013.py::test_has_loop_and_rule": true,
+        "test_wf_gaia_013.py::test_loop_before_aggregate": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1599,
+      "output_tokens": 416
+    },
+    {
+      "attempt_number": 8,
+      "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: step_fetch_batch\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued_records\"\n    output: raw_batch\n\n  - id: step_validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: step_loop_records\n    op: loop_records\n    params:\n      input: validated_batch\n      mode: \"exactly_once\"\n    output: looped_records\n\n  - id: step_apply_rule\n    op: apply_rule\n    params:\n      input: looped_records\n      rule: \"business_rule_evaluation\"\n    output: rule_results\n\n  - id: step_transform_outcome\n    op: transform_json\n    params:\n      input: rule_results\n      mapping:\n        record_id: \"record_id\"\n        rule_outcome: \"result\"\n        status: \"status\"\n    output: transformed_results\n\n  - id: step_aggregate_results\n    op: aggregate_data\n    params:\n      input: transformed_results\n      group_by: \"status\"\n      operations:\n        - type: \"count\"\n          field: \"record_id\"\n        - type: \"summary\"\n          field: \"rule_outcome\"\n    output: summary_results\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: summary_results\n      format: \"json\"\n    output: formatted_summary\n\n  - id: step_extract_audit_payload\n    op: extract_field\n    params:\n      input: formatted_summary\n      field: \"value\"\n    output: audit_payload\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: audit_payload\n      action: \"batch_rule_processing_complete\"\n      message: \"All queued records processed and aggregated\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_013.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_013.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_013.py::test_has_loop_and_rule": true,
+        "test_wf_gaia_013.py::test_loop_before_aggregate": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1340,
+      "output_tokens": 402
+    },
+    {
+      "attempt_number": 9,
+      "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: step_fetch_batch\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued_records\"\n    output: raw_batch\n\n  - id: step_validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: step_loop_records\n    op: loop_records\n    params:\n      input: validated_batch\n      mode: exactly_once\n    output: looped_records\n\n  - id: step_apply_rule\n    op: apply_rule\n    params:\n      input: looped_records\n      rule: business_rule_evaluation\n    output: rule_results\n\n  - id: step_transform_outcome\n    op: transform_json\n    params:\n      input: rule_results\n      mapping:\n        record_id: record_id\n        rule_outcome: result\n        status: status\n    output: transformed_results\n\n  - id: step_aggregate_results\n    op: aggregate_data\n    params:\n      input: transformed_results\n      group_by: status\n      operations:\n        - type: count\n          field: record_id\n        - type: summary\n          field: rule_outcome\n    output: summary_results\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: summary_results\n      format: json\n    output: formatted_summary\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: success",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_013.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_013.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_013.py::test_has_loop_and_rule": true,
+        "test_wf_gaia_013.py::test_loop_before_aggregate": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1400,
+      "output_tokens": 330
+    }
+  ],
+  "complexity": 3,
+  "domain": "general_ai",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 14971,
+  "total_output_tokens": 4069
+}

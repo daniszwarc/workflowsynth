@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_tool_008",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6171463336795568,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: three_api_chain_with_merge\nsteps:\n  - id: fetch_api_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_one\"\n    output: raw_api_one\n\n  - id: fetch_api_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_two\"\n    output: raw_api_two\n\n  - id: fetch_api_three\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_three\"\n    output: raw_api_three\n\n  - id: validate_api_one\n    op: validate_schema\n    params:\n      input: raw_api_one\n      schema: api_one_schema\n    output: validated_api_one\n\n  - id: validate_api_two\n    op: validate_schema\n    params:\n      input: raw_api_two\n      schema: api_two_schema\n    output: validated_api_two\n\n  - id: validate_api_three\n    op: validate_schema\n    params:\n      input: raw_api_three\n      schema: api_three_schema\n    output: validated_api_three\n\n  - id: merge_one_and_two\n    op: merge_datasets\n    params:\n      input: validated_api_one\n      secondary_input: validated_api_two\n      join_key: \"id\"\n    output: merged_one_two\n\n  - id: merge_all_three\n    op: merge_datasets\n    params:\n      input: merged_one_two\n      secondary_input: validated_api_three\n      join_key: \"id\"\n    output: merged_all\n\n  - id: transform_combined\n    op: transform_json\n    params:\n      input: merged_all\n      mapping:\n        output_format: \"combined_result\"\n    output: final_output\n\n  - id: format_result\n    op: format_output\n    params:\n      input: final_output\n      format: \"json\"\n    output: formatted_result\n\n  - id: log_completion\n    op: log_audit\n    params:\n      input: formatted_result\n      message: \"Three-API chain merge workflow completed successfully\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_008.py::test_parses_and_type_checks": true,
+        "test_wf_tool_008.py::test_passes_taint_analysis": true,
+        "test_wf_tool_008.py::test_merge_before_transform": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1068,
+      "output_tokens": 532
+    }
+  ],
+  "complexity": 3,
+  "domain": "api_integration",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1068,
+  "total_output_tokens": 532
+}
