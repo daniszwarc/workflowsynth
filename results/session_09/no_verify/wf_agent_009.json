@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_agent_009",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.9133912920951843,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: knowledge_retrieval_and_response_formatting\nsteps:\n  - id: fetch_user_query\n    op: fetch_api\n    params:\n      endpoint: \"/api/user/query\"\n    output: raw_user_query\n\n  - id: validate_user_query\n    op: validate_schema\n    params:\n      input: raw_user_query\n      schema: user_query_schema\n    output: validated_user_query\n\n  - id: transform_query_to_embedding\n    op: transform_json\n    params:\n      input: validated_user_query\n      mapping:\n        operation: \"generate_embedding\"\n        source_field: \"query_text\"\n        target_field: \"embedding_vector\"\n    output: embedded_query\n\n  - id: search_knowledge_base\n    op: read_database\n    params:\n      table: knowledge_base\n      query_vector: embedded_query\n    output: raw_search_results\n\n  - id: validate_search_results\n    op: validate_schema\n    params:\n      input: raw_search_results\n      schema: knowledge_results_schema\n    output: validated_search_results\n\n  - id: fetch_contextual_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/context/current\"\n    output: raw_contextual_data\n\n  - id: validate_contextual_data\n    op: validate_schema\n    params:\n      input: raw_contextual_data\n      schema: context_data_schema\n    output: validated_contextual_data\n\n  - id: merge_results_with_context\n    op: merge_datasets\n    params:\n      input: validated_search_results\n      secondary_input: validated_contextual_data\n      merge_key: \"topic_id\"\n    output: merged_results\n\n  - id: format_final_response\n    op: format_output\n    params:\n      input: merged_results\n      format: \"json\"\n      template: \"knowledge_response_template\"\n    output: final_response\n\n  - id: log_query_audit\n    op: log_audit\n    params:\n      input: final_response\n      event: \"knowledge_query_fulfilled\"\n      details:\n        query: validated_user_query\n\n  - id: notify_user_with_response\n    op: notify_user\n    params:\n      input: final_response\n      channel: \"in_app\"\n      message_template: \"knowledge_answer\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_009.py::test_parses_and_type_checks": true,
+        "test_wf_agent_009.py::test_passes_taint_analysis": true,
+        "test_wf_agent_009.py::test_merge_before_format": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1091,
+      "output_tokens": 588
+    }
+  ],
+  "complexity": 3,
+  "domain": "agent_tasks",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1091,
+  "total_output_tokens": 588
+}

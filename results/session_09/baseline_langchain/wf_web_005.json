@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_web_005",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 22.33380795828998,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_web_005\nsteps:\n  - id: fetch_comment_payload\n    op: fetch_api\n    params:\n      endpoint: \"/api/forum/comments/submitted\"\n      method: GET\n    output: comment_payload\n\n  - id: validate_comment\n    op: validate_schema\n    params:\n      input: \"{{comment_payload}}\"\n      schema: \"comment_schema\"\n    output: validation_result\n\n  - id: authenticate_posting_user\n    op: authenticate_user\n    params:\n      user_id: \"{{comment_payload.user_id}}\"\n      method: \"session_token\"\n    output: auth_result\n\n  - id: publish_comment\n    op: call_webhook\n    params:\n      url: \"/api/forum/threads/{{comment_payload.thread_id}}/comments\"\n      method: POST\n      payload:\n        comment: \"{{comment_payload}}\"\n        auth_token: \"{{auth_result.token}}\"\n    output: publish_response\n\n  - id: extract_publish_status\n    op: extract_field\n    params:\n      input: \"{{publish_response}}\"\n      field: \"status\"\n    output: publish_status\n\n  - id: notify_moderation_team\n    op: notify_user\n    params:\n      recipient: \"moderation_team\"\n      subject: \"New comment requires review\"\n      message: \"A new comment has been posted by user {{comment_payload.user_id}} on thread {{comment_payload.thread_id}}. Publish status: {{publish_status}}. Please review.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_005.py::test_parses_and_type_checks": false,
+        "test_wf_web_005.py::test_passes_taint_analysis": true,
+        "test_wf_web_005.py::test_auth_before_publish": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "web_automation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

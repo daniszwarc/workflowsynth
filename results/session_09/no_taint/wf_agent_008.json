@@ -1,0 +1,70 @@
+{
+  "task_id": "wf_agent_008",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 3,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 13.742435792461038,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: agent_task_routing_workflow\nsteps:\n  - id: step_fetch_task\n    op: fetch_api\n    params:\n      endpoint: \"/api/agent/tasks/next\"\n    output: raw_task\n\n  - id: step_validate_task\n    op: validate_schema\n    params:\n      input: raw_task\n      schema: agent_task_schema\n    output: validated_task\n\n  - id: step_classify_task\n    op: transform_json\n    params:\n      input: validated_task\n      mapping:\n        task_id: \"$.task_id\"\n        category: \"$.category\"\n        priority: \"$.priority\"\n        payload: \"$.payload\"\n    output: classified_task\n\n  - id: step_apply_routing_rule\n    op: apply_rule\n    params:\n      input: classified_task\n      rule: \"route_by_category_and_priority\"\n    output: routing_decision\n\n  - id: step_extract_target_workflow\n    op: extract_field\n    params:\n      input: routing_decision\n      field: \"target_workflow_id\"\n    output: target_workflow_id\n\n  - id: step_route_to_subworkflow\n    op: call_subworkflow\n    params:\n      workflow_id_ref: target_workflow_id\n      input: classified_task\n    output: subworkflow_result\n\n  - id: step_log_routing\n    op: log_audit\n    params:\n      input: classified_task\n      message: \"Task routed to subworkflow based on routing rule outcome\"\n      details:\n        routing_decision: routing_decision\n        subworkflow_result: subworkflow_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_008.py::test_parses_and_type_checks": true,
+        "test_wf_agent_008.py::test_passes_taint_analysis": true,
+        "test_wf_agent_008.py::test_two_rules_before_route": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1064,
+      "output_tokens": 407
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: agent_task_routing_workflow\nsteps:\n  - id: step_fetch_task\n    op: fetch_api\n    params:\n      endpoint: \"/api/agent/tasks/next\"\n    output: raw_task\n\n  - id: step_validate_task\n    op: validate_schema\n    params:\n      input: raw_task\n      schema: agent_task_schema\n    output: validated_task\n\n  - id: step_classify_task\n    op: transform_json\n    params:\n      input: validated_task\n      mapping:\n        task_id: \"$.task_id\"\n        category: \"$.category\"\n        priority: \"$.priority\"\n        payload: \"$.payload\"\n    output: classified_task\n\n  - id: step_apply_classification_rule\n    op: apply_rule\n    params:\n      input: classified_task\n      rule: \"classify_task_type\"\n    output: classification_result\n\n  - id: step_apply_routing_rule\n    op: apply_rule\n    params:\n      input: classification_result\n      rule: \"route_by_category_and_priority\"\n    output: routing_decision\n\n  - id: step_extract_target_workflow\n    op: extract_field\n    params:\n      input: routing_decision\n      field: \"target_workflow_id\"\n    output: target_workflow_id\n\n  - id: step_route_to_subworkflow\n    op: call_subworkflow\n    params:\n      workflow_id_ref: target_workflow_id\n      input: classified_task\n    output: subworkflow_result\n\n  - id: step_validate_subworkflow_result\n    op: validate_schema\n    params:\n      input: subworkflow_result\n      schema: subworkflow_result_schema\n    output: validated_subworkflow_result\n\n  - id: step_log_routing\n    op: log_audit\n    params:\n      input: validated_subworkflow_result\n      message: \"Task routed to subworkflow based on routing rule outcome\"\n      details:\n        routing_decision: routing_decision",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_008.py::test_parses_and_type_checks": true,
+        "test_wf_agent_008.py::test_passes_taint_analysis": true,
+        "test_wf_agent_008.py::test_two_rules_before_route": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1555,
+      "output_tokens": 502
+    },
+    {
+      "attempt_number": 2,
+      "llm_sketch": "workflow_id: agent_task_routing_workflow\nsteps:\n  - id: step_fetch_task\n    op: fetch_api\n    params:\n      endpoint: \"/api/agent/tasks/next\"\n    output: raw_task\n\n  - id: step_validate_task\n    op: validate_schema\n    params:\n      input: raw_task\n      schema: agent_task_schema\n    output: validated_task\n\n  - id: step_classify_task\n    op: apply_rule\n    params:\n      input: validated_task\n      rule: \"classify_task_type\"\n    output: classification_result\n\n  - id: step_apply_routing_rule\n    op: apply_rule\n    params:\n      input: classification_result\n      rule: \"route_by_category_and_priority\"\n    output: routing_decision\n\n  - id: step_extract_target_workflow\n    op: extract_field\n    params:\n      input: routing_decision\n      field: \"target_workflow_id\"\n    output: target_workflow_id\n\n  - id: step_route_to_subworkflow\n    op: route_to_step\n    params:\n      condition: \"classification_result AND routing_decision\"\n      target: step_call_subworkflow\n\n  - id: step_call_subworkflow\n    op: call_subworkflow\n    params:\n      workflow_id_ref: target_workflow_id\n      input: validated_task\n    output: subworkflow_result\n\n  - id: step_validate_subworkflow_result\n    op: validate_schema\n    params:\n      input: subworkflow_result\n      schema: subworkflow_result_schema\n    output: validated_subworkflow_result\n\n  - id: step_log_routing\n    op: log_audit\n    params:\n      input: validated_subworkflow_result\n      message: \"Task routed to subworkflow based on routing rule outcome\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_008.py::test_parses_and_type_checks": true,
+        "test_wf_agent_008.py::test_passes_taint_analysis": true,
+        "test_wf_agent_008.py::test_two_rules_before_route": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1650,
+      "output_tokens": 461
+    }
+  ],
+  "complexity": 3,
+  "domain": "agent_tasks",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 4269,
+  "total_output_tokens": 1370
+}

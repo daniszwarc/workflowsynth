@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_gaia_002",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.8566028755158186,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: stock_price_lookup_and_logging\nsteps:\n  - id: fetch_stock_price\n    op: fetch_api\n    params:\n      endpoint: \"/api/market-data/price\"\n      query_param: ticker\n    output: raw_price_data\n\n  - id: validate_price_data\n    op: validate_schema\n    params:\n      input: raw_price_data\n      schema: stock_price_schema\n    output: validated_price_data\n\n  - id: extract_price\n    op: extract_field\n    params:\n      input: validated_price_data\n      field: \"current_price\"\n    output: current_price\n\n  - id: log_price_audit\n    op: log_audit\n    params:\n      input: current_price\n      message: \"Recorded stock price lookup for requested ticker\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_002.py::test_parses_and_type_checks": true,
+        "test_wf_gaia_002.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_002.py::test_has_lookup_and_log": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1038,
+      "output_tokens": 203
+    }
+  ],
+  "complexity": 1,
+  "domain": "general_ai",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1038,
+  "total_output_tokens": 203
+}

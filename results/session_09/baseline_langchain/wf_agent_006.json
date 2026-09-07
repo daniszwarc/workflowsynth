@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_agent_006",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 16.623767375014722,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: wf_agent_006\nsteps:\n  - id: fetch_candidates\n    op: read_database\n    params:\n      collection: knowledge_base\n      query: \"{{ trigger.query }}\"\n      sort_by: relevance_score\n      order: descending\n    output: candidate_results\n  - id: filter_relevant\n    op: filter_records\n    params:\n      input: \"{{ candidate_results }}\"\n      condition: \"relevance_score >= relevance_threshold\"\n    output: ranked_results\n  - id: format_response\n    op: format_output\n    params:\n      input: \"{{ ranked_results }}\"\n      template: ranked_list\n    output: final_ranked_results",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_006.py::test_parses_and_type_checks": false,
+        "test_wf_agent_006.py::test_passes_taint_analysis": true,
+        "test_wf_agent_006.py::test_has_fetch_and_filter": false
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "agent_tasks",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

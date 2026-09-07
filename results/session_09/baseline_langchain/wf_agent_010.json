@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_agent_010",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 26.62955708336085,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_agent_010\nsteps:\n  - id: read_job_config\n    op: read_database\n    params:\n      source: job_configuration\n      fresh: true\n    output: job_config\n\n  - id: apply_config_rule\n    op: apply_rule\n    params:\n      rule: \"{{job_config.rule}}\"\n      input: \"{{current_input}}\"\n    output: rule_outcome\n\n  - id: route_by_outcome\n    op: route_to_step\n    params:\n      condition: \"{{rule_outcome.branch}}\"\n      branches:\n        branch_a: execute_branch_a\n        branch_b: execute_branch_b\n        default: execute_default\n\n  - id: execute_branch_a\n    op: call_subworkflow\n    params:\n      workflow: \"{{job_config.branch_a_workflow}}\"\n      input: \"{{current_input}}\"\n    output: branch_a_result\n\n  - id: execute_branch_b\n    op: call_subworkflow\n    params:\n      workflow: \"{{job_config.branch_b_workflow}}\"\n      input: \"{{current_input}}\"\n    output: branch_b_result\n\n  - id: execute_default\n    op: call_subworkflow\n    params:\n      workflow: \"{{job_config.default_workflow}}\"\n      input: \"{{current_input}}\"\n    output: default_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_010.py::test_parses_and_type_checks": true,
+        "test_wf_agent_010.py::test_passes_taint_analysis": true,
+        "test_wf_agent_010.py::test_config_before_rule": false
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "agent_tasks",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

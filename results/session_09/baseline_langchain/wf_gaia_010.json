@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_gaia_010",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 19.33717849943787,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_gaia_010\nsteps:\n  - id: fetch_source_data\n    op: fetch_api\n    params:\n      endpoint: \"{{research_topic_url}}\"\n      method: GET\n      query:\n        topic: \"{{request.topic}}\"\n    output: source_data\n\n  - id: validate_source_data\n    op: validate_schema\n    params:\n      input: \"{{source_data}}\"\n      schema: research_source_schema\n    output: validated_data\n\n  - id: transform_to_report\n    op: transform_json\n    params:\n      input: \"{{validated_data}}\"\n      mapping:\n        title: \"{{validated_data.title}}\"\n        summary: \"{{validated_data.summary}}\"\n        findings: \"{{validated_data.findings}}\"\n        format: research_report\n    output: research_report\n\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      identity: research_service\n      method: service_account\n    output: auth_token\n\n  - id: store_report\n    op: write_database\n    params:\n      table: research_reports\n      data: \"{{research_report}}\"\n      auth_token: \"{{auth_token}}\"\n    output: stored_report\n\n  - id: notify_requester\n    op: notify_user\n    params:\n      recipient: \"{{request.requester}}\"\n      subject: \"Research report ready\"\n      message: \"Your research report on '{{request.topic}}' is ready. Report ID: {{stored_report.id}}\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_010.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_010.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_010.py::test_store_before_notify": true,
+        "test_wf_gaia_010.py::test_validate_before_transform": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "general_ai",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

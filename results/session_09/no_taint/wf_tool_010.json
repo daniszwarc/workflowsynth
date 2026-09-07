@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_tool_010",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.8546195002272725,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: webhook_ingestion_pipeline\nsteps:\n  - id: step_receive_webhook\n    op: fetch_api\n    params:\n      endpoint: \"/incoming/webhook\"\n    output: raw_payload\n\n  - id: step_validate_payload\n    op: validate_schema\n    params:\n      input: raw_payload\n      schema: webhook_payload_schema\n    output: validated_payload\n\n  - id: step_transform_event\n    op: transform_json\n    params:\n      input: validated_payload\n      mapping: internal_event_format\n    output: transformed_event\n\n  - id: step_extract_event_type\n    op: extract_field\n    params:\n      input: transformed_event\n      field: event_type\n    output: event_type\n\n  - id: step_route_by_type\n    op: route_to_step\n    params:\n      condition_field: event_type\n      routes:\n        order: step_authenticate_ingestion\n        payment: step_authenticate_ingestion\n        default: step_authenticate_ingestion\n\n  - id: step_authenticate_ingestion\n    op: authenticate_user\n    params:\n      role: \"ingestion_service\"\n    output: auth_result\n\n  - id: step_store_event\n    op: write_database\n    params:\n      input: transformed_event\n      table: ingested_events\n    output: write_result\n\n  - id: step_format_confirmation\n    op: format_output\n    params:\n      input: transformed_event\n      format: json\n      template: webhook_receipt_confirmation\n    output: confirmation_payload\n\n  - id: step_confirm_receipt\n    op: call_webhook\n    params:\n      input: confirmation_payload\n      url: \"{{validated_payload.callback_url}}\"\n      method: POST\n    output: confirmation_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: confirmation_payload\n      action: \"webhook_payload_ingested\"\n      details:\n        event_type: \"{{event_type}}\"\n        write_status: \"{{write_result}}\"\n        confirmation_status: \"{{confirmation_result}}\"\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      steps:\n        - step_receive_webhook\n        - step_validate_payload\n        - step_transform_event\n        - step_store_event\n        - step_confirm_receipt\n      on_error: step_terminate_failure\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      reason: \"Webhook ingestion pipeline encountered an error\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_010.py::test_parses_and_type_checks": true,
+        "test_wf_tool_010.py::test_passes_taint_analysis": true,
+        "test_wf_tool_010.py::test_validate_before_store": true,
+        "test_wf_tool_010.py::test_auth_before_store": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1094,
+      "output_tokens": 640
+    }
+  ],
+  "complexity": 3,
+  "domain": "api_integration",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1094,
+  "total_output_tokens": 640
+}

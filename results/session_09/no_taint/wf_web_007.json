@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_web_007",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6371470000594854,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: authenticated_profile_update\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: step_fetch_profile\n    op: fetch_api\n    params:\n      endpoint: \"/api/users/profile\"\n      user: auth_result\n    output: raw_profile\n\n  - id: step_validate_changes\n    op: validate_schema\n    params:\n      input: raw_profile\n      schema: profile_schema\n    output: validated_profile\n\n  - id: step_update_profile\n    op: write_database\n    params:\n      input: validated_profile\n      table: user_profiles\n    output: update_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_007.py::test_parses_and_type_checks": true,
+        "test_wf_web_007.py::test_passes_taint_analysis": true,
+        "test_wf_web_007.py::test_auth_before_update": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1046,
+      "output_tokens": 178
+    }
+  ],
+  "complexity": 2,
+  "domain": "web_automation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1046,
+  "total_output_tokens": 178
+}

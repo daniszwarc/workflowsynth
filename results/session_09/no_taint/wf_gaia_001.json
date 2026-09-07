@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_gaia_001",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.5640723332762718,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: weather_report_generation\nsteps:\n  - id: fetch_weather_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/weather/current\"\n      query:\n        city: \"{{requested_city}}\"\n        cache: false\n    output: raw_weather_data\n\n  - id: validate_weather_data\n    op: validate_schema\n    params:\n      input: raw_weather_data\n      schema: weather_data_schema\n    output: validated_weather_data\n\n  - id: transform_weather_data\n    op: transform_json\n    params:\n      input: validated_weather_data\n      mapping:\n        city: \"$.location.city\"\n        temperature: \"$.current.temperature\"\n        humidity: \"$.current.humidity\"\n        wind_speed: \"$.current.wind_speed\"\n        conditions: \"$.current.conditions\"\n        timestamp: \"$.current.observation_time\"\n    output: structured_weather\n\n  - id: format_weather_report\n    op: format_output\n    params:\n      input: structured_weather\n      format: text\n      template: \"Weather Report for {{city}} (as of {{timestamp}}):\\nConditions: {{conditions}}\\nTemperature: {{temperature}}\\nHumidity: {{humidity}}\\nWind Speed: {{wind_speed}}\"\n    output: weather_report\n\n  - id: notify_requester\n    op: notify_user\n    params:\n      input: weather_report\n      channel: requester\n      message: \"Your weather report is ready.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_001.py::test_parses_and_type_checks": true,
+        "test_wf_gaia_001.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_001.py::test_has_fetch_step": true,
+        "test_wf_gaia_001.py::test_has_format_step": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1047,
+      "output_tokens": 371
+    }
+  ],
+  "complexity": 1,
+  "domain": "general_ai",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1047,
+  "total_output_tokens": 371
+}

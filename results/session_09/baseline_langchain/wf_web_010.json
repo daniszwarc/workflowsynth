@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_web_010",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 20.689032207243145,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_web_010\nsteps:\n  - id: fetch_registration\n    op: fetch_api\n    params:\n      endpoint: \"/api/registration\"\n      method: GET\n    output: registration_payload\n\n  - id: validate_registration\n    op: validate_schema\n    params:\n      schema: registration_schema\n      data: \"{{registration_payload}}\"\n    output: validation_result\n\n  - id: check_duplicate_email\n    op: apply_rule\n    params:\n      rule: duplicate-check\n      input: \"{{registration_payload.email}}\"\n    output: duplicate_result\n\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      service: registration_service\n      method: service_account\n    output: auth_token\n\n  - id: create_account\n    op: write_database\n    params:\n      table: users\n      operation: insert\n      data: \"{{registration_payload}}\"\n      auth: \"{{auth_token}}\"\n    output: new_account\n\n  - id: send_welcome_email\n    op: notify_user\n    params:\n      recipient: \"{{registration_payload.email}}\"\n      template: welcome_email\n      channel: email\n    output: email_status",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_010.py::test_parses_and_type_checks": false,
+        "test_wf_web_010.py::test_passes_taint_analysis": true,
+        "test_wf_web_010.py::test_duplicate_check_before_create": true,
+        "test_wf_web_010.py::test_has_welcome_notification": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "web_automation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

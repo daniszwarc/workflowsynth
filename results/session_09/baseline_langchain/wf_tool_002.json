@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_tool_002",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 14.710643249563873,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_tool_002\nsteps:\n  - id: call_conversion_api\n    op: fetch_api\n    params:\n      url: \"https://api.currencyconvert.example.com/convert\"\n      method: GET\n      query_params:\n        amount: \"{{trigger.source_amount}}\"\n        from: \"{{trigger.source_currency}}\"\n        to: \"{{trigger.target_currency}}\"\n    output: api_response\n\n  - id: extract_converted_amount\n    op: extract_field\n    params:\n      source: \"{{api_response}}\"\n      field: \"converted_amount\"\n    output: converted_amount\n\n  - id: log_conversion\n    op: log_audit\n    params:\n      action: \"currency_conversion\"\n      details:\n        source_amount: \"{{trigger.source_amount}}\"\n        source_currency: \"{{trigger.source_currency}}\"\n        target_currency: \"{{trigger.target_currency}}\"\n        converted_amount: \"{{converted_amount}}\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_002.py::test_parses_and_type_checks": false,
+        "test_wf_tool_002.py::test_passes_taint_analysis": true,
+        "test_wf_tool_002.py::test_has_fetch_and_log": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 1,
+  "domain": "api_integration",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

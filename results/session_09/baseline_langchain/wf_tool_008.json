@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_tool_008",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 18.952251832932234,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_tool_008\nsteps:\n  - id: call_api_1\n    op: fetch_api\n    params:\n      endpoint: \"https://api.example.com/service-1\"\n      method: GET\n    output: api_1_result\n\n  - id: call_api_2\n    op: fetch_api\n    params:\n      endpoint: \"https://api.example.com/service-2\"\n      method: GET\n    output: api_2_result\n\n  - id: call_api_3\n    op: fetch_api\n    params:\n      endpoint: \"https://api.example.com/service-3\"\n      method: GET\n    output: api_3_result\n\n  - id: merge_results\n    op: merge_datasets\n    params:\n      sources:\n        - api_1_result\n        - api_2_result\n        - api_3_result\n      strategy: concat\n    output: merged_dataset\n\n  - id: transform_output\n    op: transform_json\n    params:\n      input: merged_dataset\n      mapping:\n        combined_data: \"$.merged_dataset\"\n      format: final\n    output: final_output",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_008.py::test_parses_and_type_checks": false,
+        "test_wf_tool_008.py::test_passes_taint_analysis": true,
+        "test_wf_tool_008.py::test_merge_before_transform": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "api_integration",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

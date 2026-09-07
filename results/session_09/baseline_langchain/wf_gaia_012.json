@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_gaia_012",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 27.545279667712748,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_gaia_012\nsteps:\n  - id: fetch_source_1\n    op: fetch_api\n    params:\n      source: source_1\n      on_failure: continue\n    output: data_1\n\n  - id: fetch_source_2\n    op: fetch_api\n    params:\n      source: source_2\n      on_failure: continue\n    output: data_2\n\n  - id: fetch_source_3\n    op: fetch_api\n    params:\n      source: source_3\n      on_failure: continue\n    output: data_3\n\n  - id: aggregate_sources\n    op: aggregate_data\n    params:\n      inputs:\n        - data_1\n        - data_2\n        - data_3\n      strategy: partial_merge\n      ignore_missing: true\n    output: consolidated_view\n\n  - id: handle_aggregation_error\n    op: handle_error\n    params:\n      step_ref: aggregate_sources\n      action: return_partial\n      fallback_message: \"One or more sources failed; returning partial consolidated view.\"\n    output: final_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_012.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_012.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_012.py::test_three_fetches_and_aggregate": true,
+        "test_wf_gaia_012.py::test_has_error_handling": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "general_ai",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

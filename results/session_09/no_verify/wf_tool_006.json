@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_tool_006",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6052987920120358,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: filtered_api_notification\nsteps:\n  - id: fetch_latest_records\n    op: fetch_api\n    params:\n      endpoint: \"/api/records/latest\"\n    output: raw_records\n\n  - id: filter_relevant_records\n    op: filter_records\n    params:\n      input: raw_records\n      condition: \"record.relevant == true\"\n    output: relevant_records\n\n  - id: notify_about_relevant_records\n    op: notify_user\n    params:\n      input: relevant_records\n      message: \"New relevant records have been detected.\"\n      recipient: \"monitoring_team\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_006.py::test_parses_and_type_checks": true,
+        "test_wf_tool_006.py::test_passes_taint_analysis": true,
+        "test_wf_tool_006.py::test_filter_before_notify": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1051,
+      "output_tokens": 151
+    }
+  ],
+  "complexity": 2,
+  "domain": "api_integration",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1051,
+  "total_output_tokens": 151
+}

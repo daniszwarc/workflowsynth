@@ -1,0 +1,145 @@
+{
+  "task_id": "wf_agent_013",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 8,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 54.68495170772076,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: verified_knowledge_graph_update\nsteps:\n  - id: fetch_candidate_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge-graph/candidates\"\n    output: raw_candidate_data\n\n  - id: validate_candidate_data\n    op: validate_schema\n    params:\n      input: raw_candidate_data\n      schema: knowledge_graph_schema\n    output: validated_candidate_data\n\n  - id: read_existing_graph\n    op: read_database\n    params:\n      table: knowledge_graph\n    output: raw_existing_graph\n\n  - id: sanitize_existing_graph\n    op: validate_schema\n    params:\n      input: raw_existing_graph\n      schema: knowledge_graph_schema\n    output: existing_graph\n\n  - id: merge_graph_data\n    op: merge_datasets\n    params:\n      input: validated_candidate_data\n      secondary_input: existing_graph\n      key: entity_id\n    output: merged_graph\n\n  - id: check_consistency\n    op: apply_rule\n    params:\n      input: merged_graph\n      rule: consistency_rule\n    output: consistency_result\n\n  - id: route_on_consistency\n    op: route_to_step\n    params:\n      condition: \"consistency_result == 'pass'\"\n      true_step: authenticate_graph_service\n      false_step: terminate_inconsistent\n\n  - id: terminate_inconsistent\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"Merged graph failed consistency check\"\n\n  - id: authenticate_graph_service\n    op: authenticate_user\n    params:\n      role: \"graph_update_service\"\n    output: auth_result\n\n  - id: store_merged_graph\n    op: write_database\n    params:\n      input: merged_graph\n      table: knowledge_graph\n    output: write_result\n\n  - id: format_notification\n    op: format_output\n    params:\n      input: write_result\n      format: \"json\"\n      template: \"Knowledge graph updated successfully. Entities affected: {{record_count}}\"\n    output: notification_payload\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      input: notification_payload\n      recipient: \"knowledge_graph_stakeholders\"\n      channel: \"email\"\n    output: notification_result\n\n  - id: log_update_audit\n    op: log_audit\n    params:\n      input: notification_payload\n      action: \"knowledge_graph_updated\"\n      details: \"Candidate data merged and stored after consistency verification\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_013.py::test_parses_and_type_checks": false,
+        "test_wf_agent_013.py::test_passes_taint_analysis": true,
+        "test_wf_agent_013.py::test_consistency_before_store": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1114,
+      "output_tokens": 629
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: verified_knowledge_graph_update\nsteps:\n  - id: fetch_candidate_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge-graph/candidates\"\n    output: raw_candidate_data\n\n  - id: validate_candidate_data\n    op: validate_schema\n    params:\n      input: raw_candidate_data\n      schema: knowledge_graph_schema\n    output: validated_candidate_data\n\n  - id: read_existing_graph\n    op: read_database\n    params:\n      table: knowledge_graph\n    output: raw_existing_graph\n\n  - id: sanitize_existing_graph\n    op: validate_schema\n    params:\n      input: raw_existing_graph\n      schema: knowledge_graph_schema\n    output: existing_graph\n\n  - id: merge_graph_data\n    op: merge_datasets\n    params:\n      input: validated_candidate_data\n      secondary_input: existing_graph\n      key: entity_id\n    output: merged_graph\n\n  - id: check_consistency\n    op: apply_rule\n    params:\n      input: merged_graph\n      rule: consistency_rule\n    output: consistency_result\n\n  - id: route_on_consistency\n    op: route_to_step\n    params:\n      condition: \"consistency_result == 'pass'\"\n      true_step: authenticate_graph_service\n      false_step: terminate_inconsistent\n\n  - id: terminate_inconsistent\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"Merged graph failed consistency check\"\n\n  - id: authenticate_graph_service\n    op: authenticate_user\n    params:\n      role: \"graph_update_service\"\n    output: auth_result\n\n  - id: transform_merged_graph\n    op: transform_json\n    params:\n      input: merged_graph\n      mapping:\n        pass_through: true\n    output: sanitized_merged_graph\n\n  - id: store_merged_graph\n    op: write_database\n    params:\n      input: sanitized_merged_graph\n      table: knowledge_graph\n    output: write_result\n\n  - id: format_notification\n    op: format_output\n    params:\n      input: write_result\n      format: \"json\"\n      template: \"Knowledge graph updated successfully. Entities affected: {{record_count}}\"\n    output: notification_payload\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      input: notification_payload\n      recipient: \"knowledge_graph_stakeholders\"\n      channel: \"email\"\n    output: notification_result\n\n  - id: log_update_audit\n    op: log_audit\n    params:\n      input: notification_payload\n      action: \"knowledge_graph_updated\"\n      details: \"Candidate data merged and stored after consistency verification\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_013.py::test_parses_and_type_checks": false,
+        "test_wf_agent_013.py::test_passes_taint_analysis": true,
+        "test_wf_agent_013.py::test_consistency_before_store": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1828,
+      "output_tokens": 681
+    },
+    {
+      "attempt_number": 2,
+      "llm_sketch": "workflow_id: verified_knowledge_graph_update\nsteps:\n  - id: fetch_candidate_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge-graph/candidates\"\n    output: raw_candidate_data\n\n  - id: validate_candidate_data\n    op: validate_schema\n    params:\n      input: raw_candidate_data\n      schema: knowledge_graph_schema\n    output: validated_candidate_data\n\n  - id: read_existing_graph\n    op: read_database\n    params:\n      table: knowledge_graph\n    output: raw_existing_graph\n\n  - id: sanitize_existing_graph\n    op: validate_schema\n    params:\n      input: raw_existing_graph\n      schema: knowledge_graph_schema\n    output: existing_graph\n\n  - id: merge_graph_data\n    op: merge_datasets\n    params:\n      input: validated_candidate_data\n      secondary_input: existing_graph\n      key: entity_id\n    output: merged_graph\n\n  - id: check_consistency\n    op: apply_rule\n    params:\n      input: merged_graph\n      rule: consistency_rule\n    output: consistency_result\n\n  - id: route_on_consistency\n    op: route_to_step\n    params:\n      condition: \"consistency_result == 'pass'\"\n      true_step: authenticate_graph_service\n      false_step: terminate_inconsistent\n\n  - id: terminate_inconsistent\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"Merged graph failed consistency check\"\n\n  - id: authenticate_graph_service\n    op: authenticate_user\n    params:\n      role: \"graph_update_service\"\n    output: auth_result\n\n  - id: transform_merged_graph\n    op: transform_json\n    params:\n      input: merged_graph\n      mapping:\n        pass_through: true\n    output: sanitized_merged_graph\n\n  - id: store_merged_graph\n    op: write_database\n    params:\n      input: sanitized_merged_graph\n      table: knowledge_graph\n    output: write_result\n\n  - id: transform_write_result\n    op: transform_json\n    params:\n      input: write_result\n      mapping:\n        action: \"knowledge_graph_updated\"\n        record_count: \"record_count\"\n    output: sanitized_write_result\n\n  - id: format_notification\n    op: format_output\n    params:\n      input: sanitized_write_result\n      format: \"json\"\n      template: \"Knowledge graph updated successfully. Entities affected: {{record_count}}\"\n    output: notification_payload\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      input: notification_payload\n      recipient: \"knowledge_graph_stakeholders\"\n      channel: \"email\"\n    output: notification_result\n\n  - id: log_update_audit\n    op: log_audit\n    params:\n      input: sanitized_write_result\n      action: \"knowledge_graph_updated\"\n      details: \"Candidate data merged and stored after consistency verification\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_013.py::test_parses_and_type_checks": false,
+        "test_wf_agent_013.py::test_passes_taint_analysis": true,
+        "test_wf_agent_013.py::test_consistency_before_store": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1880,
+      "output_tokens": 751
+    },
+    {
+      "attempt_number": 3,
+      "llm_sketch": "workflow_id: verified_knowledge_graph_update\nsteps:\n  - id: fetch_candidate_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge-graph/candidates\"\n    output: raw_candidate_data\n\n  - id: validate_candidate_data\n    op: validate_schema\n    params:\n      input: raw_candidate_data\n      schema: knowledge_graph_schema\n    output: validated_candidate_data\n\n  - id: read_existing_graph\n    op: read_database\n    params:\n      table: knowledge_graph\n    output: raw_existing_graph\n\n  - id: sanitize_existing_graph\n    op: validate_schema\n    params:\n      input: raw_existing_graph\n      schema: knowledge_graph_schema\n    output: existing_graph\n\n  - id: merge_graph_data\n    op: merge_datasets\n    params:\n      input: validated_candidate_data\n      secondary: existing_graph\n      key: entity_id\n    output: merged_graph\n\n  - id: check_consistency\n    op: apply_rule\n    params:\n      input: merged_graph\n      rule: consistency_rule\n    output: consistency_result\n\n  - id: route_on_consistency\n    op: route_to_step\n    params:\n      condition: \"consistency_result == pass\"\n      true_step: authenticate_graph_service\n      false_step: terminate_inconsistent\n\n  - id: terminate_inconsistent\n    op: terminate_workflow\n    params:\n      status: failed\n      reason: \"Merged graph failed consistency check\"\n\n  - id: authenticate_graph_service\n    op: authenticate_user\n    params:\n      role: graph_update_service\n    output: auth_result\n\n  - id: transform_merged_graph\n    op: transform_json\n    params:\n      input: merged_graph\n      mapping:\n        pass_through: true\n    output: sanitized_merged_graph\n\n  - id: store_merged_graph\n    op: write_database\n    params:\n      input: sanitized_merged_graph\n      table: knowledge_graph\n    output: write_result\n\n  - id: transform_write_result\n    op: transform_json\n    params:\n      input: write_result\n      mapping:\n        action: knowledge_graph_updated\n        record_count: record_count\n    output: sanitized_write_result\n\n  - id: format_notification\n    op: format_output\n    params:\n      input: sanitized_write_result\n      format: json\n    output: notification_payload\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      input: notification_payload\n      recipient: knowledge_graph_stakeholders\n      channel: email\n    output: notification_result\n\n  - id: log_update_audit\n    op: log_audit\n    params:\n      input: sanitized_write_result\n      action: knowledge_graph_updated\n      details: \"Candidate data merged and stored after consistency verification\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_013.py::test_parses_and_type_checks": false,
+        "test_wf_agent_013.py::test_passes_taint_analysis": true,
+        "test_wf_agent_013.py::test_consistency_before_store": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1950,
+      "output_tokens": 711
+    },
+    {
+      "attempt_number": 4,
+      "llm_sketch": "workflow_id: verified_knowledge_graph_update\nsteps:\n  - id: fetch_candidate_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge-graph/candidates\"\n    output: raw_candidate_data\n\n  - id: validate_candidate_data\n    op: validate_schema\n    params:\n      input: raw_candidate_data\n      schema: knowledge_graph_schema\n    output: validated_candidate_data\n\n  - id: read_existing_graph\n    op: read_database\n    params:\n      table: knowledge_graph\n    output: raw_existing_graph\n\n  - id: sanitize_existing_graph\n    op: validate_schema\n    params:\n      input: raw_existing_graph\n      schema: knowledge_graph_schema\n    output: existing_graph\n\n  - id: merge_graph_data\n    op: merge_datasets\n    params:\n      input: validated_candidate_data\n      secondary: existing_graph\n      key: entity_id\n    output: merged_graph\n\n  - id: check_consistency\n    op: apply_rule\n    params:\n      input: merged_graph\n      rule: consistency_rule\n    output: consistency_result\n\n  - id: route_on_consistency\n    op: route_to_step\n    params:\n      condition: \"consistency_result == pass\"\n      true_step: authenticate_graph_service\n      false_step: terminate_inconsistent\n\n  - id: terminate_inconsistent\n    op: terminate_workflow\n    params:\n      status: failed\n      reason: \"Merged graph failed consistency check\"\n\n  - id: authenticate_graph_service\n    op: authenticate_user\n    params:\n      role: graph_update_service\n    output: auth_result\n\n  - id: transform_merged_graph\n    op: transform_json\n    params:\n      input: merged_graph\n      mapping:\n        pass_through: true\n    output: sanitized_merged_graph\n\n  - id: store_merged_graph\n    op: write_database\n    params:\n      input: sanitized_merged_graph\n      table: knowledge_graph\n    output: store_result\n\n  - id: transform_store_result\n    op: transform_json\n    params:\n      input: store_result\n      mapping:\n        action: knowledge_graph_updated\n        record_count: record_count\n    output: sanitized_store_result\n\n  - id: format_notification\n    op: format_output\n    params:\n      input: sanitized_store_result\n      format: json\n    output: notification_payload\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      input: notification_payload\n      recipient: knowledge_graph_stakeholders\n      channel: email\n    output: notification_result\n\n  - id: log_update_audit\n    op: log_audit\n    params:\n      input: sanitized_store_result\n      action: knowledge_graph_updated\n      details: \"Candidate data merged and stored after consistency verification\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_013.py::test_parses_and_type_checks": false,
+        "test_wf_agent_013.py::test_passes_taint_analysis": true,
+        "test_wf_agent_013.py::test_consistency_before_store": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1910,
+      "output_tokens": 711
+    },
+    {
+      "attempt_number": 5,
+      "llm_sketch": "workflow_id: verified_knowledge_graph_update\nsteps:\n  - id: fetch_candidate_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge-graph/candidates\"\n    output: raw_candidate_data\n\n  - id: validate_candidate_data\n    op: validate_schema\n    params:\n      input: raw_candidate_data\n      schema: knowledge_graph_schema\n    output: validated_candidate_data\n\n  - id: read_existing_graph\n    op: read_database\n    params:\n      table: knowledge_graph\n    output: raw_existing_graph\n\n  - id: sanitize_existing_graph\n    op: validate_schema\n    params:\n      input: raw_existing_graph\n      schema: knowledge_graph_schema\n    output: existing_graph\n\n  - id: merge_graph_data\n    op: merge_datasets\n    params:\n      input: validated_candidate_data\n      secondary: existing_graph\n      key: entity_id\n    output: merged_graph\n\n  - id: check_consistency\n    op: apply_rule\n    params:\n      input: merged_graph\n      rule: consistency_rule\n    output: consistency_result\n\n  - id: route_on_consistency\n    op: route_to_step\n    params:\n      condition: \"consistency_result == pass\"\n      true_step: authenticate_graph_service\n      false_step: terminate_inconsistent\n\n  - id: terminate_inconsistent\n    op: terminate_workflow\n    params:\n      status: failed\n      reason: \"Merged graph failed consistency check\"\n\n  - id: authenticate_graph_service\n    op: authenticate_user\n    params:\n      role: graph_update_service\n    output: auth_result\n\n  - id: transform_merged_graph\n    op: transform_json\n    params:\n      input: merged_graph\n      mapping:\n        pass_through: true\n    output: sanitized_merged_graph\n\n  - id: store_merged_graph\n    op: write_database\n    params:\n      input: sanitized_merged_graph\n      table: knowledge_graph\n    output: store_result\n\n  - id: transform_store_result\n    op: transform_json\n    params:\n      input: store_result\n      mapping:\n        action: knowledge_graph_updated\n        record_count: record_count\n    output: notification_content\n\n  - id: format_notification\n    op: format_output\n    params:\n      input: notification_content\n      format: json\n    output: notification_payload\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      input: notification_payload\n      recipient: knowledge_graph_stakeholders\n      channel: email\n    output: notification_result\n\n  - id: log_update_audit\n    op: log_audit\n    params:\n      input: notification_content\n      action: knowledge_graph_updated\n      details: \"Candidate data merged and stored after consistency verification\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_013.py::test_parses_and_type_checks": false,
+        "test_wf_agent_013.py::test_passes_taint_analysis": true,
+        "test_wf_agent_013.py::test_consistency_before_store": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1910,
+      "output_tokens": 702
+    },
+    {
+      "attempt_number": 6,
+      "llm_sketch": "workflow_id: verified_knowledge_graph_update\nsteps:\n  - id: fetch_candidate_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge-graph/candidates\"\n    output: raw_candidate_data\n\n  - id: validate_candidate_data\n    op: validate_schema\n    params:\n      input: raw_candidate_data\n      schema: knowledge_graph_schema\n    output: validated_candidate_data\n\n  - id: read_existing_graph\n    op: read_database\n    params:\n      table: knowledge_graph\n    output: raw_existing_graph\n\n  - id: sanitize_existing_graph\n    op: validate_schema\n    params:\n      input: raw_existing_graph\n      schema: knowledge_graph_schema\n    output: existing_graph\n\n  - id: merge_graph_data\n    op: merge_datasets\n    params:\n      input: validated_candidate_data\n      secondary: existing_graph\n      key: entity_id\n    output: merged_graph\n\n  - id: check_consistency\n    op: apply_rule\n    params:\n      input: merged_graph\n      rule: consistency_rule\n    output: consistency_result\n\n  - id: route_on_consistency\n    op: route_to_step\n    params:\n      condition: \"consistency_result == pass\"\n      true_step: authenticate_graph_service\n      false_step: terminate_inconsistent\n\n  - id: terminate_inconsistent\n    op: terminate_workflow\n    params:\n      status: failed\n      reason: \"Merged graph failed consistency check\"\n\n  - id: authenticate_graph_service\n    op: authenticate_user\n    params:\n      role: graph_update_service\n    output: auth_result\n\n  - id: transform_merged_graph\n    op: transform_json\n    params:\n      input: merged_graph\n      mapping:\n        pass_through: true\n    output: sanitized_merged_graph\n\n  - id: store_merged_graph\n    op: write_database\n    params:\n      input: sanitized_merged_graph\n      table: knowledge_graph\n    output: store_result\n\n  - id: prepare_notification\n    op: transform_json\n    params:\n      input: store_result\n      mapping:\n        action: knowledge_graph_updated\n        record_count: record_count\n    output: notification_content\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      input: notification_content\n      recipient: knowledge_graph_stakeholders\n      channel: email\n    output: notification_result\n\n  - id: log_update_audit\n    op: log_audit\n    params:\n      input: notification_content\n      action: knowledge_graph_updated\n      details: \"Candidate data merged and stored after consistency verification\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_013.py::test_parses_and_type_checks": false,
+        "test_wf_agent_013.py::test_passes_taint_analysis": true,
+        "test_wf_agent_013.py::test_consistency_before_store": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1901,
+      "output_tokens": 662
+    },
+    {
+      "attempt_number": 7,
+      "llm_sketch": "workflow_id: verified_knowledge_graph_update\nsteps:\n  - id: fetch_candidate_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge-graph/candidates\"\n    output: raw_candidate_data\n\n  - id: validate_candidate_data\n    op: validate_schema\n    params:\n      input: raw_candidate_data\n      schema: knowledge_graph_schema\n    output: validated_candidate_data\n\n  - id: read_existing_graph\n    op: read_database\n    params:\n      table: knowledge_graph\n    output: raw_existing_graph\n\n  - id: sanitize_existing_graph\n    op: validate_schema\n    params:\n      input: raw_existing_graph\n      schema: knowledge_graph_schema\n    output: existing_graph\n\n  - id: merge_graph_data\n    op: merge_datasets\n    params:\n      input: validated_candidate_data\n      secondary: existing_graph\n      key: entity_id\n    output: merged_graph\n\n  - id: check_consistency\n    op: apply_rule\n    params:\n      input: merged_graph\n      rule: consistency_rule\n    output: consistency_result\n\n  - id: route_on_consistency\n    op: route_to_step\n    params:\n      condition: \"consistency_result == pass\"\n      true_step: authenticate_graph_service\n      false_step: terminate_inconsistent\n\n  - id: terminate_inconsistent\n    op: terminate_workflow\n    params:\n      status: failed\n      reason: \"Merged graph failed consistency check\"\n\n  - id: authenticate_graph_service\n    op: authenticate_user\n    params:\n      role: graph_update_service\n    output: auth_result\n\n  - id: transform_merged_graph\n    op: transform_json\n    params:\n      input: merged_graph\n      mapping:\n        pass_through: true\n    output: sanitized_merged_graph\n\n  - id: store_merged_graph\n    op: write_database\n    params:\n      input: sanitized_merged_graph\n      table: knowledge_graph\n    output: store_result\n\n  - id: format_store_result\n    op: extract_field\n    params:\n      input: store_result\n      field: status\n    output: store_status\n\n  - id: prepare_notification\n    op: format_output\n    params:\n      input: store_status\n      format: json\n    output: notification_content\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      input: notification_content\n      recipient: knowledge_graph_stakeholders\n      channel: email\n    output: notification_result\n\n  - id: log_update_audit\n    op: log_audit\n    params:\n      input: notification_content\n      action: knowledge_graph_updated\n      details: \"Candidate data merged and stored after consistency verification\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_013.py::test_parses_and_type_checks": true,
+        "test_wf_agent_013.py::test_passes_taint_analysis": true,
+        "test_wf_agent_013.py::test_consistency_before_store": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1861,
+      "output_tokens": 685
+    }
+  ],
+  "complexity": 4,
+  "domain": "agent_tasks",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 14354,
+  "total_output_tokens": 5532
+}

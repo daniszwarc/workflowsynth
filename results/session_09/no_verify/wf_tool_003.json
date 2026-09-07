@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_tool_003",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.561039250344038,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: geocoding_coordinate_extraction\nsteps:\n  - id: step_fetch_geocoding\n    op: fetch_api\n    params:\n      endpoint: \"/api/geocoding\"\n      query_param: address\n    output: raw_geocoding_response\n\n  - id: step_extract_latitude\n    op: extract_field\n    params:\n      input: raw_geocoding_response\n      field: \"latitude\"\n    output: latitude\n\n  - id: step_extract_longitude\n    op: extract_field\n    params:\n      input: raw_geocoding_response\n      field: \"longitude\"\n    output: longitude\n\n  - id: step_format_coordinates\n    op: format_output\n    params:\n      input: latitude\n      additional_input: longitude\n      format: \"json\"\n      template:\n        latitude: \"{{latitude}}\"\n        longitude: \"{{longitude}}\"\n    output: coordinates\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      result: coordinates",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_003.py::test_parses_and_type_checks": true,
+        "test_wf_tool_003.py::test_passes_taint_analysis": true,
+        "test_wf_tool_003.py::test_has_fetch_and_extract": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1036,
+      "output_tokens": 249
+    }
+  ],
+  "complexity": 1,
+  "domain": "api_integration",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1036,
+  "total_output_tokens": 249
+}

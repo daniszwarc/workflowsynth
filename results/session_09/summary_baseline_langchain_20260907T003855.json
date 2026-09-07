@@ -1,0 +1,2334 @@
+{
+  "condition": "baseline_langchain",
+  "total_tasks": 60,
+  "pass_at_1": 0.08333333333333333,
+  "pass_at_3": 0.08333333333333333,
+  "pass_at_5": 0.08333333333333333,
+  "pass_at_10": 0.08333333333333333,
+  "mean_attempts": 1.0,
+  "security_pass_rate": 0.0,
+  "by_complexity": {
+    "1": 0.14285714285714285,
+    "2": 0.06666666666666667,
+    "3": 0.0625,
+    "4": 0.1,
+    "5": 0.0
+  },
+  "by_domain": {
+    "agent_tasks": 0.0,
+    "api_integration": 0.13333333333333333,
+    "general_ai": 0.13333333333333333,
+    "web_automation": 0.06666666666666667
+  },
+  "results": [
+    {
+      "task_id": "wf_agent_001",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 19.239819791167974,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_agent_001\nsteps:\n  - id: read_config\n    op: fetch_api\n    params:\n      source: \"file://config.yaml\"\n      description: \"Read the configuration file contents at service startup\"\n    output: config_data\n\n  - id: validate_config\n    op: validate_schema\n    params:\n      input: \"{{config_data}}\"\n      schema: \"expected_config_schema\"\n      strict: true\n      description: \"Validate configuration against its expected schema\"\n    output: validation_result\n\n  - id: handle_validation_failure\n    op: handle_error\n    params:\n      condition: \"{{validation_result.valid}} == false\"\n      message: \"Configuration validation failed: {{validation_result.errors}}\"\n      action: \"abort\"\n    output: error_details\n\n  - id: terminate_on_invalid\n    op: terminate_workflow\n    params:\n      trigger_on: \"{{validation_result.valid}} == false\"\n      reason: \"Service must not proceed with a configuration that fails validation\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_001.py::test_parses_and_type_checks": false,
+            "test_wf_agent_001.py::test_passes_taint_analysis": true,
+            "test_wf_agent_001.py::test_has_validate": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "agent_tasks",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_agent_002",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 10.358528125099838,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_agent_002\nsteps:\n  - id: query_table\n    op: read_database\n    params:\n      table: status_table\n      fresh_read: true\n    output: query_results\n  - id: summarize_results\n    op: aggregate_data\n    params:\n      input: \"{{query_results}}\"\n      method: summary\n    output: table_summary",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_002.py::test_parses_and_type_checks": false,
+            "test_wf_agent_002.py::test_passes_taint_analysis": true,
+            "test_wf_agent_002.py::test_has_read_and_aggregate": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "agent_tasks",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_agent_003",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 18.61503841727972,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_agent_003\nsteps:\n  - id: fetch_kg_node\n    op: fetch_api\n    params:\n      endpoint: \"knowledge_graph/nodes/{{node_name}}\"\n      method: GET\n    output: kg_node\n  - id: extract_requested_fields\n    op: extract_field\n    params:\n      source: \"{{kg_node}}\"\n      fields: \"{{requested_fields}}\"\n    output: extracted_fields",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_003.py::test_parses_and_type_checks": false,
+            "test_wf_agent_003.py::test_passes_taint_analysis": true,
+            "test_wf_agent_003.py::test_has_fetch_and_extract": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "agent_tasks",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_agent_004",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 15.508420125581324,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: wf_agent_004\nsteps:\n  - id: read_source_records\n    op: read_database\n    params:\n      table: source_table\n    output: source_records\n  - id: transform_records\n    op: transform_json\n    params:\n      input: \"{{source_records}}\"\n      mapping: target_format\n    output: transformed_records\n  - id: authenticate_migration\n    op: authenticate_user\n    params:\n      service: migration_service\n    output: auth_token\n  - id: write_target_records\n    op: write_database\n    params:\n      table: target_table\n      records: \"{{transformed_records}}\"\n      auth: \"{{auth_token}}\"\n    output: write_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_004.py::test_parses_and_type_checks": false,
+            "test_wf_agent_004.py::test_passes_taint_analysis": true,
+            "test_wf_agent_004.py::test_transform_before_write": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "agent_tasks",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_agent_005",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 14.68950083386153,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_agent_005\nsteps:\n  - id: fetch_user_input\n    op: fetch_api\n    params:\n      endpoint: \"/agent/incoming_input\"\n      method: GET\n    output: user_input\n\n  - id: validate_input\n    op: validate_schema\n    params:\n      input: \"{{user_input}}\"\n      schema: \"expected_input_schema\"\n    output: validation_result\n\n  - id: classify_intent\n    op: apply_rule\n    params:\n      input: \"{{user_input}}\"\n      rules:\n        - condition: \"intent == 'billing'\"\n          label: billing\n        - condition: \"intent == 'support'\"\n          label: support\n        - condition: \"intent == 'general'\"\n          label: general\n    output: classified_intent\n\n  - id: route_by_intent\n    op: route_to_step\n    params:\n      route_key: \"{{classified_intent}}\"\n      routes:\n        billing: handler_billing\n        support: handler_support\n        general: handler_general",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_005.py::test_parses_and_type_checks": false,
+            "test_wf_agent_005.py::test_passes_taint_analysis": true,
+            "test_wf_agent_005.py::test_classify_before_route": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "agent_tasks",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_agent_006",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 16.623767375014722,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: wf_agent_006\nsteps:\n  - id: fetch_candidates\n    op: read_database\n    params:\n      collection: knowledge_base\n      query: \"{{ trigger.query }}\"\n      sort_by: relevance_score\n      order: descending\n    output: candidate_results\n  - id: filter_relevant\n    op: filter_records\n    params:\n      input: \"{{ candidate_results }}\"\n      condition: \"relevance_score >= relevance_threshold\"\n    output: ranked_results\n  - id: format_response\n    op: format_output\n    params:\n      input: \"{{ ranked_results }}\"\n      template: ranked_list\n    output: final_ranked_results",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_006.py::test_parses_and_type_checks": false,
+            "test_wf_agent_006.py::test_passes_taint_analysis": true,
+            "test_wf_agent_006.py::test_has_fetch_and_filter": false
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "agent_tasks",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_agent_007",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 15.29779591690749,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_agent_007\nsteps:\n  - id: read_current_record\n    op: read_database\n    params:\n      table: records\n      key: \"{{request.record_id}}\"\n    output: current_record\n\n  - id: validate_change\n    op: validate_schema\n    params:\n      data: \"{{request.change}}\"\n      schema: update_schema\n    output: validated_change\n\n  - id: transform_change\n    op: transform_json\n    params:\n      input: \"{{validated_change}}\"\n      mapping: storage_format\n    output: transformed_change\n\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      username: update_service\n      token: \"{{secrets.update_service_token}}\"\n    output: auth_context\n\n  - id: write_update\n    op: write_database\n    params:\n      table: records\n      key: \"{{request.record_id}}\"\n      data: \"{{transformed_change}}\"\n      auth: \"{{auth_context}}\"\n    output: write_result\n\n  - id: log_update\n    op: log_audit\n    params:\n      action: database_update\n      record_id: \"{{request.record_id}}\"\n      before: \"{{current_record}}\"\n      after: \"{{transformed_change}}\"\n      result: \"{{write_result}}\"\n      auth: \"{{auth_context}}\"\n    output: audit_entry",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_007.py::test_parses_and_type_checks": false,
+            "test_wf_agent_007.py::test_passes_taint_analysis": true,
+            "test_wf_agent_007.py::test_validate_before_write": true,
+            "test_wf_agent_007.py::test_log_after_write": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "agent_tasks",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_agent_008",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 22.897555165924132,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_agent_008\nsteps:\n  - id: classify_task\n    op: transform_json\n    params:\n      input: \"{{trigger.task}}\"\n      mapping:\n        task_id: \"{{trigger.task.id}}\"\n        category: \"{{trigger.task.category}}\"\n        priority: \"{{trigger.task.priority}}\"\n    output: classification\n\n  - id: apply_routing_rule\n    op: apply_rule\n    params:\n      rule_id: task_routing_rule\n      input: \"{{classification}}\"\n    output: routing_decision\n\n  - id: route_to_subworkflow\n    op: call_subworkflow\n    params:\n      workflow_id: \"{{routing_decision.target_workflow}}\"\n      input:\n        task: \"{{trigger.task}}\"\n        classification: \"{{classification}}\"\n        routing: \"{{routing_decision}}\"\n    output: subworkflow_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_008.py::test_parses_and_type_checks": false,
+            "test_wf_agent_008.py::test_passes_taint_analysis": false,
+            "test_wf_agent_008.py::test_two_rules_before_route": false
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "agent_tasks",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_agent_009",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 15.925969082862139,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_agent_009\nsteps:\n  - id: fetch_user_query\n    op: fetch_api\n    params:\n      endpoint: \"/api/user/query\"\n      method: GET\n    output: user_query\n\n  - id: embed_query\n    op: transform_json\n    params:\n      input: \"{{user_query}}\"\n      transformation: \"generate_embedding\"\n      model: \"text-embedding\"\n    output: query_embedding\n\n  - id: search_knowledge_base\n    op: read_database\n    params:\n      source: \"knowledge_base\"\n      query_vector: \"{{query_embedding}}\"\n      method: \"vector_search\"\n      top_k: 5\n    output: search_results\n\n  - id: merge_with_context\n    op: merge_datasets\n    params:\n      sources:\n        - \"{{search_results}}\"\n        - \"{{user_query}}\"\n      strategy: \"contextual_merge\"\n    output: merged_result\n\n  - id: format_response\n    op: format_output\n    params:\n      input: \"{{merged_result}}\"\n      template: \"knowledge_response\"\n      format: \"structured\"\n    output: final_response",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_009.py::test_parses_and_type_checks": false,
+            "test_wf_agent_009.py::test_passes_taint_analysis": true,
+            "test_wf_agent_009.py::test_merge_before_format": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "agent_tasks",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_agent_010",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 26.62955708336085,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_agent_010\nsteps:\n  - id: read_job_config\n    op: read_database\n    params:\n      source: job_configuration\n      fresh: true\n    output: job_config\n\n  - id: apply_config_rule\n    op: apply_rule\n    params:\n      rule: \"{{job_config.rule}}\"\n      input: \"{{current_input}}\"\n    output: rule_outcome\n\n  - id: route_by_outcome\n    op: route_to_step\n    params:\n      condition: \"{{rule_outcome.branch}}\"\n      branches:\n        branch_a: execute_branch_a\n        branch_b: execute_branch_b\n        default: execute_default\n\n  - id: execute_branch_a\n    op: call_subworkflow\n    params:\n      workflow: \"{{job_config.branch_a_workflow}}\"\n      input: \"{{current_input}}\"\n    output: branch_a_result\n\n  - id: execute_branch_b\n    op: call_subworkflow\n    params:\n      workflow: \"{{job_config.branch_b_workflow}}\"\n      input: \"{{current_input}}\"\n    output: branch_b_result\n\n  - id: execute_default\n    op: call_subworkflow\n    params:\n      workflow: \"{{job_config.default_workflow}}\"\n      input: \"{{current_input}}\"\n    output: default_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_010.py::test_parses_and_type_checks": true,
+            "test_wf_agent_010.py::test_passes_taint_analysis": true,
+            "test_wf_agent_010.py::test_config_before_rule": false
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "agent_tasks",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_agent_011",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 15.30167941749096,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_agent_011\nsteps:\n  - id: read_source\n    op: read_database\n    params:\n      table: source_table\n    output: source_records\n  - id: transform_records\n    op: transform_json\n    params:\n      input: \"{{source_records}}\"\n      mapping: target_schema_format\n    output: transformed_records\n  - id: validate_before_write\n    op: validate_schema\n    params:\n      data: \"{{transformed_records}}\"\n      schema: target_schema\n    output: validation_result_pre\n  - id: authenticate_migration\n    op: authenticate_user\n    params:\n      service: migration_service\n    output: auth_token\n  - id: write_target\n    op: write_database\n    params:\n      table: target_table\n      data: \"{{transformed_records}}\"\n      token: \"{{auth_token}}\"\n    output: write_result\n  - id: read_back_target\n    op: read_database\n    params:\n      table: target_table\n    output: migrated_records\n  - id: validate_after_write\n    op: validate_schema\n    params:\n      data: \"{{migrated_records}}\"\n      schema: target_schema\n    output: validation_result_post\n  - id: log_migration\n    op: log_audit\n    params:\n      action: database_migration\n      source: source_table\n      target: target_table\n      validation_pre: \"{{validation_result_pre}}\"\n      validation_post: \"{{validation_result_post}}\"\n      write_result: \"{{write_result}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_011.py::test_parses_and_type_checks": false,
+            "test_wf_agent_011.py::test_passes_taint_analysis": true,
+            "test_wf_agent_011.py::test_validate_before_and_after_write": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 4,
+      "domain": "agent_tasks",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_agent_012",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 18.76589370891452,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_agent_012\nsteps:\n  - id: classify_task\n    op: apply_rule\n    params:\n      input: \"{{trigger.task}}\"\n      rules:\n        - condition: \"task.category == 'research'\"\n          result: \"research_subworkflow\"\n        - condition: \"task.category == 'analysis'\"\n          result: \"analysis_subworkflow\"\n        - condition: \"task.category == 'generation'\"\n          result: \"generation_subworkflow\"\n      default_result: \"general_subworkflow\"\n    output: classification\n\n  - id: delegate_to_subworkflow\n    op: call_subworkflow\n    params:\n      workflow_name: \"{{classification.result}}\"\n      payload:\n        task: \"{{trigger.task}}\"\n        category: \"{{classification.result}}\"\n    output: subworkflow_result\n\n  - id: merge_results\n    op: merge_datasets\n    params:\n      sources:\n        - \"{{trigger.task}}\"\n        - \"{{subworkflow_result}}\"\n      strategy: deep_merge\n    output: merged_result\n\n  - id: format_final_answer\n    op: format_output\n    params:\n      template: \"final_synthesis\"\n      data:\n        original_task: \"{{trigger.task}}\"\n        subworkflow_output: \"{{subworkflow_result}}\"\n        merged_context: \"{{merged_result}}\"\n    output: final_answer",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_012.py::test_parses_and_type_checks": false,
+            "test_wf_agent_012.py::test_passes_taint_analysis": true,
+            "test_wf_agent_012.py::test_delegate_before_synthesize": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 4,
+      "domain": "agent_tasks",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_agent_013",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 18.485003290697932,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_agent_013\nsteps:\n  - id: fetch_candidate_data\n    op: fetch_api\n    params:\n      endpoint: \"/knowledge-graph/candidate-data\"\n      method: GET\n    output: candidate_data\n\n  - id: validate_candidate_data\n    op: validate_schema\n    params:\n      input: \"{{candidate_data}}\"\n      schema: \"knowledge_graph_schema\"\n    output: validated_data\n\n  - id: merge_into_graph\n    op: merge_datasets\n    params:\n      source: \"{{validated_data}}\"\n      target: \"existing_knowledge_graph\"\n      strategy: \"upsert\"\n    output: merged_graph\n\n  - id: verify_consistency\n    op: apply_rule\n    params:\n      input: \"{{merged_graph}}\"\n      rule: \"consistency_rule\"\n    output: consistency_result\n\n  - id: authenticate_graph_service\n    op: authenticate_user\n    params:\n      service: \"graph_update_service\"\n      method: \"service_account\"\n    output: auth_token\n\n  - id: store_graph_update\n    op: write_database\n    params:\n      target: \"knowledge_graph_store\"\n      data: \"{{merged_graph}}\"\n      auth: \"{{auth_token}}\"\n    output: store_result\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      recipient: \"stakeholders\"\n      message: \"The knowledge graph has been updated successfully.\"\n      update_summary: \"{{store_result}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_013.py::test_parses_and_type_checks": false,
+            "test_wf_agent_013.py::test_passes_taint_analysis": true,
+            "test_wf_agent_013.py::test_consistency_before_store": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 4,
+      "domain": "agent_tasks",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_agent_014",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 30.30628608353436,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_agent_014\nsteps:\n  - id: read_agent_config\n    op: read_database\n    params:\n      table: agent_configurations\n      key: \"{{agent_id}}\"\n    output: agent_config\n\n  - id: authenticate_agent\n    op: authenticate_user\n    params:\n      service_id: \"{{agent_config.service_id}}\"\n      credentials: \"{{agent_config.credentials}}\"\n    output: auth_token\n\n  - id: fetch_source_one\n    op: fetch_api\n    params:\n      url: \"{{agent_config.source_one_url}}\"\n      headers:\n        Authorization: \"Bearer {{auth_token}}\"\n    output: source_one_data\n\n  - id: fetch_source_two\n    op: fetch_api\n    params:\n      url: \"{{agent_config.source_two_url}}\"\n      headers:\n        Authorization: \"Bearer {{auth_token}}\"\n    output: source_two_data\n\n  - id: fetch_source_three\n    op: fetch_api\n    params:\n      url: \"{{agent_config.source_three_url}}\"\n      headers:\n        Authorization: \"Bearer {{auth_token}}\"\n    output: source_three_data\n\n  - id: classify_combined_data\n    op: apply_rule\n    params:\n      context:\n        source_one: \"{{source_one_data}}\"\n        source_two: \"{{source_two_data}}\"\n        source_three: \"{{source_three_data}}\"\n      rules:\n        - condition: \"context.priority == 'high'\"\n          label: high_priority\n        - condition: \"context.priority == 'low'\"\n          label: low_priority\n        - condition: \"default\"\n          label: standard\n    output: classification\n\n  - id: route_on_classification\n    op: route_to_step\n    params:\n      value: \"{{classification.label}}\"\n      routes:\n        high_priority: transform_data\n        low_priority: transform_data\n        standard: transform_data\n\n  - id: transform_data\n    op: transform_json\n    params:\n      input: \"{{classification}}\"\n      mapping:\n        source_one: \"{{source_one_data}}\"\n        source_two: \"{{source_two_data}}\"\n        source_three: \"{{source_three_data}}\"\n        classification: \"{{classification.label}}\"\n      format: storage\n    output: transformed_data\n\n  - id: validate_transformed\n    op: validate_schema\n    params:\n      data: \"{{transformed_data}}\"\n      schema: agent_result_schema\n    output: validation_result\n\n  - id: store_result\n    op: write_database\n    params:\n      table: agent_results\n      data: \"{{transformed_data}}\"\n      validated: \"{{validation_result.valid}}\"\n    output: store_confirmation\n\n  - id: audit_agent_run\n    op: log_audit\n    params:\n      action: agent_pipeline_complete\n      agent_id: \"{{agent_id}}\"\n      classification: \"{{classification.label}}\"\n      sources_fetched: 3\n      store_status: \"{{store_confirmation}}\"\n      timestamp: \"{{now}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_014.py::test_parses_and_type_checks": false,
+            "test_wf_agent_014.py::test_passes_taint_analysis": true,
+            "test_wf_agent_014.py::test_auth_before_write": true,
+            "test_wf_agent_014.py::test_validate_before_store": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 5,
+      "domain": "agent_tasks",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_agent_015",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 25.351132665760815,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_agent_015\nsteps:\n  - id: fetch_batch\n    op: read_database\n    params:\n      source: batch_queue\n      query: \"SELECT * FROM pending_records WHERE status = 'queued'\"\n    output: batch_records\n\n  - id: loop_records\n    op: loop_records\n    params:\n      collection: \"{{batch_records}}\"\n      steps:\n        - id: apply_reasoning_rule\n          op: apply_rule\n          params:\n            rule_id: multi_step_reasoning\n            input: \"{{item}}\"\n          output: rule_outcome\n        - id: transform_outcome\n          op: transform_json\n          params:\n            input: \"{{rule_outcome}}\"\n            mapping:\n              record_id: \"{{item.id}}\"\n              result: \"{{rule_outcome.result}}\"\n              flags: \"{{rule_outcome.flags}}\"\n          output: collected_result\n    output: collected_results\n\n  - id: aggregate_results\n    op: aggregate_data\n    params:\n      input: \"{{collected_results}}\"\n      strategy: merge_all\n    output: aggregated_results\n\n  - id: security_validation\n    op: apply_rule\n    params:\n      rule_id: security_validation\n      input: \"{{aggregated_results}}\"\n    output: security_report\n\n  - id: extract_sensitive_fields\n    op: extract_field\n    params:\n      input: \"{{security_report}}\"\n      fields:\n        - sensitive_data\n        - flagged_fields\n    output: sensitive_fields\n\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      service_id: reasoning_service\n      method: service_account\n    output: auth_token\n\n  - id: encrypt_sensitive\n    op: encrypt_field\n    params:\n      input: \"{{sensitive_fields}}\"\n      algorithm: AES-256\n      key_ref: reasoning_service_key\n    output: encrypted_fields\n\n  - id: store_results\n    op: write_database\n    params:\n      target: encrypted_results_store\n      data:\n        aggregated: \"{{aggregated_results}}\"\n        encrypted_sensitive: \"{{encrypted_fields}}\"\n      auth_token: \"{{auth_token}}\"\n    output: storage_confirmation\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      recipients:\n        - stakeholders_group\n      subject: \"Batch Reasoning Run Complete\"\n      message: \"The batch reasoning job has completed. Results stored successfully.\"\n      reference: \"{{storage_confirmation.run_id}}\"\n\n  - id: audit_log\n    op: log_audit\n    params:\n      action: batch_reasoning_complete\n      details:\n        batch_size: \"{{batch_records.length}}\"\n        security_status: \"{{security_report.status}}\"\n        storage_ref: \"{{storage_confirmation.run_id}}\"\n      timestamp: \"{{now}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_015.py::test_parses_and_type_checks": false,
+            "test_wf_agent_015.py::test_passes_taint_analysis": true,
+            "test_wf_agent_015.py::test_security_before_encrypt": true,
+            "test_wf_agent_015.py::test_encrypt_before_store": true,
+            "test_wf_agent_015.py::test_has_loop": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 5,
+      "domain": "agent_tasks",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_gaia_001",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 13.96993675082922,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_gaia_001\nsteps:\n  - id: fetch_weather\n    op: fetch_api\n    params:\n      url: \"https://api.weather.example.com/v1/current\"\n      method: GET\n      query_params:\n        city: \"{{trigger.city}}\"\n      cache: false\n    output: weather_data\n  - id: format_report\n    op: format_output\n    params:\n      template: |\n        Weather Report for {{weather_data.city}}\n        -------------------------------------------\n        Temperature: {{weather_data.temperature}}\u00b0C\n        Humidity: {{weather_data.humidity}}%\n        Wind: {{weather_data.wind_speed}} km/h {{weather_data.wind_direction}}\n        Conditions: {{weather_data.conditions}}\n        Observed at: {{weather_data.observed_at}}\n      input: \"{{weather_data}}\"\n    output: weather_report",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_001.py::test_parses_and_type_checks": false,
+            "test_wf_gaia_001.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_001.py::test_has_fetch_step": true,
+            "test_wf_gaia_001.py::test_has_format_step": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "general_ai",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_gaia_002",
+      "condition": "baseline_langchain",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 11.07850524969399,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_gaia_002\nsteps:\n  - id: lookup_price\n    op: fetch_api\n    params:\n      url: \"https://market-data.example.com/api/v1/price\"\n      method: GET\n      query_params:\n        ticker: \"{{trigger.ticker}}\"\n    output: price_result\n  - id: log_price\n    op: log_audit\n    params:\n      action: \"stock_price_lookup\"\n      details:\n        ticker: \"{{trigger.ticker}}\"\n        price: \"{{price_result.price}}\"\n        timestamp: \"{{price_result.timestamp}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_002.py::test_parses_and_type_checks": true,
+            "test_wf_gaia_002.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_002.py::test_has_lookup_and_log": true
+          },
+          "failure_category": "success",
+          "success": true
+        }
+      ],
+      "complexity": 1,
+      "domain": "general_ai",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_gaia_003",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 24.59569262433797,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_gaia_003\nsteps:\n  - id: search_kb\n    op: fetch_api\n    params:\n      endpoint: \"/knowledge-base/search\"\n      method: GET\n      query_params:\n        q: \"{{trigger.query}}\"\n    output: search_results\n  - id: extract_top_result\n    op: extract_field\n    params:\n      source: \"{{search_results}}\"\n      field: \"results[0]\"\n    output: top_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_003.py::test_parses_and_type_checks": false,
+            "test_wf_gaia_003.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_003.py::test_has_search_and_extract": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "general_ai",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_gaia_004",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 15.18643462471664,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_gaia_004\nsteps:\n  - id: fetch_form_payload\n    op: fetch_api\n    params:\n      endpoint: \"/public/intake\"\n      method: POST\n    output: form_payload\n\n  - id: validate_form_schema\n    op: validate_schema\n    params:\n      input: \"{{form_payload}}\"\n      schema: intake_form_schema\n    output: validated_payload\n\n  - id: authenticate_intake_service\n    op: authenticate_user\n    params:\n      service_id: intake_service\n      auth_method: service_account\n    output: auth_token\n\n  - id: store_validated_data\n    op: write_database\n    params:\n      table: intake_submissions\n      data: \"{{validated_payload}}\"\n      auth: \"{{auth_token}}\"\n    output: write_confirmation",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_004.py::test_parses_and_type_checks": false,
+            "test_wf_gaia_004.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_004.py::test_has_validation_before_store": true,
+            "test_wf_gaia_004.py::test_has_auth_before_store": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "general_ai",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_gaia_005",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 12.768080708570778,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_gaia_005\nsteps:\n  - id: fetch_news_feed\n    op: fetch_api\n    params:\n      url: \"{{news_feed_url}}\"\n      method: GET\n    output: feed_items\n  - id: extract_headlines\n    op: extract_field\n    params:\n      input: \"{{feed_items}}\"\n      field: headline\n    output: headlines",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_005.py::test_parses_and_type_checks": false,
+            "test_wf_gaia_005.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_005.py::test_has_fetch_and_extract": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "general_ai",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_gaia_006",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 12.569281749427319,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_gaia_006\nsteps:\n  - id: fetch_both_sources\n    op: parallel_execute\n    params:\n      branches:\n        - id: fetch_source_1\n          op: fetch_api\n          params:\n            endpoint: \"{{source_1_url}}\"\n            method: GET\n          output: source_1_data\n        - id: fetch_source_2\n          op: fetch_api\n          params:\n            endpoint: \"{{source_2_url}}\"\n            method: GET\n          output: source_2_data\n    output: parallel_results\n  - id: merge_results\n    op: merge_datasets\n    params:\n      left: \"{{source_1_data}}\"\n      right: \"{{source_2_data}}\"\n      merge_key: \"entity_id\"\n    output: combined_view",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_006.py::test_parses_and_type_checks": false,
+            "test_wf_gaia_006.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_006.py::test_has_two_fetches_and_merge": false
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "general_ai",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_gaia_007",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 19.228849082253873,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_gaia_007\nsteps:\n  - id: search_matches\n    op: fetch_api\n    params:\n      endpoint: \"/search\"\n      method: GET\n      query: \"{{trigger.subscription_query}}\"\n    output: search_results\n\n  - id: filter_relevant\n    op: filter_records\n    params:\n      input: \"{{search_results}}\"\n      condition: \"relevance_score >= threshold\"\n    output: relevant_matches\n\n  - id: check_matches_exist\n    op: route_to_step\n    params:\n      condition: \"{{relevant_matches | length > 0}}\"\n      on_true: notify_subscriber\n      on_false: end_workflow\n\n  - id: notify_subscriber\n    op: notify_user\n    params:\n      recipient: \"{{trigger.subscriber_id}}\"\n      subject: \"Relevant matches found for your subscription\"\n      message: \"We found {{relevant_matches | length}} relevant match(es) for your query.\"\n      matches: \"{{relevant_matches}}\"\n    output: notification_result\n\n  - id: end_workflow\n    op: terminate_workflow\n    params:\n      reason: \"No relevant matches found; subscriber not notified.\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_007.py::test_parses_and_type_checks": false,
+            "test_wf_gaia_007.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_007.py::test_has_filter_before_notify": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "general_ai",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_gaia_008",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 16.80573599971831,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_gaia_008\nsteps:\n  - id: read_pending_records\n    op: read_database\n    params:\n      table: pending_records\n      filter: \"status = 'pending'\"\n    output: pending_records\n\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      identity: processing_service\n      method: service_account\n    output: auth_token\n\n  - id: validate_records\n    op: validate_schema\n    params:\n      input: \"{{pending_records}}\"\n      schema: pending_record_schema\n    output: validated_records\n\n  - id: apply_business_rule\n    op: apply_rule\n    params:\n      input: \"{{validated_records}}\"\n      rule: record_outcome_rule\n    output: rule_outcomes\n\n  - id: write_outcomes\n    op: write_database\n    params:\n      table: pending_records\n      data: \"{{rule_outcomes}}\"\n      auth: \"{{auth_token}}\"\n    depends_on:\n      - apply_business_rule",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_008.py::test_parses_and_type_checks": false,
+            "test_wf_gaia_008.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_008.py::test_rule_before_write": true,
+            "test_wf_gaia_008.py::test_auth_before_write": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "general_ai",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_gaia_009",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 12.679418333806098,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_gaia_009\nsteps:\n  - id: fetch_external_data\n    op: fetch_api\n    params:\n      endpoint: \"https://external.example.com/api/data\"\n      method: GET\n    output: raw_data\n\n  - id: transform_to_internal_format\n    op: transform_json\n    params:\n      source: \"{{raw_data}}\"\n      mapping: \"external_to_internal\"\n    output: transformed_data\n\n  - id: authenticate_sync_service\n    op: authenticate_user\n    params:\n      identity: \"sync_service\"\n      method: \"service_account\"\n    output: auth_token\n\n  - id: store_transformed_data\n    op: write_database\n    params:\n      table: \"internal_records\"\n      data: \"{{transformed_data}}\"\n      auth: \"{{auth_token}}\"\n    output: write_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_009.py::test_parses_and_type_checks": false,
+            "test_wf_gaia_009.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_009.py::test_transform_before_store": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "general_ai",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_gaia_010",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 19.33717849943787,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_gaia_010\nsteps:\n  - id: fetch_source_data\n    op: fetch_api\n    params:\n      endpoint: \"{{research_topic_url}}\"\n      method: GET\n      query:\n        topic: \"{{request.topic}}\"\n    output: source_data\n\n  - id: validate_source_data\n    op: validate_schema\n    params:\n      input: \"{{source_data}}\"\n      schema: research_source_schema\n    output: validated_data\n\n  - id: transform_to_report\n    op: transform_json\n    params:\n      input: \"{{validated_data}}\"\n      mapping:\n        title: \"{{validated_data.title}}\"\n        summary: \"{{validated_data.summary}}\"\n        findings: \"{{validated_data.findings}}\"\n        format: research_report\n    output: research_report\n\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      identity: research_service\n      method: service_account\n    output: auth_token\n\n  - id: store_report\n    op: write_database\n    params:\n      table: research_reports\n      data: \"{{research_report}}\"\n      auth_token: \"{{auth_token}}\"\n    output: stored_report\n\n  - id: notify_requester\n    op: notify_user\n    params:\n      recipient: \"{{request.requester}}\"\n      subject: \"Research report ready\"\n      message: \"Your research report on '{{request.topic}}' is ready. Report ID: {{stored_report.id}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_010.py::test_parses_and_type_checks": false,
+            "test_wf_gaia_010.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_010.py::test_store_before_notify": true,
+            "test_wf_gaia_010.py::test_validate_before_transform": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "general_ai",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_gaia_011",
+      "condition": "baseline_langchain",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 30.16163941565901,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_gaia_011\nsteps:\n  - id: fetch_item_details\n    op: fetch_api\n    params:\n      endpoint: \"/items/{{trigger.item_id}}\"\n      method: GET\n      cache: false\n    output: item_details\n\n  - id: classify_item\n    op: apply_rule\n    params:\n      input: \"{{item_details}}\"\n      rule: classification_rule\n      use_cache: false\n    output: classification_result\n\n  - id: route_by_classification\n    op: route_to_step\n    params:\n      condition: \"{{classification_result.category}}\"\n      routes:\n        path_a: process_path_a\n        path_b: process_path_b\n\n  - id: process_path_a\n    op: call_subworkflow\n    params:\n      workflow: process_path_a_workflow\n      input: \"{{item_details}}\"\n      classification: \"{{classification_result}}\"\n    output: path_a_result\n\n  - id: process_path_b\n    op: call_subworkflow\n    params:\n      workflow: process_path_b_workflow\n      input: \"{{item_details}}\"\n      classification: \"{{classification_result}}\"\n    output: path_b_result\n\n  - id: log_completion\n    op: log_audit\n    params:\n      action: \"item_routed\"\n      item_id: \"{{trigger.item_id}}\"\n      classification: \"{{classification_result.category}}\"\n      path_taken: \"{{route_by_classification.selected_route}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_011.py::test_parses_and_type_checks": true,
+            "test_wf_gaia_011.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_011.py::test_classify_before_route": true
+          },
+          "failure_category": "success",
+          "success": true
+        }
+      ],
+      "complexity": 3,
+      "domain": "general_ai",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_gaia_012",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 27.545279667712748,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_gaia_012\nsteps:\n  - id: fetch_source_1\n    op: fetch_api\n    params:\n      source: source_1\n      on_failure: continue\n    output: data_1\n\n  - id: fetch_source_2\n    op: fetch_api\n    params:\n      source: source_2\n      on_failure: continue\n    output: data_2\n\n  - id: fetch_source_3\n    op: fetch_api\n    params:\n      source: source_3\n      on_failure: continue\n    output: data_3\n\n  - id: aggregate_sources\n    op: aggregate_data\n    params:\n      inputs:\n        - data_1\n        - data_2\n        - data_3\n      strategy: partial_merge\n      ignore_missing: true\n    output: consolidated_view\n\n  - id: handle_aggregation_error\n    op: handle_error\n    params:\n      step_ref: aggregate_sources\n      action: return_partial\n      fallback_message: \"One or more sources failed; returning partial consolidated view.\"\n    output: final_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_012.py::test_parses_and_type_checks": false,
+            "test_wf_gaia_012.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_012.py::test_three_fetches_and_aggregate": true,
+            "test_wf_gaia_012.py::test_has_error_handling": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "general_ai",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_gaia_013",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 15.462933915667236,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_gaia_013\nsteps:\n  - id: fetch_batch\n    op: read_database\n    params:\n      source: queued_records\n      status: pending\n    output: batch_records\n\n  - id: loop_each_record\n    op: loop_records\n    params:\n      collection: \"{{batch_records}}\"\n      visit: once\n    output: current_record\n    steps:\n      - id: apply_business_rule\n        op: apply_rule\n        params:\n          record: \"{{current_record}}\"\n          rule: business_rule\n        output: rule_result\n\n      - id: transform_outcome\n        op: transform_json\n        params:\n          input: \"{{rule_result}}\"\n          format: collected_results\n        output: transformed_result\n\n  - id: aggregate_results\n    op: aggregate_data\n    params:\n      input: \"{{loop_each_record.results}}\"\n      strategy: summary\n    output: summary_output",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_013.py::test_parses_and_type_checks": false,
+            "test_wf_gaia_013.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_013.py::test_has_loop_and_rule": false,
+            "test_wf_gaia_013.py::test_loop_before_aggregate": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "general_ai",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_gaia_014",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 20.330919874832034,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_gaia_014\nsteps:\n  - id: authenticate_pipeline\n    op: authenticate_user\n    params:\n      identity: pipeline_service\n      role: data_ingestion\n    output: auth_token\n\n  - id: fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: sensitive_source_1\n      auth_token: \"{{authenticate_pipeline.auth_token}}\"\n    output: dataset_one\n\n  - id: fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: sensitive_source_2\n      auth_token: \"{{authenticate_pipeline.auth_token}}\"\n    output: dataset_two\n\n  - id: merge_data\n    op: merge_datasets\n    params:\n      sources:\n        - \"{{fetch_source_one.dataset_one}}\"\n        - \"{{fetch_source_two.dataset_two}}\"\n    output: merged_dataset\n\n  - id: validate_merged\n    op: validate_schema\n    params:\n      data: \"{{merge_data.merged_dataset}}\"\n      schema: sensitive_data_schema\n    output: validated_dataset\n\n  - id: extract_sensitive\n    op: extract_field\n    params:\n      data: \"{{validate_merged.validated_dataset}}\"\n      fields:\n        - ssn\n        - credit_card\n        - date_of_birth\n    output: sensitive_fields\n\n  - id: encrypt_sensitive\n    op: encrypt_field\n    params:\n      data: \"{{extract_sensitive.sensitive_fields}}\"\n      algorithm: AES-256-GCM\n    output: encrypted_dataset\n\n  - id: store_encrypted\n    op: write_database\n    params:\n      target: secure_data_store\n      data: \"{{encrypt_sensitive.encrypted_dataset}}\"\n    output: storage_result\n\n  - id: log_storage\n    op: log_audit\n    params:\n      action: data_persisted\n      details:\n        step: store_encrypted\n        target: secure_data_store\n        result: \"{{store_encrypted.storage_result}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_014.py::test_parses_and_type_checks": false,
+            "test_wf_gaia_014.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_014.py::test_auth_before_store": true,
+            "test_wf_gaia_014.py::test_encrypt_before_store": true,
+            "test_wf_gaia_014.py::test_log_after_store": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 4,
+      "domain": "general_ai",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_gaia_015",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 41.30214654188603,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_gaia_015\nsteps:\n  - id: fetch_source_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/source-data\"\n      method: GET\n    output: source_data\n\n  - id: classify_data\n    op: apply_rule\n    params:\n      input: \"{{source_data}}\"\n      rule: classification_rule\n    output: classification_result\n\n  - id: route_request\n    op: route_to_step\n    params:\n      input: \"{{classification_result}}\"\n      routes:\n        high: process_high_path\n        medium: process_medium_path\n        low: process_low_path\n    output: routed_data\n\n  - id: transform_data\n    op: transform_json\n    params:\n      input: \"{{routed_data}}\"\n      mapping: canonical_output_format\n    output: transformed_data\n\n  - id: validate_transformed\n    op: validate_schema\n    params:\n      input: \"{{transformed_data}}\"\n      schema: canonical_output_schema\n    output: validation_result\n\n  - id: authenticate_pipeline\n    op: authenticate_user\n    params:\n      identity: pipeline_service\n      method: service_account\n    output: auth_token\n\n  - id: store_result\n    op: write_database\n    params:\n      table: pipeline_results\n      data: \"{{transformed_data}}\"\n      auth: \"{{auth_token}}\"\n    output: write_confirmation\n\n  - id: notify_stakeholder\n    op: notify_user\n    params:\n      recipient: stakeholder\n      message: \"Pipeline run completed successfully for request.\"\n      channel: email\n    output: notification_status\n\n  - id: log_audit_trail\n    op: log_audit\n    params:\n      event: pipeline_run_complete\n      details:\n        source_data: \"{{source_data}}\"\n        classification: \"{{classification_result}}\"\n        routed_data: \"{{routed_data}}\"\n        transformed_data: \"{{transformed_data}}\"\n        validation: \"{{validation_result}}\"\n        write_confirmation: \"{{write_confirmation}}\"\n        notification_status: \"{{notification_status}}\"\n    output: audit_log_id",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_015.py::test_parses_and_type_checks": false,
+            "test_wf_gaia_015.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_015.py::test_verify_before_store": true,
+            "test_wf_gaia_015.py::test_notify_and_log_present": true,
+            "test_wf_gaia_015.py::test_classify_before_route": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 5,
+      "domain": "general_ai",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_tool_001",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 12.470917958766222,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_tool_001\nsteps:\n  - id: call_weather_api\n    op: fetch_api\n    params:\n      url: \"https://api.weather.example.com/v1/current\"\n      method: GET\n      query_params:\n        location: \"{{input.location}}\"\n    output: weather_raw\n  - id: format_weather\n    op: format_output\n    params:\n      input: \"{{weather_raw}}\"\n      template: \"Weather for {{weather_raw.location}}: {{weather_raw.temperature}}\u00b0, {{weather_raw.condition}}. Humidity: {{weather_raw.humidity}}%. Wind: {{weather_raw.wind_speed}} mph.\"\n    output: weather_display",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_001.py::test_parses_and_type_checks": false,
+            "test_wf_tool_001.py::test_passes_taint_analysis": true,
+            "test_wf_tool_001.py::test_has_fetch_and_format": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "api_integration",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_tool_002",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 14.710643249563873,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_tool_002\nsteps:\n  - id: call_conversion_api\n    op: fetch_api\n    params:\n      url: \"https://api.currencyconvert.example.com/convert\"\n      method: GET\n      query_params:\n        amount: \"{{trigger.source_amount}}\"\n        from: \"{{trigger.source_currency}}\"\n        to: \"{{trigger.target_currency}}\"\n    output: api_response\n\n  - id: extract_converted_amount\n    op: extract_field\n    params:\n      source: \"{{api_response}}\"\n      field: \"converted_amount\"\n    output: converted_amount\n\n  - id: log_conversion\n    op: log_audit\n    params:\n      action: \"currency_conversion\"\n      details:\n        source_amount: \"{{trigger.source_amount}}\"\n        source_currency: \"{{trigger.source_currency}}\"\n        target_currency: \"{{trigger.target_currency}}\"\n        converted_amount: \"{{converted_amount}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_002.py::test_parses_and_type_checks": false,
+            "test_wf_tool_002.py::test_passes_taint_analysis": true,
+            "test_wf_tool_002.py::test_has_fetch_and_log": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "api_integration",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_tool_003",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 13.86785174999386,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_tool_003\nsteps:\n  - id: geocode_address\n    op: fetch_api\n    params:\n      endpoint: \"https://geocoding.api/geocode\"\n      method: GET\n      query_params:\n        address: \"{{input.address}}\"\n    output: geocode_response\n\n  - id: extract_latitude\n    op: extract_field\n    params:\n      source: \"{{geocode_response}}\"\n      field: \"latitude\"\n    output: latitude\n\n  - id: extract_longitude\n    op: extract_field\n    params:\n      source: \"{{geocode_response}}\"\n      field: \"longitude\"\n    output: longitude\n\n  - id: format_coordinates\n    op: format_output\n    params:\n      fields:\n        latitude: \"{{latitude}}\"\n        longitude: \"{{longitude}}\"\n    output: coordinates",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_003.py::test_parses_and_type_checks": false,
+            "test_wf_tool_003.py::test_passes_taint_analysis": true,
+            "test_wf_tool_003.py::test_has_fetch_and_extract": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "api_integration",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_tool_004",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 13.04336754232645,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_tool_004\nsteps:\n  - id: fetch_first_api\n    op: fetch_api\n    params:\n      url: \"{{first_api_url}}\"\n      method: GET\n    output: raw_data\n\n  - id: transform_data\n    op: transform_json\n    params:\n      source: \"{{raw_data}}\"\n      mapping:\n        output_format: \"second_api_expected\"\n    output: transformed_data\n\n  - id: query_second_api\n    op: fetch_api\n    params:\n      url: \"{{second_api_url}}\"\n      method: POST\n      body: \"{{transformed_data}}\"\n    output: enriched_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_004.py::test_parses_and_type_checks": false,
+            "test_wf_tool_004.py::test_passes_taint_analysis": true,
+            "test_wf_tool_004.py::test_transform_between_fetches": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "api_integration",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_tool_005",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 20.664923290722072,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_tool_005\nsteps:\n  - id: fetch_data\n    op: fetch_api\n    params:\n      endpoint: \"{{sync_job.api_endpoint}}\"\n      method: GET\n    output: api_response\n\n  - id: validate_data\n    op: validate_schema\n    params:\n      input: \"{{api_response}}\"\n      schema: \"{{sync_job.expected_schema}}\"\n    output: validation_result\n\n  - id: check_validation\n    op: route_to_step\n    params:\n      condition: \"{{validation_result.valid == false}}\"\n      target: validation_failed\n\n  - id: auth_storage\n    op: authenticate_user\n    params:\n      service: storage\n      credentials: \"{{secrets.storage_credentials}}\"\n    output: auth_token\n\n  - id: store_data\n    op: write_database\n    params:\n      auth_token: \"{{auth_token}}\"\n      table: \"{{sync_job.target_table}}\"\n      data: \"{{validation_result.validated_data}}\"\n    output: write_confirmation\n\n  - id: validation_failed\n    op: terminate_workflow\n    params:\n      reason: \"Schema validation failed \u2014 data not stored\"\n      status: failed",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_005.py::test_parses_and_type_checks": false,
+            "test_wf_tool_005.py::test_passes_taint_analysis": true,
+            "test_wf_tool_005.py::test_validate_before_store": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "api_integration",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_tool_006",
+      "condition": "baseline_langchain",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 11.903694500215352,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_tool_006\nsteps:\n  - id: fetch_records\n    op: fetch_api\n    params:\n      endpoint: \"/api/records/latest\"\n      method: GET\n    output: raw_records\n  - id: filter_relevant\n    op: filter_records\n    params:\n      input: raw_records\n      criteria: \"relevant == true\"\n    output: relevant_records\n  - id: send_notification\n    op: notify_user\n    params:\n      input: relevant_records\n      message: \"New relevant records found\"\n      channel: \"default\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_006.py::test_parses_and_type_checks": true,
+            "test_wf_tool_006.py::test_passes_taint_analysis": true,
+            "test_wf_tool_006.py::test_filter_before_notify": true
+          },
+          "failure_category": "success",
+          "success": true
+        }
+      ],
+      "complexity": 2,
+      "domain": "api_integration",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_tool_007",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 11.813829542137682,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_tool_007\nsteps:\n  - id: authenticate\n    op: authenticate_user\n    params:\n      target: paginated_api\n      method: oauth2\n    output: auth_token\n  - id: fetch_paginated_data\n    op: fetch_api\n    params:\n      url: \"{{paginated_api_url}}\"\n      auth_token: \"{{auth_token}}\"\n      paginate: true\n    output: paginated_results\n  - id: aggregate_results\n    op: aggregate_data\n    params:\n      source: \"{{paginated_results}}\"\n      strategy: summary\n    output: aggregated_summary",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_007.py::test_parses_and_type_checks": false,
+            "test_wf_tool_007.py::test_passes_taint_analysis": true,
+            "test_wf_tool_007.py::test_auth_before_fetch": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "api_integration",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_tool_008",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 18.952251832932234,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_tool_008\nsteps:\n  - id: call_api_1\n    op: fetch_api\n    params:\n      endpoint: \"https://api.example.com/service-1\"\n      method: GET\n    output: api_1_result\n\n  - id: call_api_2\n    op: fetch_api\n    params:\n      endpoint: \"https://api.example.com/service-2\"\n      method: GET\n    output: api_2_result\n\n  - id: call_api_3\n    op: fetch_api\n    params:\n      endpoint: \"https://api.example.com/service-3\"\n      method: GET\n    output: api_3_result\n\n  - id: merge_results\n    op: merge_datasets\n    params:\n      sources:\n        - api_1_result\n        - api_2_result\n        - api_3_result\n      strategy: concat\n    output: merged_dataset\n\n  - id: transform_output\n    op: transform_json\n    params:\n      input: merged_dataset\n      mapping:\n        combined_data: \"$.merged_dataset\"\n      format: final\n    output: final_output",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_008.py::test_parses_and_type_checks": false,
+            "test_wf_tool_008.py::test_passes_taint_analysis": true,
+            "test_wf_tool_008.py::test_merge_before_transform": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "api_integration",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_tool_009",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 19.714430416934192,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_tool_009\nsteps:\n  - id: parallel_fan_out\n    op: parallel_execute\n    params:\n      branches:\n        - endpoint_a\n        - endpoint_b\n        - endpoint_c\n    output: parallel_refs\n\n  - id: endpoint_a\n    op: fetch_api\n    params:\n      url: \"https://api.example.com/endpoint-a\"\n      method: GET\n    output: result_a\n\n  - id: endpoint_b\n    op: fetch_api\n    params:\n      url: \"https://api.example.com/endpoint-b\"\n      method: GET\n    output: result_b\n\n  - id: endpoint_c\n    op: fetch_api\n    params:\n      url: \"https://api.example.com/endpoint-c\"\n      method: GET\n    output: result_c\n\n  - id: merge_results\n    op: merge_datasets\n    params:\n      sources:\n        - result_a\n        - result_b\n        - result_c\n    output: merged_dataset",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_009.py::test_parses_and_type_checks": false,
+            "test_wf_tool_009.py::test_passes_taint_analysis": true,
+            "test_wf_tool_009.py::test_has_parallel_and_merge": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "api_integration",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_tool_010",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 15.93458191677928,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_tool_010\nsteps:\n  - id: fetch_webhook_payload\n    op: fetch_api\n    params:\n      endpoint: \"/webhooks/incoming\"\n      method: POST\n    output: raw_payload\n\n  - id: validate_payload\n    op: validate_schema\n    params:\n      input: \"{{raw_payload}}\"\n      schema: \"webhook_payload_schema\"\n    output: validated_payload\n\n  - id: transform_to_event\n    op: transform_json\n    params:\n      input: \"{{validated_payload}}\"\n      mapping: \"webhook_to_internal_event\"\n    output: internal_event\n\n  - id: route_by_type\n    op: route_to_step\n    params:\n      input: \"{{internal_event}}\"\n      route_key: \"event_type\"\n\n  - id: authenticate_ingestion_service\n    op: authenticate_user\n    params:\n      service: \"ingestion_service\"\n      method: \"service_account\"\n    output: auth_token\n\n  - id: store_event\n    op: write_database\n    params:\n      table: \"events\"\n      data: \"{{internal_event}}\"\n      auth_token: \"{{auth_token}}\"\n    output: store_result\n\n  - id: confirm_receipt\n    op: notify_user\n    params:\n      recipient: \"{{raw_payload.sender}}\"\n      message: \"Webhook received and processed successfully\"\n      reference: \"{{store_result.event_id}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_010.py::test_parses_and_type_checks": false,
+            "test_wf_tool_010.py::test_passes_taint_analysis": true,
+            "test_wf_tool_010.py::test_validate_before_store": true,
+            "test_wf_tool_010.py::test_auth_before_store": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "api_integration",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_tool_011",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 14.439015958458185,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_tool_011\nsteps:\n  - id: fetch_primary\n    op: fetch_api\n    params:\n      endpoint: \"primary_api\"\n      method: GET\n    output: primary_record\n  - id: fetch_secondary\n    op: fetch_api\n    params:\n      endpoint: \"secondary_api\"\n      method: GET\n    output: enrichment_data\n  - id: merge_records\n    op: merge_datasets\n    params:\n      sources:\n        - primary_record\n        - enrichment_data\n      strategy: deep_merge\n    output: combined_result\n  - id: validate_combined\n    op: validate_schema\n    params:\n      input: combined_result\n      schema: enriched_record_schema\n    output: validated_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_011.py::test_parses_and_type_checks": false,
+            "test_wf_tool_011.py::test_passes_taint_analysis": true,
+            "test_wf_tool_011.py::test_merge_before_validate": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "api_integration",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_tool_012",
+      "condition": "baseline_langchain",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 22.34766774997115,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_tool_012\nsteps:\n  - id: call_primary_api\n    op: fetch_api\n    params:\n      endpoint: \"{{primary_api_url}}\"\n      method: POST\n      payload: \"{{request_payload}}\"\n    output: api_response\n\n  - id: retry_on_transient_failure\n    op: retry_step\n    params:\n      step_id: call_primary_api\n      max_retries: 3\n      backoff_strategy: exponential\n      retry_on: transient_error\n    output: retry_result\n\n  - id: handle_persistent_error\n    op: handle_error\n    params:\n      source_step: retry_on_transient_failure\n      strategy: flag\n      error_category: unrecoverable\n    output: error_disposition\n\n  - id: route_to_fallback\n    op: route_to_step\n    params:\n      condition: \"{{error_disposition.flag == 'unrecoverable'}}\"\n      target_step: fallback_path\n    output: routing_decision\n\n  - id: fallback_path\n    op: fetch_api\n    params:\n      endpoint: \"{{fallback_api_url}}\"\n      method: POST\n      payload: \"{{request_payload}}\"\n    output: fallback_response",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_012.py::test_parses_and_type_checks": true,
+            "test_wf_tool_012.py::test_passes_taint_analysis": true,
+            "test_wf_tool_012.py::test_retry_before_route": true,
+            "test_wf_tool_012.py::test_has_error_handling": true
+          },
+          "failure_category": "success",
+          "success": true
+        }
+      ],
+      "complexity": 4,
+      "domain": "api_integration",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_tool_013",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 17.775858582928777,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_tool_013\nsteps:\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      identity: aggregation_service\n      method: service_account\n    output: auth_token\n\n  - id: fetch_api_one\n    op: fetch_api\n    params:\n      endpoint: https://api.source-one.example.com/data\n      auth_token: \"{{auth_token}}\"\n    output: dataset_one\n\n  - id: fetch_api_two\n    op: fetch_api\n    params:\n      endpoint: https://api.source-two.example.com/data\n      auth_token: \"{{auth_token}}\"\n    output: dataset_two\n\n  - id: aggregate_datasets\n    op: aggregate_data\n    params:\n      sources:\n        - \"{{dataset_one}}\"\n        - \"{{dataset_two}}\"\n      strategy: merge\n    output: aggregated_result\n\n  - id: extract_sensitive_fields\n    op: extract_field\n    params:\n      source: \"{{aggregated_result}}\"\n      fields:\n        - ssn\n        - credit_card\n        - email\n    output: sensitive_fields\n\n  - id: encrypt_sensitive\n    op: encrypt_field\n    params:\n      data: \"{{sensitive_fields}}\"\n      algorithm: AES-256-GCM\n    output: encrypted_result\n\n  - id: store_result\n    op: write_database\n    params:\n      table: aggregated_records\n      data: \"{{encrypted_result}}\"\n    output: write_confirmation",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_013.py::test_parses_and_type_checks": false,
+            "test_wf_tool_013.py::test_passes_taint_analysis": true,
+            "test_wf_tool_013.py::test_auth_before_fetch": true,
+            "test_wf_tool_013.py::test_encrypt_before_store": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 4,
+      "domain": "api_integration",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_tool_014",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 36.93284612521529,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_tool_014\nsteps:\n  - id: ingest_event\n    op: fetch_api\n    params:\n      endpoint: \"/realtime/events/ingest\"\n      method: GET\n      stream: true\n    output: raw_event\n\n  - id: validate_event\n    op: validate_schema\n    params:\n      input: \"{{raw_event}}\"\n      schema: \"realtime_event_schema\"\n    output: validated_event\n\n  - id: transform_event\n    op: transform_json\n    params:\n      input: \"{{validated_event}}\"\n      mapping:\n        format: \"internal_representation\"\n    output: transformed_event\n\n  - id: classify_event\n    op: apply_rule\n    params:\n      input: \"{{transformed_event}}\"\n      rules:\n        - field: \"event_type\"\n          conditions:\n            - match: \"critical\"\n              label: \"high_priority\"\n            - match: \"standard\"\n              label: \"normal\"\n            - match: \"informational\"\n              label: \"low_priority\"\n    output: classification_result\n\n  - id: route_event\n    op: route_to_step\n    params:\n      input: \"{{classification_result}}\"\n      route_key: \"label\"\n      routes:\n        high_priority: \"priority_queue\"\n        normal: \"standard_queue\"\n        low_priority: \"batch_queue\"\n    output: routed_destination\n\n  - id: authenticate_pipeline_writer\n    op: authenticate_user\n    params:\n      identity: \"pipeline_writer\"\n      method: \"service_account\"\n    output: auth_token\n\n  - id: store_event\n    op: write_database\n    params:\n      auth: \"{{auth_token}}\"\n      table: \"classified_events\"\n      record: \"{{classification_result}}\"\n      destination: \"{{routed_destination}}\"\n    output: store_confirmation\n\n  - id: log_pipeline_audit\n    op: log_audit\n    params:\n      action: \"pipeline_run_complete\"\n      details:\n        event_id: \"{{raw_event.id}}\"\n        classification: \"{{classification_result.label}}\"\n        destination: \"{{routed_destination}}\"\n        store_status: \"{{store_confirmation}}\"\n      severity: \"info\"\n    output: audit_record",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_014.py::test_parses_and_type_checks": false,
+            "test_wf_tool_014.py::test_passes_taint_analysis": true,
+            "test_wf_tool_014.py::test_classify_before_route": true,
+            "test_wf_tool_014.py::test_has_audit_log": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 4,
+      "domain": "api_integration",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_tool_015",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 30.582131208851933,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_tool_015\nsteps:\n  - id: authenticate\n    op: authenticate_user\n    params:\n      identity: integration_service\n    output: auth_token\n\n  - id: fetch_source_1\n    op: fetch_api\n    params:\n      endpoint: source_1\n      auth: \"{{auth_token}}\"\n    output: data_source_1\n\n  - id: fetch_source_2\n    op: fetch_api\n    params:\n      endpoint: source_2\n      auth: \"{{auth_token}}\"\n    output: data_source_2\n\n  - id: fetch_source_3\n    op: fetch_api\n    params:\n      endpoint: source_3\n      auth: \"{{auth_token}}\"\n    output: data_source_3\n\n  - id: fetch_source_4\n    op: fetch_api\n    params:\n      endpoint: source_4\n      auth: \"{{auth_token}}\"\n    output: data_source_4\n\n  - id: merge_all\n    op: merge_datasets\n    params:\n      sources:\n        - \"{{data_source_1}}\"\n        - \"{{data_source_2}}\"\n        - \"{{data_source_3}}\"\n        - \"{{data_source_4}}\"\n    output: merged_result\n\n  - id: validate_merged\n    op: validate_schema\n    params:\n      data: \"{{merged_result}}\"\n      schema: integration_schema\n    output: validated_result\n\n  - id: extract_sensitive\n    op: extract_field\n    params:\n      data: \"{{validated_result}}\"\n      fields: sensitive_fields\n    output: sensitive_data\n\n  - id: encrypt_sensitive\n    op: encrypt_field\n    params:\n      data: \"{{sensitive_data}}\"\n      algorithm: AES-256\n    output: encrypted_result\n\n  - id: store_result\n    op: write_database\n    params:\n      target: integration_store\n      data: \"{{encrypted_result}}\"\n    output: store_confirmation\n\n  - id: notify_owner\n    op: notify_user\n    params:\n      recipient: integration_owner\n      message: \"Full integration run completed successfully.\"\n    output: notification_status\n\n  - id: audit_log\n    op: log_audit\n    params:\n      action: full_integration_run\n      details:\n        auth: \"{{auth_token}}\"\n        merged: \"{{merged_result}}\"\n        validated: \"{{validated_result}}\"\n        encrypted: \"{{encrypted_result}}\"\n        stored: \"{{store_confirmation}}\"\n        notified: \"{{notification_status}}\"\n    output: audit_record",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_015.py::test_parses_and_type_checks": false,
+            "test_wf_tool_015.py::test_passes_taint_analysis": true,
+            "test_wf_tool_015.py::test_auth_before_fetches": true,
+            "test_wf_tool_015.py::test_validate_and_encrypt_before_store": true,
+            "test_wf_tool_015.py::test_has_notify_and_audit": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 5,
+      "domain": "api_integration",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_web_001",
+      "condition": "baseline_langchain",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 9.103833959437907,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: wf_web_001\nsteps:\n  - id: fetch_product_listing\n    op: fetch_api\n    params:\n      method: GET\n      url: \"https://api.ecommerce.example.com/products/{{product_id}}\"\n      cache: false\n    output: product_listing",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_001.py::test_parses_and_type_checks": true,
+            "test_wf_web_001.py::test_passes_taint_analysis": true,
+            "test_wf_web_001.py::test_has_fetch": true
+          },
+          "failure_category": "success",
+          "success": true
+        }
+      ],
+      "complexity": 1,
+      "domain": "web_automation",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_web_002",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 14.462015291675925,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: wf_web_002\nsteps:\n  - id: fetch_contact_form\n    op: call_webhook\n    params:\n      method: POST\n      path: /contact-form\n    output: form_payload\n  - id: log_submission\n    op: log_audit\n    params:\n      source: \"{{form_payload}}\"\n      message: \"Contact form submission received\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_002.py::test_parses_and_type_checks": false,
+            "test_wf_web_002.py::test_passes_taint_analysis": true,
+            "test_wf_web_002.py::test_has_log": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "web_automation",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_web_003",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 18.271398209035397,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates. Here is the final answer:\n\nworkflow_id: wf_web_003\nsteps:\n  - id: scrape_page\n    op: fetch_api\n    params:\n      url: \"{{page_url}}\"\n      method: GET\n    output: raw_content\n\n  - id: extract_fields\n    op: extract_field\n    params:\n      source: \"{{raw_content}}\"\n      fields: \"{{requested_fields}}\"\n    output: structured_data\n\n  - id: format_result\n    op: format_output\n    params:\n      data: \"{{structured_data}}\"\n      include_only: \"{{requested_fields}}\"\n    output: final_output",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_003.py::test_parses_and_type_checks": false,
+            "test_wf_web_003.py::test_passes_taint_analysis": true,
+            "test_wf_web_003.py::test_has_scrape_and_extract": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "web_automation",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_web_004",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 12.329750041477382,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_web_004\nsteps:\n  - id: search_catalog\n    op: read_database\n    params:\n      collection: products\n      query: \"{{trigger.search_query}}\"\n    output: search_results\n  - id: filter_by_price\n    op: filter_records\n    params:\n      input: \"{{search_results}}\"\n      condition: \"item.price <= {{trigger.max_price}}\"\n    output: filtered_results",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_004.py::test_parses_and_type_checks": false,
+            "test_wf_web_004.py::test_passes_taint_analysis": true,
+            "test_wf_web_004.py::test_filter_after_search": false
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "web_automation",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_web_005",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 22.33380795828998,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_web_005\nsteps:\n  - id: fetch_comment_payload\n    op: fetch_api\n    params:\n      endpoint: \"/api/forum/comments/submitted\"\n      method: GET\n    output: comment_payload\n\n  - id: validate_comment\n    op: validate_schema\n    params:\n      input: \"{{comment_payload}}\"\n      schema: \"comment_schema\"\n    output: validation_result\n\n  - id: authenticate_posting_user\n    op: authenticate_user\n    params:\n      user_id: \"{{comment_payload.user_id}}\"\n      method: \"session_token\"\n    output: auth_result\n\n  - id: publish_comment\n    op: call_webhook\n    params:\n      url: \"/api/forum/threads/{{comment_payload.thread_id}}/comments\"\n      method: POST\n      payload:\n        comment: \"{{comment_payload}}\"\n        auth_token: \"{{auth_result.token}}\"\n    output: publish_response\n\n  - id: extract_publish_status\n    op: extract_field\n    params:\n      input: \"{{publish_response}}\"\n      field: \"status\"\n    output: publish_status\n\n  - id: notify_moderation_team\n    op: notify_user\n    params:\n      recipient: \"moderation_team\"\n      subject: \"New comment requires review\"\n      message: \"A new comment has been posted by user {{comment_payload.user_id}} on thread {{comment_payload.thread_id}}. Publish status: {{publish_status}}. Please review.\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_005.py::test_parses_and_type_checks": false,
+            "test_wf_web_005.py::test_passes_taint_analysis": true,
+            "test_wf_web_005.py::test_auth_before_publish": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "web_automation",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_web_006",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 16.189005667343736,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_web_006\nsteps:\n  - id: fetch_article_draft\n    op: fetch_api\n    params:\n      endpoint: \"/cms/articles/drafts\"\n      method: GET\n      query:\n        article_id: \"{{trigger.article_id}}\"\n    output: article_draft\n\n  - id: validate_article_schema\n    op: validate_schema\n    params:\n      input: \"{{article_draft}}\"\n      schema: article_schema\n    output: validation_result\n\n  - id: authenticate_publisher\n    op: authenticate_user\n    params:\n      service: publishing_service\n      method: service_account\n    output: auth_token\n\n  - id: publish_article\n    op: call_webhook\n    params:\n      url: \"/cms/articles/publish\"\n      method: POST\n      headers:\n        Authorization: \"Bearer {{auth_token}}\"\n      body:\n        article: \"{{article_draft}}\"\n    output: publish_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_006.py::test_parses_and_type_checks": false,
+            "test_wf_web_006.py::test_passes_taint_analysis": true,
+            "test_wf_web_006.py::test_auth_before_publish": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "web_automation",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_web_007",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 15.457885375246406,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_web_007\nsteps:\n  - id: authenticate_user\n    op: authenticate_user\n    params:\n      session_token: \"{{request.session_token}}\"\n    output: auth_result\n\n  - id: fetch_current_profile\n    op: read_database\n    params:\n      table: user_profiles\n      filter:\n        user_id: \"{{auth_result.user_id}}\"\n    output: current_profile\n\n  - id: validate_profile_changes\n    op: validate_schema\n    params:\n      data: \"{{request.profile_changes}}\"\n      schema: profile_schema\n    output: validation_result\n\n  - id: update_profile_record\n    op: write_database\n    params:\n      table: user_profiles\n      filter:\n        user_id: \"{{auth_result.user_id}}\"\n      data: \"{{request.profile_changes}}\"\n    output: update_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_007.py::test_parses_and_type_checks": false,
+            "test_wf_web_007.py::test_passes_taint_analysis": true,
+            "test_wf_web_007.py::test_auth_before_update": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "web_automation",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_web_008",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 21.224142000079155,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The YAML is valid. Here is the final workflow:\n\nworkflow_id: wf_web_008\nsteps:\n  - id: fetch_cart\n    op: fetch_api\n    params:\n      endpoint: \"/api/cart\"\n      method: GET\n    output: cart_contents\n\n  - id: validate_cart\n    op: validate_schema\n    params:\n      input: \"{{cart_contents}}\"\n      schema: checkout_schema\n    output: validation_result\n\n  - id: apply_promo\n    op: apply_rule\n    params:\n      input: \"{{cart_contents}}\"\n      rule: promo_code_discount\n      condition: \"{{cart_contents.promo_code != null}}\"\n    output: discounted_cart\n\n  - id: authenticate_shopper\n    op: authenticate_user\n    params:\n      user_id: \"{{cart_contents.shopper_id}}\"\n      method: session_token\n    output: auth_result\n\n  - id: process_order\n    op: call_webhook\n    params:\n      url: \"/api/orders/process\"\n      method: POST\n      payload:\n        cart: \"{{discounted_cart}}\"\n        auth: \"{{auth_result}}\"\n    output: order_result\n\n  - id: notify_customer\n    op: notify_user\n    params:\n      recipient: \"{{cart_contents.shopper_id}}\"\n      template: order_confirmation\n      message: \"Your order {{order_result.order_id}} has been placed successfully.\"\n      channel: email\n    output: notification_status",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_008.py::test_parses_and_type_checks": false,
+            "test_wf_web_008.py::test_passes_taint_analysis": true,
+            "test_wf_web_008.py::test_validate_before_promo": true,
+            "test_wf_web_008.py::test_auth_before_process": false
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "web_automation",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_web_009",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 18.458726250566542,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_web_009\nsteps:\n  - id: fetch_post\n    op: fetch_api\n    params:\n      endpoint: \"/posts/submitted\"\n      method: GET\n    output: post_data\n\n  - id: classify_post\n    op: apply_rule\n    params:\n      input: \"{{post_data}}\"\n      rule: moderation_policy\n    output: classification\n\n  - id: route_post\n    op: route_to_step\n    params:\n      condition: \"{{classification.result}}\"\n      cases:\n        approved: send_to_approve_queue\n        rejected: send_to_reject_queue\n\n  - id: send_to_approve_queue\n    op: send_to_queue\n    params:\n      queue: approve_queue\n      payload: \"{{post_data}}\"\n\n  - id: send_to_reject_queue\n    op: send_to_queue\n    params:\n      queue: reject_queue\n      payload: \"{{post_data}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_009.py::test_parses_and_type_checks": false,
+            "test_wf_web_009.py::test_passes_taint_analysis": true,
+            "test_wf_web_009.py::test_classify_before_route": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "web_automation",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_web_010",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 20.689032207243145,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_web_010\nsteps:\n  - id: fetch_registration\n    op: fetch_api\n    params:\n      endpoint: \"/api/registration\"\n      method: GET\n    output: registration_payload\n\n  - id: validate_registration\n    op: validate_schema\n    params:\n      schema: registration_schema\n      data: \"{{registration_payload}}\"\n    output: validation_result\n\n  - id: check_duplicate_email\n    op: apply_rule\n    params:\n      rule: duplicate-check\n      input: \"{{registration_payload.email}}\"\n    output: duplicate_result\n\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      service: registration_service\n      method: service_account\n    output: auth_token\n\n  - id: create_account\n    op: write_database\n    params:\n      table: users\n      operation: insert\n      data: \"{{registration_payload}}\"\n      auth: \"{{auth_token}}\"\n    output: new_account\n\n  - id: send_welcome_email\n    op: notify_user\n    params:\n      recipient: \"{{registration_payload.email}}\"\n      template: welcome_email\n      channel: email\n    output: email_status",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_010.py::test_parses_and_type_checks": false,
+            "test_wf_web_010.py::test_passes_taint_analysis": true,
+            "test_wf_web_010.py::test_duplicate_check_before_create": true,
+            "test_wf_web_010.py::test_has_welcome_notification": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "web_automation",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_web_011",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 15.200208874419332,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_web_011\nsteps:\n  - id: fetch_stock_level\n    op: fetch_api\n    params:\n      endpoint: \"/inventory/products/{{product_id}}/stock\"\n      method: GET\n    output: stock_data\n\n  - id: validate_stock_data\n    op: validate_schema\n    params:\n      input: \"{{stock_data}}\"\n      schema: inventory_stock_schema\n    output: validated_stock\n\n  - id: apply_low_stock_rule\n    op: apply_rule\n    params:\n      input: \"{{validated_stock}}\"\n      rule: low_stock_threshold\n    output: rule_result\n\n  - id: notify_inventory_team\n    op: notify_user\n    params:\n      recipient: inventory_team\n      subject: \"Low-Stock Alert: {{product_id}}\"\n      message: \"Product {{product_id}} stock level ({{validated_stock.quantity}}) has fallen below the threshold.\"\n    condition: \"{{rule_result.is_low_stock == true}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_011.py::test_parses_and_type_checks": false,
+            "test_wf_web_011.py::test_passes_taint_analysis": true,
+            "test_wf_web_011.py::test_threshold_before_notify": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "web_automation",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_web_012",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 22.244259541854262,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_web_012\nsteps:\n  - id: fetch_order\n    op: fetch_api\n    params:\n      endpoint: \"/orders/confirmed\"\n      method: GET\n      query:\n        status: confirmed\n    output: order_details\n\n  - id: validate_order\n    op: validate_schema\n    params:\n      input: \"{{order_details}}\"\n      schema: fulfillment_order_schema\n    output: validated_order\n\n  - id: check_inventory\n    op: fetch_api\n    params:\n      endpoint: \"/inventory/availability\"\n      method: POST\n      body:\n        items: \"{{validated_order.items}}\"\n      cache: false\n    output: inventory_status\n\n  - id: validate_inventory\n    op: validate_schema\n    params:\n      input: \"{{inventory_status}}\"\n      schema: inventory_status_schema\n    output: validated_inventory\n\n  - id: route_fulfillment\n    op: route_to_step\n    params:\n      condition: \"{{validated_inventory.all_in_stock}}\"\n      on_true: fulfill_in_stock\n      on_false: fulfill_backorder\n    output: routing_decision\n\n  - id: fulfill_backorder\n    op: notify_user\n    params:\n      recipient: supplier\n      channel: email\n      subject: \"Backorder Notification - Order {{order_details.order_id}}\"\n      message: \"Order {{order_details.order_id}} has been routed to backorder fulfillment. Items requiring restock: {{validated_inventory.backordered_items}}\"\n    output: supplier_notification\n\n  - id: log_fulfillment_decision\n    op: log_audit\n    params:\n      action: fulfillment_routing\n      order_id: \"{{order_details.order_id}}\"\n      routing_path: \"{{routing_decision.selected_path}}\"\n      inventory_snapshot: \"{{validated_inventory}}\"\n      timestamp: \"{{now}}\"\n    output: audit_log_entry",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_012.py::test_parses_and_type_checks": false,
+            "test_wf_web_012.py::test_passes_taint_analysis": true,
+            "test_wf_web_012.py::test_inventory_before_route": false,
+            "test_wf_web_012.py::test_has_audit_log": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 4,
+      "domain": "web_automation",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_web_013",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 24.559157541021705,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_web_013\nsteps:\n  - id: fetch_thread\n    op: fetch_api\n    params:\n      endpoint: \"/forum/threads/{{trigger.thread_id}}\"\n      method: GET\n      headers:\n        Accept: \"application/json\"\n    output: thread_data\n\n  - id: validate_report\n    op: validate_schema\n    params:\n      input: \"{{thread_data}}\"\n      schema: \"report_schema\"\n    output: validation_result\n\n  - id: classify_severity\n    op: apply_rule\n    params:\n      input: \"{{thread_data}}\"\n      rule: \"escalation_rule\"\n    output: severity_result\n\n  - id: route_thread\n    op: route_to_step\n    params:\n      condition: \"{{severity_result.severity == 'severe'}}\"\n      on_true: escalate_to_senior\n      on_false: send_to_standard_queue\n\n  - id: send_to_standard_queue\n    op: send_to_queue\n    params:\n      queue: \"standard_moderation_queue\"\n      payload:\n        thread_id: \"{{trigger.thread_id}}\"\n        thread_data: \"{{thread_data}}\"\n        severity: \"{{severity_result.severity}}\"\n\n  - id: escalate_to_senior\n    op: send_to_queue\n    params:\n      queue: \"senior_escalation_queue\"\n      payload:\n        thread_id: \"{{trigger.thread_id}}\"\n        thread_data: \"{{thread_data}}\"\n        severity: \"{{severity_result.severity}}\"\n\n  - id: notify_senior_moderator\n    op: notify_user\n    params:\n      recipient: \"senior_moderator\"\n      method: \"email\"\n      subject: \"Escalated Forum Thread: {{trigger.thread_id}}\"\n      message: \"A forum thread has been flagged as severe and escalated for your review. Thread ID: {{trigger.thread_id}}, Severity: {{severity_result.severity}}\"\n\n  - id: log_decision\n    op: log_audit\n    params:\n      action: \"moderation_decision\"\n      details:\n        thread_id: \"{{trigger.thread_id}}\"\n        severity: \"{{severity_result.severity}}\"\n        routed_to: \"{{severity_result.severity == 'severe' ? 'senior_escalation_queue' : 'standard_moderation_queue'}}\"\n        timestamp: \"{{now()}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_013.py::test_parses_and_type_checks": false,
+            "test_wf_web_013.py::test_passes_taint_analysis": true,
+            "test_wf_web_013.py::test_classify_before_route": true,
+            "test_wf_web_013.py::test_has_notify_and_log": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 4,
+      "domain": "web_automation",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_web_014",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 23.712863207794726,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_web_014\nsteps:\n  - id: fetch_draft\n    op: fetch_api\n    params:\n      endpoint: \"/content/drafts\"\n      method: GET\n      query:\n        draft_id: \"{{trigger.draft_id}}\"\n    output: draft_content\n\n  - id: validate_draft\n    op: validate_schema\n    params:\n      input: \"{{draft_content}}\"\n      schema: \"editorial_content_schema\"\n    output: validation_result\n\n  - id: apply_approval_rule\n    op: apply_rule\n    params:\n      input: \"{{validation_result.validated_data}}\"\n      rule: \"editorial_approval_rule\"\n    output: approval_decision\n\n  - id: route_decision\n    op: route_to_step\n    params:\n      condition: \"{{approval_decision.approved}}\"\n      true_step: publish_content\n      false_step: send_to_revision_queue\n\n  - id: send_to_revision_queue\n    op: send_to_queue\n    params:\n      queue: \"revision_queue\"\n      payload:\n        draft_id: \"{{trigger.draft_id}}\"\n        content: \"{{draft_content}}\"\n        reason: \"{{approval_decision.reason}}\"\n    output: revision_result\n\n  - id: publish_content\n    op: call_subworkflow\n    params:\n      workflow_id: \"publishing_subworkflow\"\n      input:\n        draft_id: \"{{trigger.draft_id}}\"\n        content: \"{{approval_decision.approved_data}}\"\n    output: publish_result\n\n  - id: log_decision\n    op: log_audit\n    params:\n      action: \"publishing_decision\"\n      details:\n        draft_id: \"{{trigger.draft_id}}\"\n        approved: \"{{approval_decision.approved}}\"\n        publish_result: \"{{publish_result}}\"\n        revision_result: \"{{revision_result}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_014.py::test_parses_and_type_checks": false,
+            "test_wf_web_014.py::test_passes_taint_analysis": false,
+            "test_wf_web_014.py::test_approval_before_route": true,
+            "test_wf_web_014.py::test_has_subworkflow_delegation": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 4,
+      "domain": "web_automation",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_web_015",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 21.82091416604817,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_web_015\nsteps:\n  - id: search_product\n    op: fetch_api\n    params:\n      endpoint: \"/catalog/search\"\n      method: GET\n      query: \"{{trigger.search_query}}\"\n    output: search_results\n\n  - id: authenticate_shopper\n    op: authenticate_user\n    params:\n      token: \"{{trigger.auth_token}}\"\n    output: auth_context\n\n  - id: validate_cart\n    op: validate_schema\n    params:\n      data: \"{{trigger.cart}}\"\n      schema: checkout_schema\n    output: validated_cart\n\n  - id: process_order\n    op: call_webhook\n    params:\n      url: \"https://orders.internal/process\"\n      method: POST\n      payload:\n        user: \"{{auth_context.user_id}}\"\n        cart: \"{{validated_cart}}\"\n        product: \"{{search_results.selected_item}}\"\n    output: order_result\n\n  - id: fulfill_order\n    op: call_subworkflow\n    params:\n      workflow_id: fulfillment_subworkflow\n      input:\n        order_id: \"{{order_result.order_id}}\"\n    output: fulfillment_result\n\n  - id: extract_fulfillment_status\n    op: extract_field\n    params:\n      source: \"{{fulfillment_result}}\"\n      field: status\n    output: fulfillment_status\n\n  - id: notify_customer\n    op: notify_user\n    params:\n      recipient: \"{{auth_context.user_email}}\"\n      subject: \"Order Fulfilled\"\n      message: \"Your order {{order_result.order_id}} has been fulfilled. Status: {{fulfillment_status}}\"\n    output: notification_result\n\n  - id: log_purchase\n    op: log_audit\n    params:\n      action: \"purchase_completed\"\n      order_id: \"{{order_result.order_id}}\"\n      user_id: \"{{auth_context.user_id}}\"\n      fulfillment_status: \"{{fulfillment_status}}\"\n      timestamp: \"{{now}}\"\n    output: audit_log_entry",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_015.py::test_parses_and_type_checks": false,
+            "test_wf_web_015.py::test_passes_taint_analysis": false,
+            "test_wf_web_015.py::test_auth_before_process": false,
+            "test_wf_web_015.py::test_has_fulfillment_and_audit": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 5,
+      "domain": "web_automation",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    }
+  ],
+  "total_input_tokens": 0,
+  "total_output_tokens": 0,
+  "estimated_cost_usd": 0.0
+}

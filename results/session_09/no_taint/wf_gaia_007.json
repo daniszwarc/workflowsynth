@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_gaia_007",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.7854445427656174,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: filtered_search_with_notification\nsteps:\n  - id: step_fetch_search_results\n    op: fetch_api\n    params:\n      endpoint: \"/api/search/query\"\n    output: raw_search_results\n\n  - id: step_validate_results\n    op: validate_schema\n    params:\n      input: raw_search_results\n      schema: search_results_schema\n    output: validated_search_results\n\n  - id: step_filter_relevant\n    op: filter_records\n    params:\n      input: validated_search_results\n      condition: \"relevance_score >= threshold\"\n    output: relevant_matches\n\n  - id: step_check_matches_exist\n    op: apply_rule\n    params:\n      rule: \"count(relevant_matches) > 0\"\n      input_ref: relevant_matches\n    output: has_matches\n\n  - id: step_route_on_matches\n    op: route_to_step\n    params:\n      condition: \"has_matches == true\"\n      true_step: step_notify_subscriber\n      false_step: step_terminate_no_results\n\n  - id: step_notify_subscriber\n    op: notify_user\n    params:\n      input: relevant_matches\n      recipient: subscriber\n      message: \"Relevant matches found for your subscription query.\"\n    output: notification_result\n\n  - id: step_log_notification\n    op: log_audit\n    params:\n      input: relevant_matches\n      event: \"subscriber_notified\"\n      details: \"Notification sent with relevant search matches.\"\n    output: audit_log_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Subscriber notified of relevant matches.\"\n\n  - id: step_terminate_no_results\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"No relevant matches found. Subscriber not notified.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_007.py::test_parses_and_type_checks": true,
+        "test_wf_gaia_007.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_007.py::test_has_filter_before_notify": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1051,
+      "output_tokens": 472
+    }
+  ],
+  "complexity": 2,
+  "domain": "general_ai",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1051,
+  "total_output_tokens": 472
+}

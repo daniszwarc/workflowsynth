@@ -1,0 +1,161 @@
+{
+  "task_id": "wf_gaia_013",
+  "condition": "no_taint",
+  "success": false,
+  "attempts_used": 10,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 8,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "type_error",
+  "synthesis_time_seconds": 39.45990679226816,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: step_fetch_batch\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued_records\"\n    output: raw_batch\n\n  - id: step_validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: step_loop_records\n    op: loop_records\n    params:\n      input: validated_batch\n      steps:\n        - id: step_apply_rule\n          op: apply_rule\n          params:\n            input: current_record\n            rule: \"business_rule_evaluation\"\n          output: rule_result\n\n        - id: step_transform_outcome\n          op: transform_json\n          params:\n            input: rule_result\n            mapping:\n              format: \"collected_results_format\"\n          output: transformed_result\n    output: collected_results\n\n  - id: step_aggregate_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: \"status\"\n      operations:\n        - type: \"count\"\n          field: \"record_id\"\n        - type: \"sum\"\n          field: \"value\"\n    output: summary",
+      "dsl_type_errors": [
+        "Step 'step_aggregate_results': op 'aggregate_data' requires input of type 'records' but 'collected_results' has type 'none'. Make sure the step producing 'collected_results' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1077,
+      "output_tokens": 319
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: step_fetch_batch\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued_records\"\n    output: raw_batch\n\n  - id: step_validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: step_loop_records\n    op: loop_records\n    params:\n      input: validated_batch\n      steps:\n        - id: step_apply_rule\n          op: apply_rule\n          params:\n            input: current_record\n            rule: \"business_rule_evaluation\"\n          output: rule_result\n\n        - id: step_transform_outcome\n          op: transform_json\n          params:\n            input: rule_result\n            mapping:\n              format: \"collected_results_format\"\n          output: transformed_result\n    output: loop_output\n\n  - id: step_filter_collected\n    op: filter_records\n    params:\n      input: loop_output\n      condition: \"true\"\n    output: collected_results\n\n  - id: step_aggregate_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: \"status\"\n      operations:\n        - type: \"count\"\n          field: \"record_id\"\n        - type: \"sum\"\n          field: \"value\"\n    output: summary",
+      "dsl_type_errors": [
+        "Step 'step_filter_collected': op 'filter_records' requires input of type 'records' but 'loop_output' has type 'none'. Make sure the step producing 'loop_output' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1542,
+      "output_tokens": 361
+    },
+    {
+      "attempt_number": 2,
+      "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: step_fetch_batch\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued_records\"\n    output: raw_batch\n\n  - id: step_validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: step_loop_records\n    op: loop_records\n    params:\n      input: validated_batch\n      steps:\n        - id: step_apply_rule\n          op: apply_rule\n          params:\n            input: current_record\n            rule: \"business_rule_evaluation\"\n          output: rule_result\n\n        - id: step_transform_outcome\n          op: transform_json\n          params:\n            input: rule_result\n            mapping:\n              format: \"collected_results_format\"\n          output: transformed_result\n\n  - id: step_transform_loop_output\n    op: transform_json\n    params:\n      input: validated_batch\n      mapping:\n        apply_loop_results: true\n        format: \"collected_results_format\"\n    output: collected_results\n\n  - id: step_filter_collected\n    op: filter_records\n    params:\n      input: collected_results\n      condition: \"true\"\n    output: filtered_results\n\n  - id: step_aggregate_results\n    op: aggregate_data\n    params:\n      input: filtered_results\n      group_by: \"status\"\n      operations:\n        - type: \"count\"\n          field: \"record_id\"\n        - type: \"sum\"\n          field: \"value\"\n    output: summary",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_013.py::test_parses_and_type_checks": true,
+        "test_wf_gaia_013.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_013.py::test_has_loop_and_rule": false,
+        "test_wf_gaia_013.py::test_loop_before_aggregate": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1584,
+      "output_tokens": 415
+    },
+    {
+      "attempt_number": 3,
+      "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: step_fetch_batch\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued_records\"\n    output: raw_batch\n\n  - id: step_validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: step_loop_records\n    op: loop_records\n    params:\n      input: validated_batch\n    output: loop_results\n\n  - id: step_apply_rule\n    op: apply_rule\n    params:\n      input: loop_results\n      rule: \"business_rule_evaluation\"\n    output: rule_results\n\n  - id: step_transform_outcome\n    op: transform_json\n    params:\n      input: rule_results\n      mapping:\n        format: \"collected_results_format\"\n    output: collected_results\n\n  - id: step_aggregate_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: \"status\"\n      operations:\n        - type: \"count\"\n          field: \"record_id\"\n        - type: \"sum\"\n          field: \"value\"\n    output: summary",
+      "dsl_type_errors": [
+        "Step 'step_transform_outcome': op 'transform_json' requires input of type 'records' but 'rule_results' has type 'boolean'. Make sure the step producing 'rule_results' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1577,
+      "output_tokens": 315
+    },
+    {
+      "attempt_number": 4,
+      "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: step_fetch_batch\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued_records\"\n    output: raw_batch\n\n  - id: step_validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: step_loop_records\n    op: loop_records\n    params:\n      input: validated_batch\n      steps:\n        - id: step_apply_rule\n          op: apply_rule\n          params:\n            input: current_record\n            rule: \"business_rule_evaluation\"\n          output: rule_result\n        - id: step_transform_outcome\n          op: transform_json\n          params:\n            input: current_record\n            mapping:\n              rule_outcome: rule_result\n              format: \"collected_results_format\"\n          output: transformed_record\n    output: collected_results\n\n  - id: step_aggregate_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: \"status\"\n      operations:\n        - type: \"count\"\n          field: \"record_id\"\n        - type: \"sum\"\n          field: \"value\"\n    output: summary",
+      "dsl_type_errors": [
+        "Step 'step_aggregate_results': op 'aggregate_data' requires input of type 'records' but 'collected_results' has type 'none'. Make sure the step producing 'collected_results' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1538,
+      "output_tokens": 328
+    },
+    {
+      "attempt_number": 5,
+      "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: step_fetch_batch\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued_records\"\n    output: raw_batch\n\n  - id: step_validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: step_loop_records\n    op: loop_records\n    params:\n      input: validated_batch\n      steps:\n        - id: step_apply_rule\n          op: apply_rule\n          params:\n            input: current_record\n            rule: \"business_rule_evaluation\"\n          output: rule_result\n        - id: step_transform_outcome\n          op: transform_json\n          params:\n            input: current_record\n            mapping:\n              rule_outcome: rule_result\n              format: \"collected_results_format\"\n          output: transformed_record\n    output: loop_output\n\n  - id: step_filter_collected\n    op: filter_records\n    params:\n      input: loop_output\n      condition: \"true\"\n    output: collected_results\n\n  - id: step_aggregate_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: \"status\"\n      operations:\n        - type: \"count\"\n          field: \"record_id\"\n        - type: \"sum\"\n          field: \"value\"\n    output: summary",
+      "dsl_type_errors": [
+        "Step 'step_filter_collected': op 'filter_records' requires input of type 'records' but 'loop_output' has type 'none'. Make sure the step producing 'loop_output' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1551,
+      "output_tokens": 370
+    },
+    {
+      "attempt_number": 6,
+      "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: step_fetch_batch\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued_records\"\n    output: raw_batch\n\n  - id: step_validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: step_loop_records\n    op: loop_records\n    params:\n      input: validated_batch\n      steps:\n        - id: step_apply_rule\n          op: apply_rule\n          params:\n            input: current_record\n            rule: \"business_rule_evaluation\"\n          output: rule_result\n        - id: step_transform_outcome\n          op: transform_json\n          params:\n            input: rule_result\n            mapping:\n              rule_outcome: rule_result\n              format: \"collected_results_format\"\n          output: transformed_record\n    output: loop_results\n\n  - id: step_filter_collected\n    op: filter_records\n    params:\n      input: validated_batch\n      condition: \"true\"\n    output: collected_results\n\n  - id: step_transform_loop_results\n    op: transform_json\n    params:\n      input: collected_results\n      mapping:\n        merge_with: loop_results\n        format: \"collected_results_format\"\n    output: transformed_results\n\n  - id: step_aggregate_results\n    op: aggregate_data\n    params:\n      input: transformed_results\n      group_by: \"status\"\n      operations:\n        - type: \"count\"\n          field: \"record_id\"\n        - type: \"sum\"\n          field: \"value\"\n    output: summary",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_013.py::test_parses_and_type_checks": true,
+        "test_wf_gaia_013.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_013.py::test_has_loop_and_rule": false,
+        "test_wf_gaia_013.py::test_loop_before_aggregate": true
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1593,
+      "output_tokens": 431
+    },
+    {
+      "attempt_number": 7,
+      "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: step_fetch_batch\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued_records\"\n    output: raw_batch\n\n  - id: step_validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: step_loop_records\n    op: loop_records\n    params:\n      input: validated_batch\n    output: loop_results\n\n  - id: step_apply_rule\n    op: apply_rule\n    params:\n      input: loop_results\n      rule: \"business_rule_evaluation\"\n    output: rule_result\n\n  - id: step_transform_outcome\n    op: transform_json\n    params:\n      input: rule_result\n      mapping:\n        rule_outcome: \"rule_result\"\n        format: \"collected_results_format\"\n    output: transformed_results\n\n  - id: step_aggregate_results\n    op: aggregate_data\n    params:\n      input: transformed_results\n      group_by: \"status\"\n      operations:\n        - type: \"count\"\n          field: \"record_id\"\n        - type: \"sum\"\n          field: \"value\"\n    output: summary",
+      "dsl_type_errors": [
+        "Step 'step_transform_outcome': op 'transform_json' requires input of type 'records' but 'rule_result' has type 'boolean'. Make sure the step producing 'rule_result' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1593,
+      "output_tokens": 326
+    },
+    {
+      "attempt_number": 8,
+      "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: step_fetch_batch\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued_records\"\n    output: raw_batch\n\n  - id: step_validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: step_loop_records\n    op: loop_records\n    params:\n      input: validated_batch\n    output: loop_results\n\n  - id: step_transform_loop_records\n    op: transform_json\n    params:\n      input: loop_results\n      mapping:\n        record: \"item\"\n        record_id: \"item.record_id\"\n        value: \"item.value\"\n    output: loop_record_items\n\n  - id: step_apply_rule\n    op: apply_rule\n    params:\n      input: loop_record_items\n      rule: \"business_rule_evaluation\"\n    output: rule_result\n\n  - id: step_transform_outcome\n    op: transform_json\n    params:\n      input: loop_record_items\n      mapping:\n        record_id: \"record_id\"\n        value: \"value\"\n        rule_evaluated: \"business_rule_evaluation\"\n        collected_format: \"collected_results_format\"\n    output: transformed_results\n\n  - id: step_aggregate_results\n    op: aggregate_data\n    params:\n      input: transformed_results\n      group_by: \"rule_evaluated\"\n      operations:\n        - type: \"count\"\n          field: \"record_id\"\n        - type: \"sum\"\n          field: \"value\"\n    output: summary",
+      "dsl_type_errors": [
+        "Step 'step_transform_loop_records': op 'transform_json' requires input of type 'records' but 'loop_results' has type 'none'. Make sure the step producing 'loop_results' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1317,
+      "output_tokens": 346
+    },
+    {
+      "attempt_number": 9,
+      "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: step_fetch_batch\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued_records\"\n    output: raw_batch\n\n  - id: step_validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: step_loop_records\n    op: loop_records\n    params:\n      input: validated_batch\n      item_output: current_record\n      collect_output: collected_rule_results\n      steps:\n        - id: step_apply_rule_per_record\n          op: apply_rule\n          params:\n            input: current_record\n            rule: business_rule_evaluation\n          output: per_record_rule_result\n        - id: step_transform_outcome_per_record\n          op: transform_json\n          params:\n            input: per_record_rule_result\n            mapping:\n              record_id: \"record_id\"\n              rule_result: \"result\"\n              collected_format: \"collected_results_format\"\n          output: transformed_record_result\n    output: collected_rule_results\n\n  - id: step_aggregate_results\n    op: aggregate_data\n    params:\n      input: collected_rule_results\n      group_by: \"rule_result\"\n      operations:\n        - type: count\n          field: record_id\n    output: summary",
+      "dsl_type_errors": [
+        "Step 'step_aggregate_results': op 'aggregate_data' requires input of type 'records' but 'collected_rule_results' has type 'none'. Make sure the step producing 'collected_rule_results' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1396,
+      "output_tokens": 288
+    }
+  ],
+  "complexity": 3,
+  "domain": "general_ai",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 14768,
+  "total_output_tokens": 3499
+}

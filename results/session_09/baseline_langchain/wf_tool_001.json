@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_tool_001",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 12.470917958766222,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_tool_001\nsteps:\n  - id: call_weather_api\n    op: fetch_api\n    params:\n      url: \"https://api.weather.example.com/v1/current\"\n      method: GET\n      query_params:\n        location: \"{{input.location}}\"\n    output: weather_raw\n  - id: format_weather\n    op: format_output\n    params:\n      input: \"{{weather_raw}}\"\n      template: \"Weather for {{weather_raw.location}}: {{weather_raw.temperature}}\u00b0, {{weather_raw.condition}}. Humidity: {{weather_raw.humidity}}%. Wind: {{weather_raw.wind_speed}} mph.\"\n    output: weather_display",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_001.py::test_parses_and_type_checks": false,
+        "test_wf_tool_001.py::test_passes_taint_analysis": true,
+        "test_wf_tool_001.py::test_has_fetch_and_format": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 1,
+  "domain": "api_integration",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

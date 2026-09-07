@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_web_008",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6442732913419604,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: ecommerce_checkout_workflow\nsteps:\n  - id: fetch_cart\n    op: fetch_api\n    params:\n      endpoint: \"/api/cart/contents\"\n    output: raw_cart\n\n  - id: validate_cart\n    op: validate_schema\n    params:\n      input: raw_cart\n      schema: checkout_schema\n    output: validated_cart\n\n  - id: apply_promo_code\n    op: apply_rule\n    params:\n      input: validated_cart\n      rule: promo_code_discount\n    output: cart_with_promo\n\n  - id: authenticate_shopper\n    op: authenticate_user\n    params:\n      role: \"shopper\"\n    output: auth_result\n\n  - id: process_order\n    op: write_database\n    params:\n      input: cart_with_promo\n      table: orders\n    output: order_result\n\n  - id: notify_customer\n    op: notify_user\n    params:\n      input: order_result\n      message: \"Your order has been placed successfully.\"\n    output: notification_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_008.py::test_parses_and_type_checks": true,
+        "test_wf_web_008.py::test_passes_taint_analysis": true,
+        "test_wf_web_008.py::test_validate_before_promo": true,
+        "test_wf_web_008.py::test_auth_before_process": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1103,
+      "output_tokens": 264
+    }
+  ],
+  "complexity": 3,
+  "domain": "web_automation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1103,
+  "total_output_tokens": 264
+}

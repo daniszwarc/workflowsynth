@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_web_012",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.739574957638979,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: order_fulfillment_routing\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"fulfillment_manager\"\n    output: auth_result\n\n  - id: step_fetch_order\n    op: fetch_api\n    params:\n      endpoint: \"/api/orders/confirmed\"\n    output: raw_order\n\n  - id: step_validate_order\n    op: validate_schema\n    params:\n      input: raw_order\n      schema: fulfillment_order_schema\n    output: validated_order\n\n  - id: step_check_inventory\n    op: read_database\n    params:\n      table: inventory\n      query: \"SELECT * FROM inventory WHERE item_id IN (order_items)\"\n    output: raw_inventory\n\n  - id: step_validate_inventory\n    op: validate_schema\n    params:\n      input: raw_inventory\n      schema: inventory_status_schema\n    output: validated_inventory\n\n  - id: step_apply_availability_rule\n    op: apply_rule\n    params:\n      rule: \"check_all_items_in_stock\"\n      order: validated_order\n      inventory: validated_inventory\n    output: availability_result\n\n  - id: step_route_fulfillment\n    op: route_to_step\n    params:\n      condition: \"availability_result.all_in_stock == true\"\n      true_step: step_log_instock\n      false_step: step_notify_supplier\n\n  - id: step_notify_supplier\n    op: notify_user\n    params:\n      input: validated_order\n      recipient: \"supplier\"\n      message: \"Order routed to backorder fulfillment path. Please confirm restock timeline.\"\n    output: supplier_notification_result\n\n  - id: step_log_backorder\n    op: log_audit\n    params:\n      input: validated_order\n      event: \"fulfillment_routing_decision\"\n      decision: \"backorder\"\n      details: \"Order routed to backorder path due to insufficient inventory.\"\n    output: audit_log_backorder\n\n  - id: step_terminate_backorder\n    op: terminate_workflow\n    params:\n      status: \"completed_backorder\"\n\n  - id: step_log_instock\n    op: log_audit\n    params:\n      input: validated_order\n      event: \"fulfillment_routing_decision\"\n      decision: \"in_stock\"\n      details: \"Order routed to in-stock fulfillment path. All items available.\"\n    output: audit_log_instock\n\n  - id: step_terminate_instock\n    op: terminate_workflow\n    params:\n      status: \"completed_in_stock\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_012.py::test_parses_and_type_checks": true,
+        "test_wf_web_012.py::test_passes_taint_analysis": true,
+        "test_wf_web_012.py::test_inventory_before_route": true,
+        "test_wf_web_012.py::test_has_audit_log": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1141,
+      "output_tokens": 649
+    }
+  ],
+  "complexity": 4,
+  "domain": "web_automation",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1141,
+  "total_output_tokens": 649
+}

@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_agent_011",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.7160959579050541,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: verified_database_migration\nsteps:\n  - id: read_source_records\n    op: read_database\n    params:\n      table: source_table\n    output: raw_source_records\n\n  - id: transform_to_target_format\n    op: transform_json\n    params:\n      input: raw_source_records\n      mapping: target_schema_mapping\n    output: transformed_records\n\n  - id: validate_before_write\n    op: validate_schema\n    params:\n      input: transformed_records\n      schema: target_schema\n    output: validated_records\n\n  - id: authenticate_migration_service\n    op: authenticate_user\n    params:\n      role: migration_service\n    output: auth_result\n\n  - id: write_to_target_table\n    op: write_database\n    params:\n      input: validated_records\n      table: target_table\n    output: write_result\n\n  - id: read_back_migrated_records\n    op: read_database\n    params:\n      table: target_table\n    output: raw_migrated_records\n\n  - id: validate_after_write\n    op: validate_schema\n    params:\n      input: raw_migrated_records\n      schema: target_schema\n    output: verified_migrated_records\n\n  - id: log_migration_audit\n    op: log_audit\n    params:\n      input: verified_migrated_records\n      message: \"Database migration completed and verified successfully\"\n    output: audit_log_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_011.py::test_parses_and_type_checks": true,
+        "test_wf_agent_011.py::test_passes_taint_analysis": true,
+        "test_wf_agent_011.py::test_validate_before_and_after_write": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1125,
+      "output_tokens": 362
+    }
+  ],
+  "complexity": 4,
+  "domain": "agent_tasks",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1125,
+  "total_output_tokens": 362
+}

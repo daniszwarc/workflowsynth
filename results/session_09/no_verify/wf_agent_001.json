@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_agent_001",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.7092300411313772,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: config_file_validation\nsteps:\n  - id: read_config_file\n    op: read_database\n    params:\n      table: configuration_files\n      query: \"SELECT * FROM configuration_files WHERE active = true\"\n    output: raw_config\n\n  - id: validate_config_schema\n    op: validate_schema\n    params:\n      input: raw_config\n      schema: expected_config_schema\n    output: validated_config\n\n  - id: handle_validation_error\n    op: handle_error\n    params:\n      source_step: validate_config_schema\n      action: route_to_terminate\n    output: error_info\n\n  - id: terminate_on_invalid_config\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      reason: \"Configuration failed schema validation. Service startup aborted.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_001.py::test_parses_and_type_checks": true,
+        "test_wf_agent_001.py::test_passes_taint_analysis": true,
+        "test_wf_agent_001.py::test_has_validate": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1024,
+      "output_tokens": 203
+    }
+  ],
+  "complexity": 1,
+  "domain": "agent_tasks",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1024,
+  "total_output_tokens": 203
+}

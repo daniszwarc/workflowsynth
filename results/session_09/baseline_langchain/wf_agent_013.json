@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_agent_013",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 18.485003290697932,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_agent_013\nsteps:\n  - id: fetch_candidate_data\n    op: fetch_api\n    params:\n      endpoint: \"/knowledge-graph/candidate-data\"\n      method: GET\n    output: candidate_data\n\n  - id: validate_candidate_data\n    op: validate_schema\n    params:\n      input: \"{{candidate_data}}\"\n      schema: \"knowledge_graph_schema\"\n    output: validated_data\n\n  - id: merge_into_graph\n    op: merge_datasets\n    params:\n      source: \"{{validated_data}}\"\n      target: \"existing_knowledge_graph\"\n      strategy: \"upsert\"\n    output: merged_graph\n\n  - id: verify_consistency\n    op: apply_rule\n    params:\n      input: \"{{merged_graph}}\"\n      rule: \"consistency_rule\"\n    output: consistency_result\n\n  - id: authenticate_graph_service\n    op: authenticate_user\n    params:\n      service: \"graph_update_service\"\n      method: \"service_account\"\n    output: auth_token\n\n  - id: store_graph_update\n    op: write_database\n    params:\n      target: \"knowledge_graph_store\"\n      data: \"{{merged_graph}}\"\n      auth: \"{{auth_token}}\"\n    output: store_result\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      recipient: \"stakeholders\"\n      message: \"The knowledge graph has been updated successfully.\"\n      update_summary: \"{{store_result}}\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_013.py::test_parses_and_type_checks": false,
+        "test_wf_agent_013.py::test_passes_taint_analysis": true,
+        "test_wf_agent_013.py::test_consistency_before_store": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 4,
+  "domain": "agent_tasks",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

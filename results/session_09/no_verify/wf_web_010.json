@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_web_010",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6141282087191939,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: user_registration_workflow\nsteps:\n  - id: fetch_registration_payload\n    op: fetch_api\n    params:\n      endpoint: \"/api/registration/submit\"\n    output: raw_registration\n\n  - id: validate_registration\n    op: validate_schema\n    params:\n      input: raw_registration\n      schema: registration_schema\n    output: validated_registration\n\n  - id: extract_email\n    op: extract_field\n    params:\n      input: validated_registration\n      field: \"email\"\n    output: user_email\n\n  - id: check_duplicate_email\n    op: apply_rule\n    params:\n      rule: \"duplicate_email_check\"\n      input: user_email\n    output: duplicate_check_result\n\n  - id: route_on_duplicate\n    op: route_to_step\n    params:\n      condition: \"duplicate_check_result == 'exists'\"\n      target: terminate_duplicate\n\n  - id: authenticate_registration_service\n    op: authenticate_user\n    params:\n      role: \"registration_service\"\n    output: auth_result\n\n  - id: create_account\n    op: write_database\n    params:\n      input: validated_registration\n      table: user_accounts\n    output: created_account\n\n  - id: format_welcome_email\n    op: format_output\n    params:\n      input: validated_registration\n      format: \"email_template\"\n    output: welcome_email_content\n\n  - id: send_welcome_email\n    op: notify_user\n    params:\n      input: welcome_email_content\n      method: \"email\"\n      recipient: user_email\n    output: email_send_result\n\n  - id: log_registration\n    op: log_audit\n    params:\n      input: validated_registration\n      action: \"user_registered\"\n    output: audit_log_result\n\n  - id: terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n\n  - id: terminate_duplicate\n    op: terminate_workflow\n    params:\n      status: \"duplicate_email_rejected\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_010.py::test_parses_and_type_checks": true,
+        "test_wf_web_010.py::test_passes_taint_analysis": true,
+        "test_wf_web_010.py::test_duplicate_check_before_create": true,
+        "test_wf_web_010.py::test_has_welcome_notification": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1097,
+      "output_tokens": 503
+    }
+  ],
+  "complexity": 3,
+  "domain": "web_automation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1097,
+  "total_output_tokens": 503
+}

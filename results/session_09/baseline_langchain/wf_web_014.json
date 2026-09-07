@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_web_014",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 23.712863207794726,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_web_014\nsteps:\n  - id: fetch_draft\n    op: fetch_api\n    params:\n      endpoint: \"/content/drafts\"\n      method: GET\n      query:\n        draft_id: \"{{trigger.draft_id}}\"\n    output: draft_content\n\n  - id: validate_draft\n    op: validate_schema\n    params:\n      input: \"{{draft_content}}\"\n      schema: \"editorial_content_schema\"\n    output: validation_result\n\n  - id: apply_approval_rule\n    op: apply_rule\n    params:\n      input: \"{{validation_result.validated_data}}\"\n      rule: \"editorial_approval_rule\"\n    output: approval_decision\n\n  - id: route_decision\n    op: route_to_step\n    params:\n      condition: \"{{approval_decision.approved}}\"\n      true_step: publish_content\n      false_step: send_to_revision_queue\n\n  - id: send_to_revision_queue\n    op: send_to_queue\n    params:\n      queue: \"revision_queue\"\n      payload:\n        draft_id: \"{{trigger.draft_id}}\"\n        content: \"{{draft_content}}\"\n        reason: \"{{approval_decision.reason}}\"\n    output: revision_result\n\n  - id: publish_content\n    op: call_subworkflow\n    params:\n      workflow_id: \"publishing_subworkflow\"\n      input:\n        draft_id: \"{{trigger.draft_id}}\"\n        content: \"{{approval_decision.approved_data}}\"\n    output: publish_result\n\n  - id: log_decision\n    op: log_audit\n    params:\n      action: \"publishing_decision\"\n      details:\n        draft_id: \"{{trigger.draft_id}}\"\n        approved: \"{{approval_decision.approved}}\"\n        publish_result: \"{{publish_result}}\"\n        revision_result: \"{{revision_result}}\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_014.py::test_parses_and_type_checks": false,
+        "test_wf_web_014.py::test_passes_taint_analysis": false,
+        "test_wf_web_014.py::test_approval_before_route": true,
+        "test_wf_web_014.py::test_has_subworkflow_delegation": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 4,
+  "domain": "web_automation",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

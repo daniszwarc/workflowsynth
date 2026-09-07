@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_gaia_011",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.7933238754048944,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: conditional_routing_by_classification\nsteps:\n  - id: fetch_item_details\n    op: fetch_api\n    params:\n      endpoint: \"/api/items/incoming\"\n    output: raw_item\n\n  - id: validate_item\n    op: validate_schema\n    params:\n      input: raw_item\n      schema: item_schema\n    output: validated_item\n\n  - id: classify_item\n    op: apply_rule\n    params:\n      input: validated_item\n      rule: classification_rule\n    output: classification_result\n\n  - id: extract_classification\n    op: extract_field\n    params:\n      input: classification_result\n      field: classification\n    output: item_classification\n\n  - id: route_by_classification\n    op: route_to_step\n    params:\n      input: item_classification\n      conditions:\n        - when: \"classification == 'type_a'\"\n          goto: process_type_a\n        - when: \"classification == 'type_b'\"\n          goto: process_type_b\n\n  - id: process_type_a\n    op: transform_json\n    params:\n      input: validated_item\n      mapping: type_a_transform\n    output: transformed_type_a\n\n  - id: authenticate_type_a\n    op: authenticate_user\n    params:\n      role: \"type_a_processor\"\n    output: auth_type_a\n\n  - id: write_type_a\n    op: write_database\n    params:\n      input: transformed_type_a\n      table: type_a_items\n    output: write_result_a\n\n  - id: log_type_a\n    op: log_audit\n    params:\n      input: transformed_type_a\n      message: \"Item classified as type_a and processed\"\n\n  - id: terminate_type_a\n    op: terminate_workflow\n    params:\n      status: \"completed_type_a\"\n\n  - id: process_type_b\n    op: transform_json\n    params:\n      input: validated_item\n      mapping: type_b_transform\n    output: transformed_type_b\n\n  - id: authenticate_type_b\n    op: authenticate_user\n    params:\n      role: \"type_b_processor\"\n    output: auth_type_b\n\n  - id: write_type_b\n    op: write_database\n    params:\n      input: transformed_type_b\n      table: type_b_items\n    output: write_result_b\n\n  - id: log_type_b\n    op: log_audit\n    params:\n      input: transformed_type_b\n      message: \"Item classified as type_b and processed\"\n\n  - id: terminate_type_b\n    op: terminate_workflow\n    params:\n      status: \"completed_type_b\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_011.py::test_parses_and_type_checks": true,
+        "test_wf_gaia_011.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_011.py::test_classify_before_route": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1056,
+      "output_tokens": 676
+    }
+  ],
+  "complexity": 3,
+  "domain": "general_ai",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1056,
+  "total_output_tokens": 676
+}

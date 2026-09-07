@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_agent_009",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 15.925969082862139,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_agent_009\nsteps:\n  - id: fetch_user_query\n    op: fetch_api\n    params:\n      endpoint: \"/api/user/query\"\n      method: GET\n    output: user_query\n\n  - id: embed_query\n    op: transform_json\n    params:\n      input: \"{{user_query}}\"\n      transformation: \"generate_embedding\"\n      model: \"text-embedding\"\n    output: query_embedding\n\n  - id: search_knowledge_base\n    op: read_database\n    params:\n      source: \"knowledge_base\"\n      query_vector: \"{{query_embedding}}\"\n      method: \"vector_search\"\n      top_k: 5\n    output: search_results\n\n  - id: merge_with_context\n    op: merge_datasets\n    params:\n      sources:\n        - \"{{search_results}}\"\n        - \"{{user_query}}\"\n      strategy: \"contextual_merge\"\n    output: merged_result\n\n  - id: format_response\n    op: format_output\n    params:\n      input: \"{{merged_result}}\"\n      template: \"knowledge_response\"\n      format: \"structured\"\n    output: final_response",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_009.py::test_parses_and_type_checks": false,
+        "test_wf_agent_009.py::test_passes_taint_analysis": true,
+        "test_wf_agent_009.py::test_merge_before_format": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "agent_tasks",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

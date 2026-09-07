@@ -1,0 +1,42 @@
+{
+  "task_id": "wf_gaia_015",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.8899357505142689,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: full_reasoning_and_audit_pipeline\nsteps:\n  - id: fetch_source_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/high-value-requests/source\"\n    output: raw_source_data\n\n  - id: validate_source_data\n    op: validate_schema\n    params:\n      input: raw_source_data\n      schema: source_data_schema\n    output: validated_source_data\n\n  - id: classify_data\n    op: apply_rule\n    params:\n      input: validated_source_data\n      rule: classification_rule\n    output: classification_result\n\n  - id: route_by_classification\n    op: route_to_step\n    params:\n      input: classification_result\n      conditions:\n        category_a: process_category_a\n        category_b: process_category_b\n        default: process_default\n\n  - id: process_category_a\n    op: transform_json\n    params:\n      input: validated_source_data\n      mapping: category_a_to_canonical\n    output: transformed_data\n\n  - id: process_category_b\n    op: transform_json\n    params:\n      input: validated_source_data\n      mapping: category_b_to_canonical\n    output: transformed_data\n\n  - id: process_default\n    op: transform_json\n    params:\n      input: validated_source_data\n      mapping: default_to_canonical\n    output: transformed_data\n\n  - id: verify_transformed_data\n    op: validate_schema\n    params:\n      input: transformed_data\n      schema: canonical_output_schema\n    output: verified_data\n\n  - id: authenticate_pipeline_service\n    op: authenticate_user\n    params:\n      role: \"pipeline_service\"\n    output: auth_result\n\n  - id: store_verified_result\n    op: write_database\n    params:\n      input: verified_data\n      table: pipeline_results\n    output: write_result\n\n  - id: notify_stakeholder\n    op: notify_user\n    params:\n      input: verified_data\n      recipient: stakeholder\n      message: \"Full reasoning and audit pipeline has completed successfully.\"\n    output: notification_result\n\n  - id: log_audit_trail\n    op: log_audit\n    params:\n      input: verified_data\n      details:\n        source: raw_source_data\n        classification: classification_result\n        transformation: transformed_data\n        verification: verified_data\n        storage: write_result\n        notification: notification_result\n    output: audit_log_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_015.py::test_parses_and_type_checks": true,
+        "test_wf_gaia_015.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_015.py::test_verify_before_store": true,
+        "test_wf_gaia_015.py::test_notify_and_log_present": true,
+        "test_wf_gaia_015.py::test_classify_before_route": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1160,
+      "output_tokens": 619
+    }
+  ],
+  "complexity": 5,
+  "domain": "general_ai",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1160,
+  "total_output_tokens": 619
+}

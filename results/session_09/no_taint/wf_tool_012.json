@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_tool_012",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.7147683324292302,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: multi_api_orchestration_with_retry\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_operator\"\n    output: auth_result\n\n  - id: step_call_primary_api\n    op: fetch_api\n    params:\n      endpoint: \"/api/primary/operation\"\n    output: raw_primary_response\n\n  - id: step_retry_primary_api\n    op: retry_step\n    params:\n      step_ref: step_call_primary_api\n      max_retries: 3\n      backoff: \"exponential\"\n    output: retry_result\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      source_step: step_retry_primary_api\n      on_error: step_route_decision\n    output: error_info\n\n  - id: step_route_decision\n    op: route_to_step\n    params:\n      condition: \"error_info.unrecoverable == true\"\n      true_step: step_fallback_path\n      false_step: step_process_primary_response\n    output: route_result\n\n  - id: step_process_primary_response\n    op: validate_schema\n    params:\n      input: raw_primary_response\n      schema: primary_api_response_schema\n    output: validated_primary_response\n\n  - id: step_write_primary_result\n    op: write_database\n    params:\n      input: validated_primary_response\n      table: api_operation_results\n    output: write_primary_result\n\n  - id: step_log_primary_success\n    op: log_audit\n    params:\n      input: validated_primary_response\n      event: \"primary_api_operation_succeeded\"\n    output: audit_primary\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n\n  - id: step_fallback_path\n    op: fetch_api\n    params:\n      endpoint: \"/api/fallback/operation\"\n    output: raw_fallback_response\n\n  - id: step_retry_fallback_api\n    op: retry_step\n    params:\n      step_ref: step_fallback_path\n      max_retries: 2\n      backoff: \"exponential\"\n    output: fallback_retry_result\n\n  - id: step_validate_fallback_response\n    op: validate_schema\n    params:\n      input: raw_fallback_response\n      schema: fallback_api_response_schema\n    output: validated_fallback_response\n\n  - id: step_write_fallback_result\n    op: write_database\n    params:\n      input: validated_fallback_response\n      table: api_operation_results\n    output: write_fallback_result\n\n  - id: step_log_fallback\n    op: log_audit\n    params:\n      input: validated_fallback_response\n      event: \"fallback_api_operation_completed\"\n    output: audit_fallback\n\n  - id: step_notify_operator\n    op: notify_user\n    params:\n      input: validated_fallback_response\n      recipient: \"api_operator\"\n      message: \"Primary API failed; fallback API was used successfully.\"\n    output: notify_result\n\n  - id: step_terminate_fallback\n    op: terminate_workflow\n    params:\n      status: \"completed_via_fallback\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_012.py::test_parses_and_type_checks": true,
+        "test_wf_tool_012.py::test_passes_taint_analysis": true,
+        "test_wf_tool_012.py::test_retry_before_route": true,
+        "test_wf_tool_012.py::test_has_error_handling": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1080,
+      "output_tokens": 832
+    }
+  ],
+  "complexity": 4,
+  "domain": "api_integration",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1080,
+  "total_output_tokens": 832
+}

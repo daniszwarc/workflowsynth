@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_gaia_013",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 15.462933915667236,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_gaia_013\nsteps:\n  - id: fetch_batch\n    op: read_database\n    params:\n      source: queued_records\n      status: pending\n    output: batch_records\n\n  - id: loop_each_record\n    op: loop_records\n    params:\n      collection: \"{{batch_records}}\"\n      visit: once\n    output: current_record\n    steps:\n      - id: apply_business_rule\n        op: apply_rule\n        params:\n          record: \"{{current_record}}\"\n          rule: business_rule\n        output: rule_result\n\n      - id: transform_outcome\n        op: transform_json\n        params:\n          input: \"{{rule_result}}\"\n          format: collected_results\n        output: transformed_result\n\n  - id: aggregate_results\n    op: aggregate_data\n    params:\n      input: \"{{loop_each_record.results}}\"\n      strategy: summary\n    output: summary_output",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_013.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_013.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_013.py::test_has_loop_and_rule": false,
+        "test_wf_gaia_013.py::test_loop_before_aggregate": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "general_ai",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

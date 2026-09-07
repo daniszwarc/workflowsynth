@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_tool_015",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 30.582131208851933,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_tool_015\nsteps:\n  - id: authenticate\n    op: authenticate_user\n    params:\n      identity: integration_service\n    output: auth_token\n\n  - id: fetch_source_1\n    op: fetch_api\n    params:\n      endpoint: source_1\n      auth: \"{{auth_token}}\"\n    output: data_source_1\n\n  - id: fetch_source_2\n    op: fetch_api\n    params:\n      endpoint: source_2\n      auth: \"{{auth_token}}\"\n    output: data_source_2\n\n  - id: fetch_source_3\n    op: fetch_api\n    params:\n      endpoint: source_3\n      auth: \"{{auth_token}}\"\n    output: data_source_3\n\n  - id: fetch_source_4\n    op: fetch_api\n    params:\n      endpoint: source_4\n      auth: \"{{auth_token}}\"\n    output: data_source_4\n\n  - id: merge_all\n    op: merge_datasets\n    params:\n      sources:\n        - \"{{data_source_1}}\"\n        - \"{{data_source_2}}\"\n        - \"{{data_source_3}}\"\n        - \"{{data_source_4}}\"\n    output: merged_result\n\n  - id: validate_merged\n    op: validate_schema\n    params:\n      data: \"{{merged_result}}\"\n      schema: integration_schema\n    output: validated_result\n\n  - id: extract_sensitive\n    op: extract_field\n    params:\n      data: \"{{validated_result}}\"\n      fields: sensitive_fields\n    output: sensitive_data\n\n  - id: encrypt_sensitive\n    op: encrypt_field\n    params:\n      data: \"{{sensitive_data}}\"\n      algorithm: AES-256\n    output: encrypted_result\n\n  - id: store_result\n    op: write_database\n    params:\n      target: integration_store\n      data: \"{{encrypted_result}}\"\n    output: store_confirmation\n\n  - id: notify_owner\n    op: notify_user\n    params:\n      recipient: integration_owner\n      message: \"Full integration run completed successfully.\"\n    output: notification_status\n\n  - id: audit_log\n    op: log_audit\n    params:\n      action: full_integration_run\n      details:\n        auth: \"{{auth_token}}\"\n        merged: \"{{merged_result}}\"\n        validated: \"{{validated_result}}\"\n        encrypted: \"{{encrypted_result}}\"\n        stored: \"{{store_confirmation}}\"\n        notified: \"{{notification_status}}\"\n    output: audit_record",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_015.py::test_parses_and_type_checks": false,
+        "test_wf_tool_015.py::test_passes_taint_analysis": true,
+        "test_wf_tool_015.py::test_auth_before_fetches": true,
+        "test_wf_tool_015.py::test_validate_and_encrypt_before_store": true,
+        "test_wf_tool_015.py::test_has_notify_and_audit": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 5,
+  "domain": "api_integration",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

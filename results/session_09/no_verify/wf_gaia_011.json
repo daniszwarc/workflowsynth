@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_gaia_011",
+  "condition": "no_verify",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.7011529998853803,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: conditional_routing_by_classification\nsteps:\n  - id: fetch_item_details\n    op: fetch_api\n    params:\n      endpoint: \"/api/items/incoming\"\n    output: raw_item\n\n  - id: validate_item\n    op: validate_schema\n    params:\n      input: raw_item\n      schema: item_schema\n    output: validated_item\n\n  - id: classify_item\n    op: apply_rule\n    params:\n      input: validated_item\n      rule: classification_rule\n    output: classification_result\n\n  - id: extract_classification\n    op: extract_field\n    params:\n      input: classification_result\n      field: classification\n    output: item_classification\n\n  - id: route_by_classification\n    op: route_to_step\n    params:\n      input: item_classification\n      conditions:\n        - when: \"classification == 'category_a'\"\n          goto: process_category_a\n        - when: \"classification == 'category_b'\"\n          goto: process_category_b\n\n  - id: process_category_a\n    op: transform_json\n    params:\n      input: validated_item\n      mapping:\n        pipeline: \"category_a_pipeline\"\n    output: category_a_output\n\n  - id: authenticate_for_category_a\n    op: authenticate_user\n    params:\n      role: \"processor\"\n    output: auth_a_result\n\n  - id: write_category_a\n    op: write_database\n    params:\n      input: category_a_output\n      table: category_a_items\n    output: write_a_result\n\n  - id: log_category_a\n    op: log_audit\n    params:\n      input: category_a_output\n      message: \"Item routed and processed via category A path\"\n\n  - id: terminate_category_a\n    op: terminate_workflow\n    params:\n      status: \"completed_category_a\"\n\n  - id: process_category_b\n    op: transform_json\n    params:\n      input: validated_item\n      mapping:\n        pipeline: \"category_b_pipeline\"\n    output: category_b_output\n\n  - id: authenticate_for_category_b\n    op: authenticate_user\n    params:\n      role: \"processor\"\n    output: auth_b_result\n\n  - id: write_category_b\n    op: write_database\n    params:\n      input: category_b_output\n      table: category_b_items\n    output: write_b_result\n\n  - id: log_category_b\n    op: log_audit\n    params:\n      input: category_b_output\n      message: \"Item routed and processed via category B path\"\n\n  - id: terminate_category_b\n    op: terminate_workflow\n    params:\n      status: \"completed_category_b\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_011.py::test_parses_and_type_checks": true,
+        "test_wf_gaia_011.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_011.py::test_classify_before_route": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1056,
+      "output_tokens": 686
+    }
+  ],
+  "complexity": 3,
+  "domain": "general_ai",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1056,
+  "total_output_tokens": 686
+}

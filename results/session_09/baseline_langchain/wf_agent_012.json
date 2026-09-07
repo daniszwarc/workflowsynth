@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_agent_012",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 18.76589370891452,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_agent_012\nsteps:\n  - id: classify_task\n    op: apply_rule\n    params:\n      input: \"{{trigger.task}}\"\n      rules:\n        - condition: \"task.category == 'research'\"\n          result: \"research_subworkflow\"\n        - condition: \"task.category == 'analysis'\"\n          result: \"analysis_subworkflow\"\n        - condition: \"task.category == 'generation'\"\n          result: \"generation_subworkflow\"\n      default_result: \"general_subworkflow\"\n    output: classification\n\n  - id: delegate_to_subworkflow\n    op: call_subworkflow\n    params:\n      workflow_name: \"{{classification.result}}\"\n      payload:\n        task: \"{{trigger.task}}\"\n        category: \"{{classification.result}}\"\n    output: subworkflow_result\n\n  - id: merge_results\n    op: merge_datasets\n    params:\n      sources:\n        - \"{{trigger.task}}\"\n        - \"{{subworkflow_result}}\"\n      strategy: deep_merge\n    output: merged_result\n\n  - id: format_final_answer\n    op: format_output\n    params:\n      template: \"final_synthesis\"\n      data:\n        original_task: \"{{trigger.task}}\"\n        subworkflow_output: \"{{subworkflow_result}}\"\n        merged_context: \"{{merged_result}}\"\n    output: final_answer",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_012.py::test_parses_and_type_checks": false,
+        "test_wf_agent_012.py::test_passes_taint_analysis": true,
+        "test_wf_agent_012.py::test_delegate_before_synthesize": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 4,
+  "domain": "agent_tasks",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

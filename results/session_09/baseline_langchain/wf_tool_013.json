@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_tool_013",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 17.775858582928777,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_tool_013\nsteps:\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      identity: aggregation_service\n      method: service_account\n    output: auth_token\n\n  - id: fetch_api_one\n    op: fetch_api\n    params:\n      endpoint: https://api.source-one.example.com/data\n      auth_token: \"{{auth_token}}\"\n    output: dataset_one\n\n  - id: fetch_api_two\n    op: fetch_api\n    params:\n      endpoint: https://api.source-two.example.com/data\n      auth_token: \"{{auth_token}}\"\n    output: dataset_two\n\n  - id: aggregate_datasets\n    op: aggregate_data\n    params:\n      sources:\n        - \"{{dataset_one}}\"\n        - \"{{dataset_two}}\"\n      strategy: merge\n    output: aggregated_result\n\n  - id: extract_sensitive_fields\n    op: extract_field\n    params:\n      source: \"{{aggregated_result}}\"\n      fields:\n        - ssn\n        - credit_card\n        - email\n    output: sensitive_fields\n\n  - id: encrypt_sensitive\n    op: encrypt_field\n    params:\n      data: \"{{sensitive_fields}}\"\n      algorithm: AES-256-GCM\n    output: encrypted_result\n\n  - id: store_result\n    op: write_database\n    params:\n      table: aggregated_records\n      data: \"{{encrypted_result}}\"\n    output: write_confirmation",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_013.py::test_parses_and_type_checks": false,
+        "test_wf_tool_013.py::test_passes_taint_analysis": true,
+        "test_wf_tool_013.py::test_auth_before_fetch": true,
+        "test_wf_tool_013.py::test_encrypt_before_store": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 4,
+  "domain": "api_integration",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

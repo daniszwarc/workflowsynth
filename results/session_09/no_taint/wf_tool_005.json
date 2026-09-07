@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_tool_005",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.8445168333128095,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: validated_api_data_storage\nsteps:\n  - id: fetch_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/sync/data\"\n    output: raw_data\n\n  - id: validate_data\n    op: validate_schema\n    params:\n      input: raw_data\n      schema: expected_data_schema\n    output: validated_data\n\n  - id: handle_validation_error\n    op: handle_error\n    params:\n      step: validate_data\n      action: route_to_terminate\n\n  - id: terminate_on_invalid\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      reason: \"Schema validation failed \u2014 data rejected before storage\"\n\n  - id: authenticate_storage_service\n    op: authenticate_user\n    params:\n      role: \"storage_service\"\n    output: auth_result\n\n  - id: store_validated_data\n    op: write_database\n    params:\n      input: validated_data\n      table: synced_data\n    output: write_result\n\n  - id: log_storage_event\n    op: log_audit\n    params:\n      input: validated_data\n      message: \"Validated API data successfully stored\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_005.py::test_parses_and_type_checks": true,
+        "test_wf_tool_005.py::test_passes_taint_analysis": true,
+        "test_wf_tool_005.py::test_validate_before_store": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1045,
+      "output_tokens": 295
+    }
+  ],
+  "complexity": 2,
+  "domain": "api_integration",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1045,
+  "total_output_tokens": 295
+}

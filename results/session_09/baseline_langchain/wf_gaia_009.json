@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_gaia_009",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 12.679418333806098,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_gaia_009\nsteps:\n  - id: fetch_external_data\n    op: fetch_api\n    params:\n      endpoint: \"https://external.example.com/api/data\"\n      method: GET\n    output: raw_data\n\n  - id: transform_to_internal_format\n    op: transform_json\n    params:\n      source: \"{{raw_data}}\"\n      mapping: \"external_to_internal\"\n    output: transformed_data\n\n  - id: authenticate_sync_service\n    op: authenticate_user\n    params:\n      identity: \"sync_service\"\n      method: \"service_account\"\n    output: auth_token\n\n  - id: store_transformed_data\n    op: write_database\n    params:\n      table: \"internal_records\"\n      data: \"{{transformed_data}}\"\n      auth: \"{{auth_token}}\"\n    output: write_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_009.py::test_parses_and_type_checks": false,
+        "test_wf_gaia_009.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_009.py::test_transform_before_store": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "general_ai",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

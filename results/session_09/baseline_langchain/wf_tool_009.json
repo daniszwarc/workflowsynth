@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_tool_009",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 19.714430416934192,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_tool_009\nsteps:\n  - id: parallel_fan_out\n    op: parallel_execute\n    params:\n      branches:\n        - endpoint_a\n        - endpoint_b\n        - endpoint_c\n    output: parallel_refs\n\n  - id: endpoint_a\n    op: fetch_api\n    params:\n      url: \"https://api.example.com/endpoint-a\"\n      method: GET\n    output: result_a\n\n  - id: endpoint_b\n    op: fetch_api\n    params:\n      url: \"https://api.example.com/endpoint-b\"\n      method: GET\n    output: result_b\n\n  - id: endpoint_c\n    op: fetch_api\n    params:\n      url: \"https://api.example.com/endpoint-c\"\n      method: GET\n    output: result_c\n\n  - id: merge_results\n    op: merge_datasets\n    params:\n      sources:\n        - result_a\n        - result_b\n        - result_c\n    output: merged_dataset",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_009.py::test_parses_and_type_checks": false,
+        "test_wf_tool_009.py::test_passes_taint_analysis": true,
+        "test_wf_tool_009.py::test_has_parallel_and_merge": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "api_integration",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

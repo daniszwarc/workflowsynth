@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_tool_011",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 14.439015958458185,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_tool_011\nsteps:\n  - id: fetch_primary\n    op: fetch_api\n    params:\n      endpoint: \"primary_api\"\n      method: GET\n    output: primary_record\n  - id: fetch_secondary\n    op: fetch_api\n    params:\n      endpoint: \"secondary_api\"\n      method: GET\n    output: enrichment_data\n  - id: merge_records\n    op: merge_datasets\n    params:\n      sources:\n        - primary_record\n        - enrichment_data\n      strategy: deep_merge\n    output: combined_result\n  - id: validate_combined\n    op: validate_schema\n    params:\n      input: combined_result\n      schema: enriched_record_schema\n    output: validated_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_011.py::test_parses_and_type_checks": false,
+        "test_wf_tool_011.py::test_passes_taint_analysis": true,
+        "test_wf_tool_011.py::test_merge_before_validate": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "api_integration",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}
