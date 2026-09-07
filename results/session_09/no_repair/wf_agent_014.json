@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_agent_014",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6292487094178796,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: full_agent_pipeline_three_sources\nsteps:\n  - id: read_agent_config\n    op: read_database\n    params:\n      table: agent_configuration\n      query: \"SELECT * FROM agent_configuration WHERE active = true\"\n    output: raw_agent_config\n\n  - id: validate_agent_config\n    op: validate_schema\n    params:\n      input: raw_agent_config\n      schema: agent_config_schema\n    output: agent_config\n\n  - id: authenticate_agent\n    op: authenticate_user\n    params:\n      role: \"agent_service\"\n      config: agent_config\n    output: auth_result\n\n  - id: fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source-one/data\"\n    output: raw_source_one\n\n  - id: fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source-two/data\"\n    output: raw_source_two\n\n  - id: fetch_source_three\n    op: fetch_api\n    params:\n      endpoint: \"/api/source-three/data\"\n    output: raw_source_three\n\n  - id: sanitize_source_one\n    op: filter_records\n    params:\n      input: raw_source_one\n      condition: \"valid_record == true\"\n    output: clean_source_one\n\n  - id: sanitize_source_two\n    op: filter_records\n    params:\n      input: raw_source_two\n      condition: \"valid_record == true\"\n    output: clean_source_two\n\n  - id: sanitize_source_three\n    op: filter_records\n    params:\n      input: raw_source_three\n      condition: \"valid_record == true\"\n    output: clean_source_three\n\n  - id: merge_one_and_two\n    op: merge_datasets\n    params:\n      input: clean_source_one\n      secondary: clean_source_two\n      key: \"record_id\"\n    output: merged_partial\n\n  - id: merge_all_sources\n    op: merge_datasets\n    params:\n      input: merged_partial\n      secondary: clean_source_three\n      key: \"record_id\"\n    output: combined_data\n\n  - id: classify_context\n    op: apply_rule\n    params:\n      input: combined_data\n      rule: \"classify_agent_context\"\n    output: classification_result\n\n  - id: route_on_classification\n    op: route_to_step\n    params:\n      condition: classification_result\n      mappings:\n        high_priority: transform_high_priority\n        standard: transform_standard\n    output: routed_data\n\n  - id: transform_high_priority\n    op: transform_json\n    params:\n      input: combined_data\n      mapping:\n        format: \"high_priority_storage_schema\"\n        include_classification: true\n    output: transformed_data\n\n  - id: transform_standard\n    op: transform_json\n    params:\n      input: combined_data\n      mapping:\n        format: \"standard_storage_schema\"\n        include_classification: true\n    output: transformed_data\n\n  - id: validate_transformed\n    op: validate_schema\n    params:\n      input: transformed_data\n      schema: agent_output_schema\n    output: validated_data\n\n  - id: handle_validation_error\n    op: handle_error\n    params:\n      step: validate_transformed\n      on_error: terminate_on_failure\n\n  - id: store_validated_result\n    op: write_database\n    params:\n      input: validated_data\n      table: agent_results\n    output: write_result\n\n  - id: log_agent_run_audit\n    op: log_audit\n    params:\n      input: validated_data\n      event: \"agent_pipeline_complete\"\n      details:\n        classification: classification_result\n        write_status: write_result\n    output: audit_log_entry\n\n  - id: terminate_on_failure\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"Validation of transformed data failed\"\n\n  - id: terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_014.py::test_parses_and_type_checks": true,
+        "test_wf_agent_014.py::test_passes_taint_analysis": true,
+        "test_wf_agent_014.py::test_auth_before_write": true,
+        "test_wf_agent_014.py::test_validate_before_store": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1153,
+      "output_tokens": 1030
+    }
+  ],
+  "complexity": 5,
+  "domain": "agent_tasks",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1153,
+  "total_output_tokens": 1030
+}

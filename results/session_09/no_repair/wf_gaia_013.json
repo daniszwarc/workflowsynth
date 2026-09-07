@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_gaia_013",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "type_error",
+  "synthesis_time_seconds": 0.0020942501723766327,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: fetch_queued_records\n    op: fetch_api\n    params:\n      endpoint: \"/api/batches/queued-records\"\n    output: raw_batch\n\n  - id: validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: loop_over_records\n    op: loop_records\n    params:\n      input: validated_batch\n      steps:\n        - id: apply_business_rule\n          op: apply_rule\n          params:\n            input: current_record\n            rule: \"batch_record_evaluation_rule\"\n          output: rule_result\n\n        - id: transform_rule_outcome\n          op: transform_json\n          params:\n            input: rule_result\n            mapping:\n              format: \"collected_results\"\n          output: transformed_outcome\n    output: collected_results\n\n  - id: aggregate_collected_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: \"status\"\n      operations:\n        - type: \"count\"\n          field: \"*\"\n        - type: \"summary\"\n          field: \"outcome\"\n    output: aggregated_summary",
+      "dsl_type_errors": [
+        "Step 'aggregate_collected_results': op 'aggregate_data' requires input of type 'records' but 'collected_results' has type 'none'. Make sure the step producing 'collected_results' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1077,
+      "output_tokens": 319
+    }
+  ],
+  "complexity": 3,
+  "domain": "general_ai",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1077,
+  "total_output_tokens": 319
+}

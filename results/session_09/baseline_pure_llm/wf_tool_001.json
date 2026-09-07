@@ -1,0 +1,37 @@
+{
+  "task_id": "wf_tool_001",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 2,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 5.743426499888301,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: weather_api_formatting\n\nsteps:\n  - id: fetch_weather\n    op: api_call\n    params:\n      service: weather_api\n      endpoint: /current\n      method: GET\n      query_params:\n        location: \"{{ trigger.location }}\"\n    output: raw_weather_data\n\n  - id: format_weather\n    op: transform\n    params:\n      input: \"{{ raw_weather_data }}\"\n      template: |\n        Weather for {{ raw_weather_data.location.name }}, {{ raw_weather_data.location.region }}\n        -----------------------------------------------\n        Condition:   {{ raw_weather_data.current.condition }}\n        Temperature: {{ raw_weather_data.current.temp_f }}\u00b0F / {{ raw_weather_data.current.temp_c }}\u00b0C\n        Feels Like:  {{ raw_weather_data.current.feelslike_f }}\u00b0F / {{ raw_weather_data.current.feelslike_c }}\u00b0C\n        Humidity:    {{ raw_weather_data.current.humidity }}%\n        Wind:        {{ raw_weather_data.current.wind_mph }} mph {{ raw_weather_data.current.wind_dir }}\n        Updated:     {{ raw_weather_data.current.last_updated }}\n      format: plain_text\n    output: formatted_weather_display",
+      "dsl_type_errors": [
+        "Step 'fetch_weather': unknown op 'api_call'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'format_weather': unknown op 'transform'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 1,
+  "domain": "api_integration",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 181,
+  "total_output_tokens": 323
+}

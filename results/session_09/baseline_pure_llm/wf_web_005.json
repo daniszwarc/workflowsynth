@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_web_005",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 6,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 6.688657416962087,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: forum_comment_posting_with_moderator_alert\nsteps:\n  - id: fetch_comment_payload\n    op: fetch\n    params:\n      source: incoming_request\n      entity: comment_payload\n    output: comment_payload\n\n  - id: validate_comment_payload\n    op: validate\n    params:\n      input: \"{{ comment_payload }}\"\n      schema: comment_schema\n    output: validation_result\n\n  - id: authenticate_posting_user\n    op: authenticate\n    params:\n      user_id: \"{{ comment_payload.user_id }}\"\n      token: \"{{ comment_payload.auth_token }}\"\n    output: auth_result\n\n  - id: publish_comment\n    op: publish\n    params:\n      thread_id: \"{{ comment_payload.thread_id }}\"\n      content: \"{{ comment_payload.content }}\"\n      user_id: \"{{ comment_payload.user_id }}\"\n    depends_on:\n      - validate_comment_payload\n      - authenticate_posting_user\n    preconditions:\n      - \"{{ auth_result.authenticated == true }}\"\n    output: publish_response\n\n  - id: extract_publish_status\n    op: extract\n    params:\n      source: \"{{ publish_response }}\"\n      field: status\n    output: publish_status\n\n  - id: notify_moderation_team\n    op: notify\n    params:\n      channel: moderation_queue\n      message: \"New comment posted by user {{ comment_payload.user_id }} in thread {{ comment_payload.thread_id }} requires review.\"\n      comment_id: \"{{ publish_response.comment_id }}\"\n      publish_status: \"{{ publish_status }}\"\n    depends_on:\n      - extract_publish_status",
+      "dsl_type_errors": [
+        "Step 'fetch_comment_payload': unknown op 'fetch'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_comment_payload': unknown op 'validate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'authenticate_posting_user': unknown op 'authenticate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'publish_comment': unknown op 'publish'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'extract_publish_status': unknown op 'extract'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'notify_moderation_team': unknown op 'notify'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "web_automation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 249,
+  "total_output_tokens": 424
+}

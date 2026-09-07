@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_agent_001",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6199883334338665,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: config_file_validation\nsteps:\n  - id: step_read_config\n    op: read_database\n    params:\n      table: configuration_files\n      query: \"SELECT * FROM configuration_files WHERE active = true\"\n    output: raw_config\n\n  - id: step_validate_config\n    op: validate_schema\n    params:\n      input: raw_config\n      schema: expected_config_schema\n    output: validated_config\n\n  - id: step_check_validation_result\n    op: apply_rule\n    params:\n      rule: \"validated_config.valid == true\"\n      input_ref: validated_config\n    output: validation_decision\n\n  - id: step_route_on_failure\n    op: route_to_step\n    params:\n      condition: \"validation_decision == false\"\n      target_step: step_terminate_failure\n\n  - id: step_log_success\n    op: log_audit\n    params:\n      input: validated_config\n      message: \"Configuration validated successfully and is ready for use.\"\n    output: audit_log_success\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"Configuration file validated. Service may proceed.\"\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"Configuration file failed schema validation. Service must not proceed.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_001.py::test_parses_and_type_checks": true,
+        "test_wf_agent_001.py::test_passes_taint_analysis": true,
+        "test_wf_agent_001.py::test_has_validate": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1024,
+      "output_tokens": 345
+    }
+  ],
+  "complexity": 1,
+  "domain": "agent_tasks",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1024,
+  "total_output_tokens": 345
+}

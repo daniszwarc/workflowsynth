@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_agent_007",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6304668337106705,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: audited_database_update\nsteps:\n  - id: step_read_current_record\n    op: read_database\n    params:\n      table: records\n      query: \"SELECT * FROM records WHERE id = :record_id\"\n    output: current_record\n\n  - id: step_validate_change\n    op: validate_schema\n    params:\n      input: current_record\n      schema: update_request_schema\n    output: validated_change\n\n  - id: step_transform_to_storage_format\n    op: transform_json\n    params:\n      input: validated_change\n      mapping:\n        format: storage_format\n    output: transformed_change\n\n  - id: step_authenticate_service\n    op: authenticate_user\n    params:\n      role: \"update_service\"\n    output: auth_result\n\n  - id: step_write_update\n    op: write_database\n    params:\n      input: transformed_change\n      table: records\n    output: write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: transformed_change\n      action: \"database_record_updated\"\n      details:\n        previous_state: current_record\n        new_state: transformed_change\n        write_result: write_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_007.py::test_parses_and_type_checks": true,
+        "test_wf_agent_007.py::test_passes_taint_analysis": true,
+        "test_wf_agent_007.py::test_validate_before_write": true,
+        "test_wf_agent_007.py::test_log_after_write": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1091,
+      "output_tokens": 309
+    }
+  ],
+  "complexity": 3,
+  "domain": "agent_tasks",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1091,
+  "total_output_tokens": 309
+}

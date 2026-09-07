@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_web_011",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 4,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 5.408104084432125,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: low_stock_inventory_alert\n\nsteps:\n  - id: fetch_stock_level\n    op: inventory/get_stock\n    params:\n      product_id: \"${trigger.product_id}\"\n    output: stock_data\n\n  - id: validate_stock_data\n    op: schema/validate\n    params:\n      data: \"${stock_data}\"\n      schema: inventory_stock_schema\n    output: validated_stock\n\n  - id: apply_low_stock_rule\n    op: rules/evaluate\n    params:\n      rule: low_stock_threshold\n      input:\n        current_level: \"${validated_stock.quantity}\"\n        threshold: \"${validated_stock.reorder_threshold}\"\n    output: threshold_result\n\n  - id: notify_inventory_team\n    op: notification/send\n    condition: \"${threshold_result.is_low_stock == true}\"\n    params:\n      channel: inventory_team\n      subject: \"Low Stock Alert: ${trigger.product_id}\"\n      message: \"Product ${trigger.product_id} has fallen below the reorder threshold. Current stock: ${validated_stock.quantity}, Threshold: ${validated_stock.reorder_threshold}. Please initiate restocking.\"\n      priority: high\n    output: notification_status",
+      "dsl_type_errors": [
+        "Step 'fetch_stock_level': unknown op 'inventory/get_stock'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_stock_data': unknown op 'schema/validate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'apply_low_stock_rule': unknown op 'rules/evaluate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'notify_inventory_team': unknown op 'notification/send'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "web_automation",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 224,
+  "total_output_tokens": 300
+}

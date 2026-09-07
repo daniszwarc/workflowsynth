@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_web_001",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.547499374486506,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: product_listing_fetch\nsteps:\n  - id: fetch_product_listing\n    op: fetch_api\n    params:\n      endpoint: \"/api/products/listing\"\n      filters:\n        status: \"live\"\n    output: raw_listing\n\n  - id: validate_listing_schema\n    op: validate_schema\n    params:\n      input: raw_listing\n      schema: product_listing_schema\n    output: validated_listing\n\n  - id: filter_live_listing\n    op: filter_records\n    params:\n      input: validated_listing\n      condition: \"status == 'live'\"\n    output: live_listing\n\n  - id: format_listing_output\n    op: format_output\n    params:\n      input: live_listing\n      format: json\n    output: formatted_listing",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_001.py::test_parses_and_type_checks": true,
+        "test_wf_web_001.py::test_passes_taint_analysis": true,
+        "test_wf_web_001.py::test_has_fetch": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1022,
+      "output_tokens": 195
+    }
+  ],
+  "complexity": 1,
+  "domain": "web_automation",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1022,
+  "total_output_tokens": 195
+}

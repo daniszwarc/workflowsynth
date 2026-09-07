@@ -1,0 +1,37 @@
+{
+  "task_id": "wf_web_003",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 2,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 4.723687083460391,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: structured_content_extraction\n\nsteps:\n  - id: scrape_page\n    op: http/get\n    params:\n      url: \"{{ trigger.page_url }}\"\n      headers:\n        User-Agent: \"StructuredContentExtractor/1.0\"\n    output: raw_html\n\n  - id: extract_fields\n    op: ai/extract\n    params:\n      input: \"{{ raw_html.body }}\"\n      fields: \"{{ trigger.requested_fields }}\"\n      instructions: >\n        Extract only the requested structured fields from the provided page\n        content. Do not include any raw HTML or markup in the output. Return\n        each field with its corresponding value. If a field cannot be found,\n        return null for that field.\n      output_format: json\n    output: extracted_content",
+      "dsl_type_errors": [
+        "Step 'scrape_page': unknown op 'http/get'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'extract_fields': unknown op 'ai/extract'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 1,
+  "domain": "web_automation",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 184,
+  "total_output_tokens": 194
+}

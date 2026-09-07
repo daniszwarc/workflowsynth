@@ -1,0 +1,43 @@
+{
+  "task_id": "wf_tool_012",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 8,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 9.326796124689281,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: multi-api-orchestration-with-retry\nsteps:\n  - id: call_primary_api\n    op: api_call\n    params:\n      endpoint: primary_api\n      method: POST\n      timeout_seconds: 30\n    output: primary_response\n\n  - id: check_primary_result\n    op: condition\n    params:\n      expression: \"primary_response.status == 'success'\"\n    output: primary_succeeded\n\n  - id: retry_primary_api\n    op: retry\n    params:\n      target_step: call_primary_api\n      max_retries: 3\n      backoff_strategy: exponential\n      initial_delay_seconds: 2\n      retryable_errors:\n        - timeout\n        - 502\n        - 503\n        - 429\n      condition: \"primary_succeeded == false\"\n    output: retry_response\n\n  - id: check_retry_result\n    op: condition\n    params:\n      expression: \"retry_response.status == 'success'\"\n    output: retry_succeeded\n\n  - id: handle_persistent_error\n    op: error_handler\n    params:\n      condition: \"retry_succeeded == false\"\n      action: classify_error\n      input: retry_response\n      classifications:\n        - type: transient_exhausted\n          flag: unrecoverable\n        - type: client_error\n          flag: unrecoverable\n        - type: unknown\n          flag: unrecoverable\n    output: error_classification\n\n  - id: check_recoverability\n    op: condition\n    params:\n      expression: \"error_classification.flag == 'unrecoverable'\"\n    output: is_unrecoverable\n\n  - id: route_to_fallback\n    op: api_call\n    params:\n      condition: \"is_unrecoverable == true\"\n      endpoint: fallback_api\n      method: POST\n      timeout_seconds: 30\n      payload_from: primary_response.original_request\n    output: fallback_response\n\n  - id: finalize_result\n    op: aggregate\n    params:\n      sources:\n        - step: call_primary_api\n          use_when: \"primary_succeeded == true\"\n        - step: retry_primary_api\n          use_when: \"retry_succeeded == true\"\n        - step: route_to_fallback\n          use_when: \"is_unrecoverable == true\"\n    output: final_result",
+      "dsl_type_errors": [
+        "Step 'call_primary_api': unknown op 'api_call'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'check_primary_result': unknown op 'condition'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'retry_primary_api': unknown op 'retry'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'check_retry_result': unknown op 'condition'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'handle_persistent_error': unknown op 'error_handler'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'check_recoverability': unknown op 'condition'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'route_to_fallback': unknown op 'api_call'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'finalize_result': unknown op 'aggregate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 4,
+  "domain": "api_integration",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 231,
+  "total_output_tokens": 585
+}

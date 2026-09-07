@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_web_006",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 3,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 4.751596167683601,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: article_publishing\nsteps:\n  - id: fetch_article_draft\n    op: api_call\n    params:\n      endpoint: content_management_api/drafts\n      method: GET\n      description: Fetch the article draft from the content management API\n    output: article_draft\n\n  - id: validate_draft\n    op: validate_schema\n    params:\n      input: \"{{article_draft}}\"\n      schema: article_schema\n      description: Validate the draft against the article schema\n    output: validation_result\n\n  - id: authenticate_publishing_service\n    op: authenticate\n    params:\n      service: publishing_service\n      method: service_credentials\n      description: Authenticate as the publishing service before publishing\n    output: auth_token\n\n  - id: publish_article\n    op: api_call\n    params:\n      endpoint: content_management_api/articles\n      method: POST\n      body: \"{{article_draft}}\"\n      authorization: \"Bearer {{auth_token}}\"\n      description: Publish the validated article to the content management system\n    depends_on:\n      - validate_draft\n      - authenticate_publishing_service\n    output: publish_result",
+      "dsl_type_errors": [
+        "Step 'fetch_article_draft': unknown op 'api_call'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'authenticate_publishing_service': unknown op 'authenticate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'publish_article': unknown op 'api_call'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "web_automation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 199,
+  "total_output_tokens": 279
+}

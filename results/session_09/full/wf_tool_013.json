@@ -1,0 +1,80 @@
+{
+  "task_id": "wf_tool_013",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 4,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 3,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 22.877640542574227,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: secured_api_aggregation_pipeline\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"aggregation_service\"\n    output: auth_result\n\n  - id: step_fetch_api_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_one/data\"\n    output: raw_api_one\n\n  - id: step_fetch_api_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_two/data\"\n    output: raw_api_two\n\n  - id: step_validate_api_one\n    op: validate_schema\n    params:\n      input: raw_api_one\n      schema: api_one_schema\n    output: validated_api_one\n\n  - id: step_validate_api_two\n    op: validate_schema\n    params:\n      input: raw_api_two\n      schema: api_two_schema\n    output: validated_api_two\n\n  - id: step_aggregate\n    op: aggregate_data\n    params:\n      input: validated_api_one\n      secondary_input: validated_api_two\n      strategy: \"combine\"\n    output: aggregated_result\n\n  - id: step_extract_sensitive\n    op: extract_field\n    params:\n      input: aggregated_result\n      field: \"sensitive_fields\"\n    output: sensitive_fields\n\n  - id: step_encrypt_sensitive\n    op: encrypt_field\n    params:\n      input: sensitive_fields\n      algorithm: \"AES-256\"\n    output: encrypted_sensitive\n\n  - id: step_transform_merge\n    op: transform_json\n    params:\n      input: aggregated_result\n      mapping:\n        sensitive_fields: encrypted_sensitive\n    output: secured_aggregated_result\n\n  - id: step_write_database\n    op: write_database\n    params:\n      input: secured_aggregated_result\n      table: aggregated_data_store\n    output: write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: secured_aggregated_result\n      message: \"Aggregated and encrypted data persisted successfully\"\n    output: audit_result",
+      "dsl_type_errors": [
+        "Step 'step_transform_merge': op 'transform_json' requires input of type 'records' but 'aggregated_result' has type 'record'. Make sure the step producing 'aggregated_result' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1115,
+      "output_tokens": 541
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: secured_api_aggregation_pipeline\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"aggregation_service\"\n    output: auth_result\n\n  - id: step_fetch_api_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_one/data\"\n    output: raw_api_one\n\n  - id: step_fetch_api_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_two/data\"\n    output: raw_api_two\n\n  - id: step_validate_api_one\n    op: validate_schema\n    params:\n      input: raw_api_one\n      schema: api_one_schema\n    output: validated_api_one\n\n  - id: step_validate_api_two\n    op: validate_schema\n    params:\n      input: raw_api_two\n      schema: api_two_schema\n    output: validated_api_two\n\n  - id: step_merge_datasets\n    op: merge_datasets\n    params:\n      input: validated_api_one\n      secondary_input: validated_api_two\n      key: \"record_id\"\n    output: merged_result\n\n  - id: step_aggregate\n    op: aggregate_data\n    params:\n      input: merged_result\n      strategy: \"combine\"\n    output: aggregated_result\n\n  - id: step_extract_sensitive\n    op: extract_field\n    params:\n      input: aggregated_result\n      field: \"sensitive_fields\"\n    output: sensitive_fields\n\n  - id: step_encrypt_sensitive\n    op: encrypt_field\n    params:\n      input: sensitive_fields\n      algorithm: \"AES-256\"\n    output: encrypted_sensitive\n\n  - id: step_filter_aggregated\n    op: filter_records\n    params:\n      input: aggregated_result\n      condition: \"all\"\n    output: aggregated_records\n\n  - id: step_transform_merge\n    op: transform_json\n    params:\n      input: aggregated_records\n      mapping:\n        sensitive_fields: encrypted_sensitive\n    output: secured_aggregated_result\n\n  - id: step_write_database\n    op: write_database\n    params:\n      input: secured_aggregated_result\n      table: aggregated_data_store\n    output: write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: secured_aggregated_result\n      message: \"Aggregated and encrypted data persisted successfully\"\n    output: audit_result",
+      "dsl_type_errors": [
+        "Step 'step_filter_aggregated': op 'filter_records' requires input of type 'records' but 'aggregated_result' has type 'record'. Make sure the step producing 'aggregated_result' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1804,
+      "output_tokens": 630
+    },
+    {
+      "attempt_number": 2,
+      "llm_sketch": "workflow_id: secured_api_aggregation_pipeline\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"aggregation_service\"\n    output: auth_result\n\n  - id: step_fetch_api_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_one/data\"\n    output: raw_api_one\n\n  - id: step_fetch_api_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_two/data\"\n    output: raw_api_two\n\n  - id: step_validate_api_one\n    op: validate_schema\n    params:\n      input: raw_api_one\n      schema: api_one_schema\n    output: validated_api_one\n\n  - id: step_validate_api_two\n    op: validate_schema\n    params:\n      input: raw_api_two\n      schema: api_two_schema\n    output: validated_api_two\n\n  - id: step_merge_datasets\n    op: merge_datasets\n    params:\n      input: validated_api_one\n      secondary_input: validated_api_two\n      key: \"record_id\"\n    output: merged_result\n\n  - id: step_aggregate\n    op: aggregate_data\n    params:\n      input: merged_result\n      strategy: \"combine\"\n    output: aggregated_result\n\n  - id: step_extract_sensitive\n    op: extract_field\n    params:\n      input: aggregated_result\n      field: \"sensitive_fields\"\n    output: sensitive_fields\n\n  - id: step_encrypt_sensitive\n    op: encrypt_field\n    params:\n      input: sensitive_fields\n      algorithm: \"AES-256\"\n    output: encrypted_sensitive\n\n  - id: step_transform_merge\n    op: transform_json\n    params:\n      input: aggregated_result\n      mapping:\n        sensitive_fields: encrypted_sensitive\n    output: secured_aggregated_result\n\n  - id: step_write_database\n    op: write_database\n    params:\n      input: secured_aggregated_result\n      table: aggregated_data_store\n    output: write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: secured_aggregated_result\n      message: \"Aggregated and encrypted data persisted successfully\"\n    output: audit_result",
+      "dsl_type_errors": [
+        "Step 'step_transform_merge': op 'transform_json' requires input of type 'records' but 'aggregated_result' has type 'record'. Make sure the step producing 'aggregated_result' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1894,
+      "output_tokens": 585
+    },
+    {
+      "attempt_number": 3,
+      "llm_sketch": "workflow_id: secured_api_aggregation_pipeline\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"aggregation_service\"\n    output: auth_result\n\n  - id: step_fetch_api_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_one/data\"\n    output: raw_api_one\n\n  - id: step_fetch_api_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_two/data\"\n    output: raw_api_two\n\n  - id: step_validate_api_one\n    op: validate_schema\n    params:\n      input: raw_api_one\n      schema: api_one_schema\n    output: validated_api_one\n\n  - id: step_validate_api_two\n    op: validate_schema\n    params:\n      input: raw_api_two\n      schema: api_two_schema\n    output: validated_api_two\n\n  - id: step_merge_datasets\n    op: merge_datasets\n    params:\n      input: validated_api_one\n      secondary_input: validated_api_two\n      key: \"record_id\"\n    output: merged_result\n\n  - id: step_aggregate\n    op: aggregate_data\n    params:\n      input: merged_result\n      strategy: \"combine\"\n    output: aggregated_result\n\n  - id: step_extract_sensitive\n    op: extract_field\n    params:\n      input: aggregated_result\n      field: \"sensitive_fields\"\n    output: sensitive_fields\n\n  - id: step_encrypt_sensitive\n    op: encrypt_field\n    params:\n      input: sensitive_fields\n      algorithm: \"AES-256\"\n    output: encrypted_sensitive\n\n  - id: step_filter_aggregated\n    op: filter_records\n    params:\n      input: merged_result\n      condition: \"all\"\n    output: aggregated_records\n\n  - id: step_transform_merge\n    op: transform_json\n    params:\n      input: aggregated_records\n      mapping:\n        sensitive_fields: encrypted_sensitive\n    output: secured_aggregated_result\n\n  - id: step_write_database\n    op: write_database\n    params:\n      input: secured_aggregated_result\n      table: aggregated_data_store\n    output: write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: secured_aggregated_result\n      message: \"Aggregated and encrypted data persisted successfully\"\n    output: audit_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_013.py::test_parses_and_type_checks": true,
+        "test_wf_tool_013.py::test_passes_taint_analysis": true,
+        "test_wf_tool_013.py::test_auth_before_fetch": true,
+        "test_wf_tool_013.py::test_encrypt_before_store": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1848,
+      "output_tokens": 629
+    }
+  ],
+  "complexity": 4,
+  "domain": "api_integration",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 6661,
+  "total_output_tokens": 2385
+}

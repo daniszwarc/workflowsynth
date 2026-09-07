@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_agent_010",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 0.7132929991930723,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: config_driven_conditional_execution\nsteps:\n  - id: read_job_configuration\n    op: read_database\n    params:\n      table: job_configuration\n      query: \"SELECT * FROM job_configuration WHERE status = 'active' ORDER BY updated_at DESC LIMIT 1\"\n    output: raw_config\n\n  - id: validate_config\n    op: validate_schema\n    params:\n      input: raw_config\n      schema: job_configuration_schema\n    output: validated_config\n\n  - id: extract_rule_definition\n    op: extract_field\n    params:\n      input: validated_config\n      field: rule_definition\n    output: rule_definition\n\n  - id: apply_config_rule\n    op: apply_rule\n    params:\n      rule: rule_definition\n    output: rule_outcome\n\n  - id: route_by_rule_outcome\n    op: route_to_step\n    params:\n      condition: rule_outcome\n      branches:\n        branch_a: execute_branch_a\n        branch_b: execute_branch_b\n        default: execute_default_branch\n\n  - id: execute_branch_a\n    op: call_subworkflow\n    params:\n      workflow_id: branch_a_workflow\n    output: branch_a_result\n\n  - id: execute_branch_b\n    op: call_subworkflow\n    params:\n      workflow_id: branch_b_workflow\n    output: branch_b_result\n\n  - id: execute_default_branch\n    op: call_subworkflow\n    params:\n      workflow_id: default_branch_workflow\n    output: default_branch_result\n\n  - id: log_execution\n    op: log_audit\n    params:\n      input: validated_config\n      message: \"Config-driven workflow executed successfully\"\n\n  - id: end_workflow\n    op: terminate_workflow\n    params:\n      status: completed",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_010.py::test_parses_and_type_checks": true,
+        "test_wf_agent_010.py::test_passes_taint_analysis": true,
+        "test_wf_agent_010.py::test_config_before_rule": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1065,
+      "output_tokens": 458
+    }
+  ],
+  "complexity": 3,
+  "domain": "agent_tasks",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1065,
+  "total_output_tokens": 458
+}

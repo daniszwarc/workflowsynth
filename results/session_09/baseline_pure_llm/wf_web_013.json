@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_web_013",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 6,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 7.894461082294583,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: forum_thread_escalation\nsteps:\n  - id: fetch_thread_and_report\n    op: fetch\n    params:\n      source: forum_database\n      entity: reported_thread\n      include:\n        - thread_content\n        - report_metadata\n    output: thread_data\n\n  - id: validate_report\n    op: validate\n    params:\n      input: \"{{ thread_data }}\"\n      schema: report_schema\n    output: validation_result\n\n  - id: classify_severity\n    op: classify\n    params:\n      input: \"{{ thread_data }}\"\n      rule: escalation_rule\n      severity_levels:\n        - standard\n        - severe\n    output: severity_classification\n\n  - id: route_thread\n    op: conditional_route\n    params:\n      condition: \"{{ severity_classification.level == 'severe' }}\"\n      on_true:\n        destination: senior_escalation_queue\n        label: escalated\n      on_false:\n        destination: standard_moderation_queue\n        label: standard\n    output: routing_decision\n\n  - id: notify_senior_moderator\n    op: notify\n    params:\n      condition: \"{{ routing_decision.label == 'escalated' }}\"\n      channel: senior_moderator_notification\n      message: \"A forum thread has been escalated for review.\"\n      payload:\n        thread_id: \"{{ thread_data.thread_id }}\"\n        report_id: \"{{ thread_data.report_metadata.report_id }}\"\n        severity: \"{{ severity_classification.level }}\"\n        reason: \"{{ severity_classification.reason }}\"\n\n  - id: log_moderation_decision\n    op: log\n    params:\n      destination: audit_log\n      entry:\n        thread_id: \"{{ thread_data.thread_id }}\"\n        report_id: \"{{ thread_data.report_metadata.report_id }}\"\n        severity: \"{{ severity_classification.level }}\"\n        routing: \"{{ routing_decision.label }}\"\n        destination_queue: \"{{ routing_decision.destination }}\"\n        timestamp: \"{{ now() }}\"",
+      "dsl_type_errors": [
+        "Step 'fetch_thread_and_report': unknown op 'fetch'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_report': unknown op 'validate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'classify_severity': unknown op 'classify'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'route_thread': unknown op 'conditional_route'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'notify_senior_moderator': unknown op 'notify'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'log_moderation_decision': unknown op 'log'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 4,
+  "domain": "web_automation",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 264,
+  "total_output_tokens": 512
+}

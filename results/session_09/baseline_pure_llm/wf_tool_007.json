@@ -1,0 +1,37 @@
+{
+  "task_id": "wf_tool_007",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 2,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 8.157600166276097,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: authenticated_paginated_aggregation\nsteps:\n  - id: authenticate\n    op: api_authenticate\n    params:\n      auth_endpoint: \"{{auth_url}}\"\n      client_id: \"{{client_id}}\"\n      client_secret: \"{{client_secret}}\"\n    output: auth_token\n  - id: fetch_paginated_data\n    op: api_fetch_paginated\n    params:\n      api_endpoint: \"{{data_api_url}}\"\n      auth_token: \"{{auth_token}}\"\n      page_size: 100\n      max_pages: null\n    depends_on:\n      - authenticate\n    output: paginated_results\n  - id: aggregate_results\n    op: aggregate_data\n    params:\n      input_data: \"{{paginated_results}}\"\n      aggregation_type: summary\n    depends_on:\n      - fetch_paginated_data\n    output: aggregated_summary",
+      "dsl_type_errors": [
+        "Step 'authenticate': unknown op 'api_authenticate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'fetch_paginated_data': unknown op 'api_fetch_paginated'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "api_integration",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 201,
+  "total_output_tokens": 230
+}

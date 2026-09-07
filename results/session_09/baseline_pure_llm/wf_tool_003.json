@@ -1,0 +1,36 @@
+{
+  "task_id": "wf_tool_003",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 4.332692416384816,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: geocoding_coordinate_extraction\nsteps:\n  - id: geocode_address\n    op: api_call\n    params:\n      service: geocoding_api\n      method: geocode\n      arguments:\n        address: \"{{ trigger.address }}\"\n    output: geocoding_response\n  - id: extract_coordinates\n    op: transform\n    params:\n      source: \"{{ geocoding_response }}\"\n      mapping:\n        latitude: \"{{ geocoding_response.results[0].geometry.location.lat }}\"\n        longitude: \"{{ geocoding_response.results[0].geometry.location.lng }}\"\n    output:\n      latitude: \"{{ latitude }}\"\n      longitude: \"{{ longitude }}\"",
+      "dsl_type_errors": [
+        "Step at index 1 (id='extract_coordinates'): 'output' must be a string if present."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 1,
+  "domain": "api_integration",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 187,
+  "total_output_tokens": 172
+}

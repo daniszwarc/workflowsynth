@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_agent_002",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "type_error",
+  "synthesis_time_seconds": 0.0017612501978874207,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: database_summary_query\nsteps:\n  - id: step_read_table\n    op: read_database\n    params:\n      table: status_records\n    output: raw_records\n\n  - id: step_validate_records\n    op: validate_schema\n    params:\n      input: raw_records\n      schema: status_records_schema\n    output: validated_records\n\n  - id: step_aggregate_summary\n    op: aggregate_data\n    params:\n      input: validated_records\n      group_by: status\n      summarise:\n        - field: id\n          function: count\n    output: summary_result\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: summary_result\n      format: json\n    output: formatted_summary\n\n  - id: step_log_query\n    op: log_audit\n    params:\n      input: formatted_summary\n      action: database_summary_query\n      message: \"Status check summary generated successfully\"",
+      "dsl_type_errors": [
+        "Step 'step_format_summary': op 'format_output' requires input of type 'records' but 'summary_result' has type 'record'. Make sure the step producing 'summary_result' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1024,
+      "output_tokens": 240
+    }
+  ],
+  "complexity": 1,
+  "domain": "agent_tasks",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1024,
+  "total_output_tokens": 240
+}

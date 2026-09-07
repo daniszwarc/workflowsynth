@@ -1,0 +1,175 @@
+{
+  "task_id": "wf_agent_010",
+  "condition": "full",
+  "success": false,
+  "attempts_used": 10,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 59.54494225047529,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: config_driven_conditional_execution\nsteps:\n  - id: read_job_configuration\n    op: read_database\n    params:\n      table: job_configuration\n      query: \"SELECT * FROM job_configuration WHERE active = true ORDER BY updated_at DESC LIMIT 1\"\n    output: raw_job_config\n\n  - id: validate_job_config\n    op: validate_schema\n    params:\n      input: raw_job_config\n      schema: job_configuration_schema\n    output: validated_job_config\n\n  - id: extract_rule_definition\n    op: extract_field\n    params:\n      input: validated_job_config\n      field: rule_definition\n    output: rule_definition\n\n  - id: extract_current_input\n    op: extract_field\n    params:\n      input: validated_job_config\n      field: current_input\n    output: current_input\n\n  - id: apply_config_rule\n    op: apply_rule\n    params:\n      rule: rule_definition\n      input: current_input\n    output: rule_outcome\n\n  - id: route_on_rule_outcome\n    op: route_to_step\n    params:\n      condition: rule_outcome\n      branches:\n        branch_a: execute_branch_a\n        branch_b: execute_branch_b\n        default: execute_default_branch\n\n  - id: execute_branch_a\n    op: call_subworkflow\n    params:\n      workflow_id: branch_a_workflow\n      input: current_input\n    output: branch_a_result\n\n  - id: execute_branch_b\n    op: call_subworkflow\n    params:\n      workflow_id: branch_b_workflow\n      input: current_input\n    output: branch_b_result\n\n  - id: execute_default_branch\n    op: call_subworkflow\n    params:\n      workflow_id: default_branch_workflow\n      input: current_input\n    output: default_branch_result\n\n  - id: log_execution_audit\n    op: log_audit\n    params:\n      input: rule_outcome\n      message: \"Config-driven conditional execution completed\"\n      details:\n        config: validated_job_config\n        outcome: rule_outcome\n\n  - id: terminate\n    op: terminate_workflow\n    params:\n      status: completed",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_010.py::test_parses_and_type_checks": true,
+        "test_wf_agent_010.py::test_passes_taint_analysis": true,
+        "test_wf_agent_010.py::test_config_before_rule": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1065,
+      "output_tokens": 557
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: config_driven_conditional_execution\nsteps:\n  - id: read_job_configuration\n    op: read_database\n    params:\n      table: job_configuration\n      query: \"SELECT * FROM job_configuration WHERE active = true ORDER BY updated_at DESC LIMIT 1\"\n    output: raw_job_config\n\n  - id: validate_job_config\n    op: validate_schema\n    params:\n      input: raw_job_config\n      schema: job_configuration_schema\n    output: validated_job_config\n\n  - id: extract_rule_definition\n    op: extract_field\n    params:\n      input: validated_job_config\n      field: rule_definition\n    output: rule_definition\n\n  - id: extract_current_input\n    op: extract_field\n    params:\n      input: validated_job_config\n      field: current_input\n    output: current_input\n\n  - id: apply_config_rule\n    op: apply_rule\n    params:\n      rule: rule_definition\n      input_data: current_input\n      config: validated_job_config\n    output: rule_outcome\n\n  - id: route_on_rule_outcome\n    op: route_to_step\n    params:\n      condition: rule_outcome\n      branches:\n        branch_a: execute_branch_a\n        branch_b: execute_branch_b\n        default: execute_default_branch\n\n  - id: execute_branch_a\n    op: call_subworkflow\n    params:\n      workflow_id: branch_a_workflow\n      input: current_input\n    output: branch_a_result\n\n  - id: execute_branch_b\n    op: call_subworkflow\n    params:\n      workflow_id: branch_b_workflow\n      input: current_input\n    output: branch_b_result\n\n  - id: execute_default_branch\n    op: call_subworkflow\n    params:\n      workflow_id: default_branch_workflow\n      input: current_input\n    output: default_branch_result\n\n  - id: sanitize_branch_a_result\n    op: validate_schema\n    params:\n      input: branch_a_result\n      schema: branch_result_schema\n    output: safe_branch_a_result\n\n  - id: sanitize_branch_b_result\n    op: validate_schema\n    params:\n      input: branch_b_result\n      schema: branch_result_schema\n    output: safe_branch_b_result\n\n  - id: sanitize_default_result\n    op: validate_schema\n    params:\n      input: default_branch_result\n      schema: branch_result_schema\n    output: safe_default_result\n\n  - id: log_execution_audit\n    op: log_audit\n    params:\n      input: rule_definition\n      message: \"Config-driven conditional execution completed\"\n\n  - id: terminate\n    op: terminate_workflow\n    params:\n      status: completed",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_010.py::test_parses_and_type_checks": true,
+        "test_wf_agent_010.py::test_passes_taint_analysis": true,
+        "test_wf_agent_010.py::test_config_before_rule": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1704,
+      "output_tokens": 703
+    },
+    {
+      "attempt_number": 2,
+      "llm_sketch": "workflow_id: config_driven_conditional_execution\nsteps:\n  - id: read_job_configuration\n    op: read_database\n    params:\n      table: job_configuration\n      query: \"SELECT * FROM job_configuration WHERE active = true ORDER BY updated_at DESC LIMIT 1\"\n    output: raw_job_config\n\n  - id: validate_job_config\n    op: validate_schema\n    params:\n      input: raw_job_config\n      schema: job_configuration_schema\n    output: validated_job_config\n\n  - id: extract_rule_definition\n    op: extract_field\n    params:\n      input: validated_job_config\n      field: rule_definition\n    output: rule_definition\n\n  - id: extract_current_input\n    op: extract_field\n    params:\n      input: validated_job_config\n      field: current_input\n    output: current_input\n\n  - id: apply_config_rule\n    op: apply_rule\n    params:\n      rule: rule_definition\n      input: current_input\n      config: validated_job_config\n    output: rule_outcome\n\n  - id: route_on_rule_outcome\n    op: route_to_step\n    params:\n      condition: rule_outcome\n      branches:\n        branch_a: execute_branch_a\n        branch_b: execute_branch_b\n        default: execute_default_branch\n\n  - id: execute_branch_a\n    op: call_subworkflow\n    params:\n      workflow_id: branch_a_workflow\n      input: current_input\n    output: branch_a_result\n\n  - id: execute_branch_b\n    op: call_subworkflow\n    params:\n      workflow_id: branch_b_workflow\n      input: current_input\n    output: branch_b_result\n\n  - id: execute_default_branch\n    op: call_subworkflow\n    params:\n      workflow_id: default_branch_workflow\n      input: current_input\n    output: default_branch_result\n\n  - id: sanitize_branch_a_result\n    op: validate_schema\n    params:\n      input: branch_a_result\n      schema: branch_result_schema\n    output: safe_branch_a_result\n\n  - id: sanitize_branch_b_result\n    op: validate_schema\n    params:\n      input: branch_b_result\n      schema: branch_result_schema\n    output: safe_branch_b_result\n\n  - id: sanitize_default_result\n    op: validate_schema\n    params:\n      input: default_branch_result\n      schema: branch_result_schema\n    output: safe_default_result\n\n  - id: log_execution_audit\n    op: log_audit\n    params:\n      input: safe_branch_a_result\n      message: \"Config-driven conditional execution completed\"\n\n  - id: terminate\n    op: terminate_workflow\n    params:\n      status: completed",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_010.py::test_parses_and_type_checks": true,
+        "test_wf_agent_010.py::test_passes_taint_analysis": true,
+        "test_wf_agent_010.py::test_config_before_rule": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1850,
+      "output_tokens": 705
+    },
+    {
+      "attempt_number": 3,
+      "llm_sketch": "workflow_id: config_driven_conditional_execution\nsteps:\n  - id: read_job_configuration\n    op: read_database\n    params:\n      table: job_configuration\n      query: \"SELECT * FROM job_configuration WHERE active = true ORDER BY updated_at DESC LIMIT 1\"\n    output: raw_job_config\n\n  - id: validate_job_config\n    op: validate_schema\n    params:\n      input: raw_job_config\n      schema: job_configuration_schema\n    output: validated_job_config\n\n  - id: extract_rule_definition\n    op: extract_field\n    params:\n      input: validated_job_config\n      field: rule_definition\n    output: rule_definition\n\n  - id: extract_current_input\n    op: extract_field\n    params:\n      input: validated_job_config\n      field: current_input\n    output: current_input\n\n  - id: apply_config_rule\n    op: apply_rule\n    params:\n      rule: rule_definition\n      input: current_input\n      config: validated_job_config\n    output: rule_outcome\n\n  - id: route_on_rule_outcome\n    op: route_to_step\n    params:\n      condition: rule_outcome\n      branches:\n        branch_a: execute_branch_a\n        branch_b: execute_branch_b\n        default: execute_default_branch\n\n  - id: execute_branch_a\n    op: call_subworkflow\n    params:\n      workflow_id: branch_a_workflow\n      input: current_input\n    output: branch_a_result\n\n  - id: execute_branch_b\n    op: call_subworkflow\n    params:\n      workflow_id: branch_b_workflow\n      input: current_input\n    output: branch_b_result\n\n  - id: execute_default_branch\n    op: call_subworkflow\n    params:\n      workflow_id: default_branch_workflow\n      input: current_input\n    output: default_branch_result\n\n  - id: sanitize_branch_a_result\n    op: validate_schema\n    params:\n      input: branch_a_result\n      schema: branch_result_schema\n    output: safe_branch_a_result\n\n  - id: sanitize_branch_b_result\n    op: validate_schema\n    params:\n      input: branch_b_result\n      schema: branch_result_schema\n    output: safe_branch_b_result\n\n  - id: sanitize_default_result\n    op: validate_schema\n    params:\n      input: default_branch_result\n      schema: branch_result_schema\n    output: safe_default_result\n\n  - id: log_execution_audit\n    op: log_audit\n    params:\n      input: safe_branch_a_result\n      message: \"Config-driven conditional execution completed\"\n\n  - id: terminate\n    op: terminate_workflow\n    params:\n      status: completed",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_010.py::test_parses_and_type_checks": true,
+        "test_wf_agent_010.py::test_passes_taint_analysis": true,
+        "test_wf_agent_010.py::test_config_before_rule": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1852,
+      "output_tokens": 705
+    },
+    {
+      "attempt_number": 4,
+      "llm_sketch": "workflow_id: config_driven_conditional_execution\nsteps:\n  - id: read_job_configuration\n    op: read_database\n    params:\n      table: job_configuration\n      query: \"SELECT * FROM job_configuration WHERE active = true ORDER BY updated_at DESC LIMIT 1\"\n    output: raw_job_config\n\n  - id: validate_job_config\n    op: validate_schema\n    params:\n      input: raw_job_config\n      schema: job_configuration_schema\n    output: validated_job_config\n\n  - id: extract_rule_definition\n    op: extract_field\n    params:\n      input: validated_job_config\n      field: rule_definition\n    output: rule_definition\n\n  - id: extract_current_input\n    op: extract_field\n    params:\n      input: validated_job_config\n      field: current_input\n    output: current_input\n\n  - id: apply_config_rule\n    op: apply_rule\n    params:\n      rule: rule_definition\n      input: current_input\n      config: validated_job_config\n    output: rule_outcome\n\n  - id: route_on_rule_outcome\n    op: route_to_step\n    params:\n      condition: rule_outcome\n      branches:\n        branch_a: execute_branch_a\n        branch_b: execute_branch_b\n        default: execute_default_branch\n\n  - id: execute_branch_a\n    op: call_subworkflow\n    params:\n      workflow_id: branch_a_workflow\n      input: current_input\n    output: branch_a_result\n\n  - id: execute_branch_b\n    op: call_subworkflow\n    params:\n      workflow_id: branch_b_workflow\n      input: current_input\n    output: branch_b_result\n\n  - id: execute_default_branch\n    op: call_subworkflow\n    params:\n      workflow_id: default_branch_workflow\n      input: current_input\n    output: default_branch_result\n\n  - id: sanitize_branch_a_result\n    op: validate_schema\n    params:\n      input: branch_a_result\n      schema: branch_result_schema\n    output: safe_branch_a_result\n\n  - id: sanitize_branch_b_result\n    op: validate_schema\n    params:\n      input: branch_b_result\n      schema: branch_result_schema\n    output: safe_branch_b_result\n\n  - id: sanitize_default_result\n    op: validate_schema\n    params:\n      input: default_branch_result\n      schema: branch_result_schema\n    output: safe_default_result\n\n  - id: log_execution_audit\n    op: log_audit\n    params:\n      input: safe_branch_a_result\n      message: \"Config-driven conditional execution completed\"\n\n  - id: terminate\n    op: terminate_workflow\n    params:\n      status: completed",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_010.py::test_parses_and_type_checks": true,
+        "test_wf_agent_010.py::test_passes_taint_analysis": true,
+        "test_wf_agent_010.py::test_config_before_rule": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1852,
+      "output_tokens": 705
+    },
+    {
+      "attempt_number": 5,
+      "llm_sketch": "workflow_id: config_driven_conditional_execution\nsteps:\n  - id: read_job_configuration\n    op: read_database\n    params:\n      table: job_configuration\n      query: \"SELECT * FROM job_configuration WHERE active = true ORDER BY updated_at DESC LIMIT 1\"\n    output: raw_job_config\n\n  - id: validate_job_config\n    op: validate_schema\n    params:\n      input: raw_job_config\n      schema: job_configuration_schema\n    output: validated_job_config\n\n  - id: extract_rule_definition\n    op: extract_field\n    params:\n      input: validated_job_config\n      field: rule_definition\n    output: rule_definition\n\n  - id: extract_current_input\n    op: extract_field\n    params:\n      input: validated_job_config\n      field: current_input\n    output: current_input\n\n  - id: apply_config_rule\n    op: apply_rule\n    params:\n      rule: rule_definition\n      input: current_input\n      config: validated_job_config\n    output: rule_outcome\n\n  - id: route_on_rule_outcome\n    op: route_to_step\n    params:\n      condition: rule_outcome\n      branches:\n        branch_a: execute_branch_a\n        branch_b: execute_branch_b\n        default: execute_default_branch\n\n  - id: execute_branch_a\n    op: call_subworkflow\n    params:\n      workflow_id: branch_a_workflow\n      input: current_input\n    output: branch_a_result\n\n  - id: execute_branch_b\n    op: call_subworkflow\n    params:\n      workflow_id: branch_b_workflow\n      input: current_input\n    output: branch_b_result\n\n  - id: execute_default_branch\n    op: call_subworkflow\n    params:\n      workflow_id: default_branch_workflow\n      input: current_input\n    output: default_branch_result\n\n  - id: sanitize_branch_a_result\n    op: validate_schema\n    params:\n      input: branch_a_result\n      schema: branch_result_schema\n    output: safe_branch_a_result\n\n  - id: sanitize_branch_b_result\n    op: validate_schema\n    params:\n      input: branch_b_result\n      schema: branch_result_schema\n    output: safe_branch_b_result\n\n  - id: sanitize_default_result\n    op: validate_schema\n    params:\n      input: default_branch_result\n      schema: branch_result_schema\n    output: safe_default_result\n\n  - id: log_execution_audit\n    op: log_audit\n    params:\n      input: safe_branch_a_result\n      message: \"Config-driven conditional execution completed\"\n\n  - id: terminate\n    op: terminate_workflow\n    params:\n      status: completed",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_010.py::test_parses_and_type_checks": true,
+        "test_wf_agent_010.py::test_passes_taint_analysis": true,
+        "test_wf_agent_010.py::test_config_before_rule": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1852,
+      "output_tokens": 705
+    },
+    {
+      "attempt_number": 6,
+      "llm_sketch": "workflow_id: config_driven_conditional_execution\nsteps:\n  - id: read_job_configuration\n    op: read_database\n    params:\n      table: job_configuration\n      query: \"SELECT * FROM job_configuration WHERE active = true ORDER BY updated_at DESC LIMIT 1\"\n    output: raw_job_config\n\n  - id: validate_job_config\n    op: validate_schema\n    params:\n      input: raw_job_config\n      schema: job_configuration_schema\n    output: validated_job_config\n\n  - id: extract_rule_definition\n    op: extract_field\n    params:\n      input: validated_job_config\n      field: rule_definition\n    output: rule_definition\n\n  - id: extract_current_input\n    op: extract_field\n    params:\n      input: validated_job_config\n      field: current_input\n    output: current_input\n\n  - id: apply_config_rule\n    op: apply_rule\n    params:\n      rule: rule_definition\n      input: current_input\n    output: rule_outcome\n\n  - id: route_on_rule_outcome\n    op: route_to_step\n    params:\n      condition: rule_outcome\n      branches:\n        branch_a: execute_branch_a\n        branch_b: execute_branch_b\n        default: execute_default_branch\n\n  - id: execute_branch_a\n    op: call_subworkflow\n    params:\n      workflow_id: branch_a_workflow\n      input: current_input\n    output: branch_a_result\n\n  - id: execute_branch_b\n    op: call_subworkflow\n    params:\n      workflow_id: branch_b_workflow\n      input: current_input\n    output: branch_b_result\n\n  - id: execute_default_branch\n    op: call_subworkflow\n    params:\n      workflow_id: default_branch_workflow\n      input: current_input\n    output: default_branch_result\n\n  - id: sanitize_branch_a_result\n    op: validate_schema\n    params:\n      input: branch_a_result\n      schema: branch_result_schema\n    output: safe_branch_a_result\n\n  - id: sanitize_branch_b_result\n    op: validate_schema\n    params:\n      input: branch_b_result\n      schema: branch_result_schema\n    output: safe_branch_b_result\n\n  - id: sanitize_default_result\n    op: validate_schema\n    params:\n      input: default_branch_result\n      schema: branch_result_schema\n    output: safe_default_result\n\n  - id: log_execution_audit\n    op: log_audit\n    params:\n      input: safe_branch_a_result\n      message: \"Config-driven conditional execution completed\"\n\n  - id: terminate\n    op: terminate_workflow\n    params:\n      status: completed",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_010.py::test_parses_and_type_checks": true,
+        "test_wf_agent_010.py::test_passes_taint_analysis": true,
+        "test_wf_agent_010.py::test_config_before_rule": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1852,
+      "output_tokens": 696
+    },
+    {
+      "attempt_number": 7,
+      "llm_sketch": "workflow_id: config_driven_conditional_execution\nsteps:\n  - id: read_job_configuration\n    op: read_database\n    params:\n      table: job_configuration\n      query: \"SELECT * FROM job_configuration WHERE active = true ORDER BY updated_at DESC LIMIT 1\"\n    output: raw_job_config\n\n  - id: validate_job_config\n    op: validate_schema\n    params:\n      input: raw_job_config\n      schema: job_configuration_schema\n    output: validated_job_config\n\n  - id: extract_rule_definition\n    op: extract_field\n    params:\n      input: validated_job_config\n      field: rule_definition\n    output: rule_definition\n\n  - id: extract_current_input\n    op: extract_field\n    params:\n      input: validated_job_config\n      field: current_input\n    output: current_input\n\n  - id: apply_config_rule\n    op: apply_rule\n    params:\n      rule: rule_definition\n      input: current_input\n      config: validated_job_config\n    output: rule_outcome\n\n  - id: route_on_rule_outcome\n    op: route_to_step\n    params:\n      condition: rule_outcome\n      branches:\n        branch_a: execute_branch_a\n        branch_b: execute_branch_b\n        default: execute_default_branch\n\n  - id: execute_branch_a\n    op: call_subworkflow\n    params:\n      workflow_id: branch_a_workflow\n      input: current_input\n    output: branch_a_result\n\n  - id: execute_branch_b\n    op: call_subworkflow\n    params:\n      workflow_id: branch_b_workflow\n      input: current_input\n    output: branch_b_result\n\n  - id: execute_default_branch\n    op: call_subworkflow\n    params:\n      workflow_id: default_branch_workflow\n      input: current_input\n    output: default_branch_result\n\n  - id: sanitize_branch_a_result\n    op: validate_schema\n    params:\n      input: branch_a_result\n      schema: branch_result_schema\n    output: safe_branch_a_result\n\n  - id: sanitize_branch_b_result\n    op: validate_schema\n    params:\n      input: branch_b_result\n      schema: branch_result_schema\n    output: safe_branch_b_result\n\n  - id: sanitize_default_result\n    op: validate_schema\n    params:\n      input: default_branch_result\n      schema: branch_result_schema\n    output: safe_default_result\n\n  - id: log_execution_audit\n    op: log_audit\n    params:\n      input: safe_branch_a_result\n      message: \"Config-driven conditional execution completed\"\n\n  - id: terminate\n    op: terminate_workflow\n    params:\n      status: completed",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_010.py::test_parses_and_type_checks": true,
+        "test_wf_agent_010.py::test_passes_taint_analysis": true,
+        "test_wf_agent_010.py::test_config_before_rule": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1843,
+      "output_tokens": 705
+    },
+    {
+      "attempt_number": 8,
+      "llm_sketch": "workflow_id: config_driven_conditional_execution\nsteps:\n  - id: read_job_configuration\n    op: read_database\n    params:\n      table: job_configuration\n      query: \"SELECT * FROM job_configuration WHERE active = true ORDER BY updated_at DESC LIMIT 1\"\n    output: raw_job_config\n\n  - id: validate_job_config\n    op: validate_schema\n    params:\n      input: raw_job_config\n      schema: job_configuration_schema\n    output: validated_job_config\n\n  - id: extract_rule_definition\n    op: extract_field\n    params:\n      input: validated_job_config\n      field: rule_definition\n    output: rule_definition\n\n  - id: extract_current_input\n    op: extract_field\n    params:\n      input: validated_job_config\n      field: current_input\n    output: current_input\n\n  - id: apply_config_rule\n    op: apply_rule\n    params:\n      config: validated_job_config\n      rule_input: current_input\n      rule_definition: rule_definition\n    output: rule_outcome\n\n  - id: route_on_rule_outcome\n    op: route_to_step\n    params:\n      condition: rule_outcome\n      branches:\n        branch_a: execute_branch_a\n        branch_b: execute_branch_b\n        default: execute_default_branch\n\n  - id: execute_branch_a\n    op: call_subworkflow\n    params:\n      workflow_id: branch_a_workflow\n      input: current_input\n    output: branch_a_result\n\n  - id: execute_branch_b\n    op: call_subworkflow\n    params:\n      workflow_id: branch_b_workflow\n      input: current_input\n    output: branch_b_result\n\n  - id: execute_default_branch\n    op: call_subworkflow\n    params:\n      workflow_id: default_branch_workflow\n      input: current_input\n    output: default_branch_result\n\n  - id: terminate\n    op: terminate_workflow\n    params:\n      status: completed",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_010.py::test_parses_and_type_checks": true,
+        "test_wf_agent_010.py::test_passes_taint_analysis": true,
+        "test_wf_agent_010.py::test_config_before_rule": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1554,
+      "output_tokens": 415
+    },
+    {
+      "attempt_number": 9,
+      "llm_sketch": "workflow_id: config_driven_conditional_execution\nsteps:\n  - id: read_job_configuration\n    op: read_database\n    params:\n      table: job_configuration\n      query: \"SELECT * FROM job_configuration WHERE active = true ORDER BY updated_at DESC LIMIT 1\"\n    output: raw_job_config\n\n  - id: validate_job_config\n    op: validate_schema\n    params:\n      input: raw_job_config\n      schema: job_configuration_schema\n    output: validated_job_config\n\n  - id: extract_current_input\n    op: extract_field\n    params:\n      input: validated_job_config\n      field: current_input\n    output: current_input\n\n  - id: extract_rule_definition\n    op: extract_field\n    params:\n      input: validated_job_config\n      field: rule_definition\n    output: rule_definition\n\n  - id: apply_config_rule\n    op: apply_rule\n    params:\n      config: validated_job_config\n      rule_definition: rule_definition\n      rule_input: current_input\n    output: rule_outcome\n\n  - id: route_on_rule_outcome\n    op: route_to_step\n    params:\n      condition: rule_outcome\n      branches:\n        branch_a: execute_branch_a\n        branch_b: execute_branch_b\n        default: execute_default_branch\n\n  - id: execute_branch_a\n    op: call_subworkflow\n    params:\n      workflow_id: branch_a_workflow\n      input: current_input\n    output: branch_a_result\n\n  - id: execute_branch_b\n    op: call_subworkflow\n    params:\n      workflow_id: branch_b_workflow\n      input: current_input\n    output: branch_b_result\n\n  - id: execute_default_branch\n    op: call_subworkflow\n    params:\n      workflow_id: default_branch_workflow\n      input: current_input\n    output: default_branch_result\n\n  - id: terminate\n    op: terminate_workflow\n    params:\n      status: completed",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_010.py::test_parses_and_type_checks": true,
+        "test_wf_agent_010.py::test_passes_taint_analysis": true,
+        "test_wf_agent_010.py::test_config_before_rule": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1401,
+      "output_tokens": 415
+    }
+  ],
+  "complexity": 3,
+  "domain": "agent_tasks",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 16825,
+  "total_output_tokens": 6311
+}

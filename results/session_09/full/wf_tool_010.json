@@ -1,0 +1,67 @@
+{
+  "task_id": "wf_tool_010",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 3,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 2,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 17.079585874453187,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: webhook_ingestion_pipeline\nsteps:\n  - id: fetch_webhook_payload\n    op: fetch_api\n    params:\n      endpoint: \"/incoming/webhook\"\n    output: raw_payload\n\n  - id: validate_payload\n    op: validate_schema\n    params:\n      input: raw_payload\n      schema: webhook_payload_schema\n    output: validated_payload\n\n  - id: transform_to_internal_event\n    op: transform_json\n    params:\n      input: validated_payload\n      mapping: internal_event_format\n    output: internal_event\n\n  - id: extract_event_type\n    op: extract_field\n    params:\n      input: internal_event\n      field: event_type\n    output: event_type\n\n  - id: route_by_event_type\n    op: route_to_step\n    params:\n      condition_field: event_type\n      routes:\n        order: store_event\n        notification: store_event\n        default: store_event\n\n  - id: authenticate_ingestion_service\n    op: authenticate_user\n    params:\n      role: \"ingestion_service\"\n    output: auth_result\n\n  - id: store_event\n    op: write_database\n    params:\n      input: internal_event\n      table: ingested_events\n    output: write_result\n\n  - id: log_ingestion\n    op: log_audit\n    params:\n      input: internal_event\n      message: \"Webhook payload ingested and stored successfully\"\n\n  - id: format_confirmation\n    op: format_output\n    params:\n      input: write_result\n      format: json\n    output: confirmation_payload\n\n  - id: confirm_receipt_to_sender\n    op: call_webhook\n    params:\n      input: confirmation_payload\n      url: \"{{raw_payload.callback_url}}\"\n      method: POST\n    output: confirmation_result\n\n  - id: handle_pipeline_error\n    op: handle_error\n    params:\n      on_error: terminate_on_failure\n\n  - id: terminate_on_failure\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"Webhook ingestion pipeline encountered an error\"",
+      "dsl_type_errors": [
+        "Step 'format_confirmation': op 'format_output' requires input of type 'records' but 'write_result' has type 'none'. Make sure the step producing 'write_result' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1094,
+      "output_tokens": 532
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: webhook_ingestion_pipeline\nsteps:\n  - id: fetch_webhook_payload\n    op: fetch_api\n    params:\n      endpoint: \"/incoming/webhook\"\n    output: raw_payload\n\n  - id: validate_payload\n    op: validate_schema\n    params:\n      input: raw_payload\n      schema: webhook_payload_schema\n    output: validated_payload\n\n  - id: transform_to_internal_event\n    op: transform_json\n    params:\n      input: validated_payload\n      mapping: internal_event_format\n    output: internal_event\n\n  - id: extract_event_type\n    op: extract_field\n    params:\n      input: internal_event\n      field: event_type\n    output: event_type\n\n  - id: route_by_event_type\n    op: route_to_step\n    params:\n      condition_field: event_type\n      routes:\n        order: authenticate_ingestion_service\n        notification: authenticate_ingestion_service\n        default: authenticate_ingestion_service\n\n  - id: authenticate_ingestion_service\n    op: authenticate_user\n    params:\n      role: \"ingestion_service\"\n    output: auth_result\n\n  - id: store_event\n    op: write_database\n    params:\n      input: internal_event\n      table: ingested_events\n    output: write_result\n\n  - id: log_ingestion\n    op: log_audit\n    params:\n      input: internal_event\n      message: \"Webhook payload ingested and stored successfully\"\n\n  - id: read_stored_event\n    op: read_database\n    params:\n      table: ingested_events\n      query: \"SELECT * FROM ingested_events ORDER BY created_at DESC LIMIT 1\"\n    output: stored_event_records\n\n  - id: validate_stored_event\n    op: validate_schema\n    params:\n      input: stored_event_records\n      schema: stored_event_schema\n    output: validated_stored_event\n\n  - id: format_confirmation\n    op: format_output\n    params:\n      input: validated_stored_event\n      format: json\n    output: confirmation_payload\n\n  - id: transform_confirmation\n    op: transform_json\n    params:\n      input: confirmation_payload\n      mapping: confirmation_response_format\n    output: safe_confirmation\n\n  - id: confirm_receipt_to_sender\n    op: call_webhook\n    params:\n      input: safe_confirmation\n      url: \"{{callback_url}}\"\n      method: POST\n    output: confirmation_result\n\n  - id: handle_pipeline_error\n    op: handle_error\n    params:\n      on_error: terminate_on_failure\n\n  - id: terminate_on_failure\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"Webhook ingestion pipeline encountered an error\"",
+      "dsl_type_errors": [
+        "Step 'transform_confirmation': op 'transform_json' requires input of type 'records' but 'confirmation_payload' has type 'string'. Make sure the step producing 'confirmation_payload' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1770,
+      "output_tokens": 690
+    },
+    {
+      "attempt_number": 2,
+      "llm_sketch": "workflow_id: webhook_ingestion_pipeline\nsteps:\n  - id: fetch_webhook_payload\n    op: fetch_api\n    params:\n      endpoint: \"/incoming/webhook\"\n    output: raw_payload\n\n  - id: validate_payload\n    op: validate_schema\n    params:\n      input: raw_payload\n      schema: webhook_payload_schema\n    output: validated_payload\n\n  - id: transform_to_internal_event\n    op: transform_json\n    params:\n      input: validated_payload\n      mapping: internal_event_format\n    output: internal_event\n\n  - id: extract_event_type\n    op: extract_field\n    params:\n      input: internal_event\n      field: event_type\n    output: event_type\n\n  - id: route_by_event_type\n    op: route_to_step\n    params:\n      condition_field: event_type\n      routes:\n        order: authenticate_ingestion_service\n        notification: authenticate_ingestion_service\n        default: authenticate_ingestion_service\n\n  - id: authenticate_ingestion_service\n    op: authenticate_user\n    params:\n      role: \"ingestion_service\"\n    output: auth_result\n\n  - id: store_event\n    op: write_database\n    params:\n      input: internal_event\n      table: ingested_events\n    output: write_result\n\n  - id: log_ingestion\n    op: log_audit\n    params:\n      input: internal_event\n      message: \"Webhook payload ingested and stored successfully\"\n\n  - id: read_stored_event\n    op: read_database\n    params:\n      table: ingested_events\n      query: \"SELECT * FROM ingested_events ORDER BY created_at DESC LIMIT 1\"\n    output: stored_event_records\n\n  - id: validate_stored_event\n    op: validate_schema\n    params:\n      input: stored_event_records\n      schema: stored_event_schema\n    output: validated_stored_event\n\n  - id: transform_confirmation\n    op: transform_json\n    params:\n      input: validated_stored_event\n      mapping: confirmation_response_format\n    output: safe_confirmation\n\n  - id: format_confirmation\n    op: format_output\n    params:\n      input: safe_confirmation\n      format: json\n    output: confirmation_payload\n\n  - id: confirm_receipt_to_sender\n    op: call_webhook\n    params:\n      input: confirmation_payload\n      url: \"{{callback_url}}\"\n      method: POST\n    output: confirmation_result\n\n  - id: handle_pipeline_error\n    op: handle_error\n    params:\n      on_error: terminate_on_failure\n\n  - id: terminate_on_failure\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"Webhook ingestion pipeline encountered an error\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_010.py::test_parses_and_type_checks": true,
+        "test_wf_tool_010.py::test_passes_taint_analysis": true,
+        "test_wf_tool_010.py::test_validate_before_store": true,
+        "test_wf_tool_010.py::test_auth_before_store": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1928,
+      "output_tokens": 690
+    }
+  ],
+  "complexity": 3,
+  "domain": "api_integration",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 4792,
+  "total_output_tokens": 1912
+}

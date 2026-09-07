@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_web_013",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6020898753777146,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: forum_thread_escalation\nsteps:\n  - id: fetch_reported_thread\n    op: fetch_api\n    params:\n      endpoint: \"/api/forum/reported_threads\"\n    output: raw_report_data\n\n  - id: validate_report_data\n    op: validate_schema\n    params:\n      input: raw_report_data\n      schema: report_schema\n    output: validated_report\n\n  - id: classify_severity\n    op: apply_rule\n    params:\n      rule: escalation_rule\n      input: validated_report\n    output: severity_result\n\n  - id: extract_severity_level\n    op: extract_field\n    params:\n      input: severity_result\n      field: severity\n    output: severity_level\n\n  - id: route_by_severity\n    op: route_to_step\n    params:\n      condition: \"severity_level == 'severe'\"\n      true_step: send_to_senior_queue\n      false_step: send_to_standard_queue\n\n  - id: send_to_senior_queue\n    op: send_to_queue\n    params:\n      input: validated_report\n      queue: senior_escalation_queue\n    output: senior_queue_result\n\n  - id: notify_senior_moderator\n    op: notify_user\n    params:\n      input: validated_report\n      recipient: senior_moderator\n      message: \"A forum thread has been escalated due to severe report classification. Please review immediately.\"\n    output: notification_result\n\n  - id: log_escalation_decision\n    op: log_audit\n    params:\n      input: validated_report\n      action: \"escalated_to_senior_moderator\"\n      severity: severe\n    output: escalation_audit_log\n\n  - id: terminate_escalation\n    op: terminate_workflow\n    params:\n      status: \"escalated\"\n\n  - id: send_to_standard_queue\n    op: send_to_queue\n    params:\n      input: validated_report\n      queue: standard_moderation_queue\n    output: standard_queue_result\n\n  - id: log_standard_decision\n    op: log_audit\n    params:\n      input: validated_report\n      action: \"routed_to_standard_moderation\"\n      severity: non_severe\n    output: standard_audit_log\n\n  - id: terminate_standard\n    op: terminate_workflow\n    params:\n      status: \"routed_to_standard_queue\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_013.py::test_parses_and_type_checks": true,
+        "test_wf_web_013.py::test_passes_taint_analysis": true,
+        "test_wf_web_013.py::test_classify_before_route": true,
+        "test_wf_web_013.py::test_has_notify_and_log": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1113,
+      "output_tokens": 593
+    }
+  ],
+  "complexity": 4,
+  "domain": "web_automation",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1113,
+  "total_output_tokens": 593
+}

@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_gaia_009",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6426517916843295,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: api_data_transformation_and_storage\nsteps:\n  - id: step_fetch_external_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/external/latest\"\n    output: raw_external_data\n\n  - id: step_transform_data\n    op: transform_json\n    params:\n      input: raw_external_data\n      mapping: \"external_to_internal_format\"\n    output: transformed_data\n\n  - id: step_authenticate_sync_service\n    op: authenticate_user\n    params:\n      role: \"sync_service\"\n    output: auth_result\n\n  - id: step_store_data\n    op: write_database\n    params:\n      input: transformed_data\n      table: internal_records\n    output: write_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_009.py::test_parses_and_type_checks": true,
+        "test_wf_gaia_009.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_009.py::test_transform_before_store": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1057,
+      "output_tokens": 193
+    }
+  ],
+  "complexity": 2,
+  "domain": "general_ai",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1057,
+  "total_output_tokens": 193
+}

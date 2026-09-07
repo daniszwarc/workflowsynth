@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_web_003",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.5788761246949434,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: structured_content_extraction\nsteps:\n  - id: fetch_page_content\n    op: fetch_api\n    params:\n      endpoint: \"/api/scraper/page\"\n    output: raw_page_content\n\n  - id: validate_page_content\n    op: validate_schema\n    params:\n      input: raw_page_content\n      schema: page_content_schema\n    output: validated_page_content\n\n  - id: extract_structured_fields\n    op: extract_field\n    params:\n      input: validated_page_content\n      fields:\n        - title\n        - author\n        - date_published\n        - summary\n    output: structured_fields\n\n  - id: format_structured_output\n    op: format_output\n    params:\n      input: structured_fields\n      format: json\n    output: final_output\n\n  - id: log_extraction\n    op: log_audit\n    params:\n      input: final_output\n      action: \"structured_content_extracted\"\n\n  - id: end_workflow\n    op: terminate_workflow\n    params:\n      status: success\n      output: final_output",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_003.py::test_parses_and_type_checks": true,
+        "test_wf_web_003.py::test_passes_taint_analysis": true,
+        "test_wf_web_003.py::test_has_scrape_and_extract": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1033,
+      "output_tokens": 272
+    }
+  ],
+  "complexity": 1,
+  "domain": "web_automation",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1033,
+  "total_output_tokens": 272
+}

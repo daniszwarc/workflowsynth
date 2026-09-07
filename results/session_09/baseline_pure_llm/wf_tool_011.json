@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_tool_011",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 4,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 6.765759082511067,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: primary-secondary-api-enrichment\nsteps:\n  - id: fetch_primary_record\n    op: api_call\n    params:\n      method: GET\n      url: \"{{primary_api_base_url}}/records/{{record_id}}\"\n      headers:\n        Authorization: \"Bearer {{primary_api_token}}\"\n    output: primary_record\n\n  - id: fetch_enrichment_data\n    op: api_call\n    params:\n      method: GET\n      url: \"{{secondary_api_base_url}}/enrich/{{record_id}}\"\n      headers:\n        Authorization: \"Bearer {{secondary_api_token}}\"\n    output: enrichment_data\n\n  - id: merge_records\n    op: merge\n    params:\n      base: \"{{primary_record}}\"\n      overlay: \"{{enrichment_data}}\"\n      strategy: deep_merge\n      conflict_resolution: overlay_wins\n    output: merged_record\n\n  - id: validate_enriched_result\n    op: validate\n    params:\n      data: \"{{merged_record}}\"\n      schema: enriched_record_schema\n      rules:\n        - all_required_fields_present\n        - field_types_match\n        - no_null_enrichment_fields\n    output: validation_result",
+      "dsl_type_errors": [
+        "Step 'fetch_primary_record': unknown op 'api_call'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'fetch_enrichment_data': unknown op 'api_call'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'merge_records': unknown op 'merge'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_enriched_result': unknown op 'validate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "api_integration",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 221,
+  "total_output_tokens": 313
+}

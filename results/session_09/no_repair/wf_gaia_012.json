@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_gaia_012",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 4,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "type_error",
+  "synthesis_time_seconds": 0.004541999660432339,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: three_source_aggregation_with_error_handling\nsteps:\n  - id: fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_one/data\"\n    output: raw_source_one\n\n  - id: handle_error_source_one\n    op: handle_error\n    params:\n      step: fetch_source_one\n      fallback_value: []\n    output: safe_source_one\n\n  - id: validate_source_one\n    op: validate_schema\n    params:\n      input: safe_source_one\n      schema: source_record_schema\n    output: validated_source_one\n\n  - id: fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_two/data\"\n    output: raw_source_two\n\n  - id: handle_error_source_two\n    op: handle_error\n    params:\n      step: fetch_source_two\n      fallback_value: []\n    output: safe_source_two\n\n  - id: validate_source_two\n    op: validate_schema\n    params:\n      input: safe_source_two\n      schema: source_record_schema\n    output: validated_source_two\n\n  - id: fetch_source_three\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_three/data\"\n    output: raw_source_three\n\n  - id: handle_error_source_three\n    op: handle_error\n    params:\n      step: fetch_source_three\n      fallback_value: []\n    output: safe_source_three\n\n  - id: validate_source_three\n    op: validate_schema\n    params:\n      input: safe_source_three\n      schema: source_record_schema\n    output: validated_source_three\n\n  - id: merge_one_two\n    op: merge_datasets\n    params:\n      input: validated_source_one\n      secondary: validated_source_two\n      strategy: union\n    output: merged_one_two\n\n  - id: merge_all_sources\n    op: merge_datasets\n    params:\n      input: merged_one_two\n      secondary: validated_source_three\n      strategy: union\n    output: merged_all\n\n  - id: aggregate_consolidated\n    op: aggregate_data\n    params:\n      input: merged_all\n      group_by: entity_id\n      operations:\n        - type: collect\n    output: aggregated_view\n\n  - id: handle_aggregation_error\n    op: handle_error\n    params:\n      step: aggregate_consolidated\n      fallback_value: null\n    output: safe_aggregated_view\n\n  - id: check_aggregation_result\n    op: apply_rule\n    params:\n      rule: \"safe_aggregated_view != null\"\n      input_ref: safe_aggregated_view\n    output: aggregation_ok\n\n  - id: route_on_aggregation\n    op: route_to_step\n    params:\n      condition: \"aggregation_ok == true\"\n      true_step: format_consolidated_output\n      false_step: fallback_format_merged\n\n  - id: format_consolidated_output\n    op: format_output\n    params:\n      input: safe_aggregated_view\n      format: json\n    output: final_output\n\n  - id: fallback_format_merged\n    op: format_output\n    params:\n      input: merged_all\n      format: json\n    output: final_output_fallback\n\n  - id: log_result\n    op: log_audit\n    params:\n      input: final_output\n      message: \"Three-source aggregation completed\"\n\n  - id: terminate\n    op: terminate_workflow\n    params:\n      status: completed",
+      "dsl_type_errors": [
+        "Step 'validate_source_one': op 'validate_schema' requires input of type 'records' but 'safe_source_one' has type 'none'. Make sure the step producing 'safe_source_one' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database).",
+        "Step 'validate_source_two': op 'validate_schema' requires input of type 'records' but 'safe_source_two' has type 'none'. Make sure the step producing 'safe_source_two' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database).",
+        "Step 'validate_source_three': op 'validate_schema' requires input of type 'records' but 'safe_source_three' has type 'none'. Make sure the step producing 'safe_source_three' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database).",
+        "Step 'format_consolidated_output': op 'format_output' requires input of type 'records' but 'safe_aggregated_view' has type 'none'. Make sure the step producing 'safe_aggregated_view' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1084,
+      "output_tokens": 908
+    }
+  ],
+  "complexity": 3,
+  "domain": "general_ai",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1084,
+  "total_output_tokens": 908
+}
