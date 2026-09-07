@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_aw_001",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 38.20625074952841,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_aw_001\nsteps:\n  - id: receive_login_form\n    op: validate_schema\n    params:\n      schema:\n        required_fields:\n          - email\n          - password\n      source: login_form_submission\n    output: login_payload\n\n  - id: rate_limit_login\n    op: apply_rule\n    params:\n      rule: rate_limit\n      key: \"{{login_payload.client_ip}}\"\n      max_attempts: 10\n      window_seconds: 60\n      on_exceed: reject\n    output: login_rate_check\n\n  - id: handle_login_rate_exceeded\n    op: handle_error\n    params:\n      condition: \"{{login_rate_check.exceeded}}\"\n      error_message: \"Too many login attempts. Try again later.\"\n      action: terminate\n\n  - id: authenticate_credentials\n    op: authenticate_user\n    params:\n      table: users\n      email: \"{{login_payload.email}}\"\n      password: \"{{login_payload.password}}\"\n      method: credential_check\n    output: auth_result\n\n  - id: handle_auth_failure\n    op: handle_error\n    params:\n      condition: \"{{auth_result.authenticated == false}}\"\n      error_message: \"Invalid email or password.\"\n      action: terminate\n\n  - id: determine_2fa_method\n    op: read_database\n    params:\n      table: users\n      query:\n        user_id: \"{{auth_result.user_id}}\"\n      fields:\n        - two_factor_method\n    output: user_2fa_config\n\n  - id: route_2fa_method\n    op: route_to_step\n    params:\n      conditions:\n        - when: \"{{user_2fa_config.two_factor_method == 'email'}}\"\n          goto: generate_email_code\n        - when: \"{{user_2fa_config.two_factor_method == 'totp'}}\"\n          goto: validate_2fa_code\n\n  - id: generate_email_code\n    op: call_subworkflow\n    params:\n      action: generate_verification_code\n      length: 6\n      expiry_seconds: 300\n      user_id: \"{{auth_result.user_id}}\"\n    output: email_code_result\n\n  - id: send_email_code\n    op: notify_user\n    params:\n      channel: email\n      recipient: \"{{login_payload.email}}\"\n      subject: \"Your verification code\"\n      body: \"Your login verification code is: {{email_code_result.code}}. It expires in 5 minutes.\"\n    output: email_send_result\n\n  - id: validate_2fa_code\n    op: authenticate_user\n    params:\n      method: two_factor\n      two_factor_method: \"{{user_2fa_config.two_factor_method}}\"\n      user_id: \"{{auth_result.user_id}}\"\n      code: \"{{login_payload.two_factor_code}}\"\n    output: tfa_result\n\n  - id: rate_limit_2fa\n    op: apply_rule\n    params:\n      rule: rate_limit\n      key: \"{{auth_result.session_token}}\"\n      max_attempts: 5\n      window_seconds: 300\n      on_exceed: reject\n    output: tfa_rate_check\n\n  - id: handle_2fa_rate_exceeded\n    op: handle_error\n    params:\n      condition: \"{{tfa_rate_check.exceeded}}\"\n      error_message: \"Too many 2FA attempts. Try again in 5 minutes.\"\n      action: terminate\n\n  - id: handle_2fa_failure\n    op: handle_error\n    params:\n      condition: \"{{tfa_result.verified == false}}\"\n      error_message: \"Invalid verification code.\"\n      action: terminate\n\n  - id: create_session\n    op: write_database\n    params:\n      table: sessions\n      record:\n        user_id: \"{{auth_result.user_id}}\"\n        created_at: \"{{now}}\"\n        expires_at: \"{{now + 28800}}\"\n        ip_address: \"{{login_payload.client_ip}}\"\n      cookie:\n        httpOnly: true\n        secure: true\n        max_age: 28800\n    output: session_record\n\n  - id: log_login_event\n    op: log_audit\n    params:\n      event: user_login\n      user_id: \"{{auth_result.user_id}}\"\n      ip_address: \"{{login_payload.client_ip}}\"\n      two_factor_method: \"{{user_2fa_config.two_factor_method}}\"\n      session_id: \"{{session_record.session_id}}\"\n      timestamp: \"{{now}}\"\n      compliance: SOX\n    output: audit_entry\n\n  - id: return_session\n    op: format_output\n    params:\n      status: success\n      message: \"Login successful.\"\n      session_id: \"{{session_record.session_id}}\"\n      expires_in: 28800\n    output: login_response",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_aw_001.py::test_parses_and_type_checks": false,
+        "test_wf_aw_001.py::test_passes_taint_analysis": true,
+        "test_wf_aw_001.py::test_applies_rate_limiting": true,
+        "test_wf_aw_001.py::test_validates_2fa": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "enterprise_knowledge",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

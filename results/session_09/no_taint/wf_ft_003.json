@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_ft_003",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.5674787499010563,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: food_label_ai_scanning\nsteps:\n  - id: receive_image\n    op: fetch_api\n    params:\n      endpoint: \"/api/camera/capture\"\n    output: raw_image\n\n  - id: validate_image\n    op: validate_schema\n    params:\n      input: raw_image\n      schema: image_format_and_size_schema\n    output: validated_image\n\n  - id: authenticate_user\n    op: authenticate_user\n    params:\n      role: \"app_user\"\n    output: auth_result\n\n  - id: send_to_vision_api\n    op: call_webhook\n    params:\n      input: validated_image\n      url: \"https://ai-vision.example.com/extract-nutrition\"\n      method: \"POST\"\n    output: raw_vision_response\n\n  - id: extract_nutrition_fields\n    op: extract_field\n    params:\n      input: raw_vision_response\n      fields:\n        - \"calories\"\n        - \"fat\"\n        - \"carbohydrates\"\n        - \"protein\"\n        - \"serving_size\"\n    output: extracted_nutrition\n\n  - id: validate_nutrition_ranges\n    op: validate_schema\n    params:\n      input: extracted_nutrition\n      schema: plausible_nutrition_schema\n    output: validated_nutrition\n\n  - id: check_implausible_values\n    op: apply_rule\n    params:\n      rule: \"validated_nutrition.calories > 2000 or validated_nutrition.fat > 200 or validated_nutrition.carbohydrates > 500 or validated_nutrition.protein > 300\"\n    output: implausible_flag\n\n  - id: route_implausible\n    op: route_to_step\n    params:\n      condition: \"implausible_flag == true\"\n      true_step: flag_for_review\n      false_step: format_food_entry\n\n  - id: flag_for_review\n    op: log_audit\n    params:\n      input: validated_nutrition\n      event: \"implausible_nutrition_values_flagged\"\n      severity: \"warning\"\n    output: audit_logged\n\n  - id: notify_review_needed\n    op: notify_user\n    params:\n      input: validated_nutrition\n      message: \"Some extracted values appear implausible and have been flagged. Please review carefully before confirming.\"\n      channel: \"in_app\"\n    output: review_notification_sent\n\n  - id: format_food_entry\n    op: format_output\n    params:\n      input: validated_nutrition\n      template: food_log_entry_form\n      format: \"json\"\n    output: prepopulated_form\n\n  - id: send_form_to_user\n    op: notify_user\n    params:\n      input: prepopulated_form\n      message: \"Your food label has been scanned. Please review and confirm the details below.\"\n      channel: \"in_app\"\n    output: user_notified\n\n  - id: wait_for_user_confirmation\n    op: wait_for_condition\n    params:\n      condition: \"user_confirmed == true\"\n      timeout_seconds: 300\n    output: user_confirmation\n\n  - id: route_on_confirmation\n    op: route_to_step\n    params:\n      condition: \"user_confirmation.confirmed == true\"\n      true_step: write_food_log\n      false_step: terminate_cancelled\n\n  - id: write_food_log\n    op: write_database\n    params:\n      input: prepopulated_form\n      table: food_log_entries\n    output: write_result\n\n  - id: log_food_entry_audit\n    op: log_audit\n    params:\n      input: prepopulated_form\n      event: \"food_log_entry_created\"\n      severity: \"info\"\n    output: entry_audit_logged\n\n  - id: terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Food label scanned and log entry created successfully.\"\n\n  - id: terminate_cancelled\n    op: terminate_workflow\n    params:\n      status: \"cancelled\"\n      message: \"User did not confirm the food log entry.\"\n\n  - id: handle_vision_error\n    op: handle_error\n    params:\n      step: send_to_vision_api\n      fallback_step: retry_vision_call\n\n  - id: retry_vision_call\n    op: retry_step\n    params:\n      step: send_to_vision_api\n      max_retries: 3\n      backoff_seconds: 5\n    output: retry_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_003.py::test_parses_and_type_checks": true,
+        "test_wf_ft_003.py::test_passes_taint_analysis": true,
+        "test_wf_ft_003.py::test_validates_plausibility": true,
+        "test_wf_ft_003.py::test_uses_ai_vision": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1142,
+      "output_tokens": 1110
+    }
+  ],
+  "complexity": 3,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1142,
+  "total_output_tokens": 1110
+}

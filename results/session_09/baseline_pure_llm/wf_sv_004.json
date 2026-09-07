@@ -1,0 +1,42 @@
+{
+  "task_id": "wf_sv_004",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 7,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 10.792096291668713,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: rag-draft-response-generation\nsteps:\n  - id: receive_classified_email\n    op: receive_email_context\n    params:\n      source: classification_pipeline\n      include_thread_history: true\n      include_original_body: true\n    output: email_context\n\n  - id: search_customer_support_docs\n    op: knowledge_base_search\n    params:\n      knowledge_base: customerSupportDocs\n      query: \"{{email_context.original_body}}\"\n      max_results: 10\n      description: \"Search for relevant club information and support documentation\"\n    output: support_docs_results\n\n  - id: search_club_documents\n    op: knowledge_base_search\n    params:\n      knowledge_base: clubDocuments\n      query: \"{{email_context.original_body}}\"\n      max_results: 10\n      description: \"Search for schedules and official club documents\"\n    output: club_docs_results\n\n  - id: search_previous_email_responses\n    op: knowledge_base_search\n    params:\n      knowledge_base: previousEmailResponses\n      query: \"{{email_context.original_body}}\"\n      max_results: 10\n      description: \"Search for similar past email exchanges and responses\"\n    output: previous_responses_results\n\n  - id: detect_language_and_season\n    op: language_and_season_detection\n    params:\n      email_body: \"{{email_context.original_body}}\"\n      supported_languages:\n        - EN\n        - FR\n        - ES\n      season_mapping_rules:\n        apply: true\n        current_date: \"{{today}}\"\n    output: language_and_season\n\n  - id: draft_response\n    op: ai_generate_response\n    params:\n      email_context: \"{{email_context}}\"\n      knowledge_sources:\n        customer_support_docs: \"{{support_docs_results}}\"\n        club_documents: \"{{club_docs_results}}\"\n        previous_email_responses: \"{{previous_responses_results}}\"\n      response_language: \"{{language_and_season.detected_language}}\"\n      season_context: \"{{language_and_season.season_mapping}}\"\n      current_date: \"{{today}}\"\n      constraints:\n        - \"Use ONLY information retrieved from the three knowledge bases\"\n        - \"Never include links or information not found in the knowledge bases\"\n        - \"Apply date awareness: determine if activities are current or past based on today's date\"\n        - \"Response language must match detected customer language: {{language_and_season.detected_language}}\"\n    output: generated_response\n\n  - id: create_gmail_draft\n    op: gmail_createDraft\n    params:\n      to: \"{{email_context.sender_email}}\"\n      subject: \"Re: {{email_context.subject}}\"\n      body: \"{{generated_response.text}}\"\n      thread_id: \"{{email_context.thread_id}}\"\n      in_reply_to: \"{{email_context.message_id}}\"\n      language: \"{{language_and_season.detected_language}}\"\n      send: false\n    output: draft_confirmation",
+      "dsl_type_errors": [
+        "Step 'receive_classified_email': unknown op 'receive_email_context'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'search_customer_support_docs': unknown op 'knowledge_base_search'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'search_club_documents': unknown op 'knowledge_base_search'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'search_previous_email_responses': unknown op 'knowledge_base_search'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'detect_language_and_season': unknown op 'language_and_season_detection'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'draft_response': unknown op 'ai_generate_response'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'create_gmail_draft': unknown op 'gmail_createDraft'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 4,
+  "domain": "community_sports",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 392,
+  "total_output_tokens": 765
+}

@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_ft_005",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 42.14206949993968,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_ft_005\nsteps:\n  - id: receive_question\n    op: extract_field\n    params:\n      source: chat_interface\n      field: user_question\n    output: user_question\n\n  - id: authenticate_user\n    op: authenticate_user\n    params:\n      token: \"{{event.auth_token}}\"\n    output: user_context\n\n  - id: fetch_nutrition_log\n    op: read_database\n    params:\n      table: nutrition_logs\n      filter:\n        user_id: \"{{user_context.user_id}}\"\n        date_range: last_7_days\n    output: nutrition_log\n\n  - id: fetch_fitness_profile\n    op: read_database\n    params:\n      table: fitness_profiles\n      filter:\n        user_id: \"{{user_context.user_id}}\"\n    output: fitness_profile\n\n  - id: merge_nutrition_context\n    op: merge_datasets\n    params:\n      sources:\n        - \"{{nutrition_log}}\"\n        - \"{{fitness_profile}}\"\n    output: nutrition_context\n\n  - id: apply_medical_disclaimer\n    op: apply_rule\n    params:\n      rule: no_medical_advice\n      system_prompt: \"You are a nutrition coach. Ground all responses in the user's actual nutrition data. Never provide medical advice or diagnose conditions. If the user asks for medical guidance, advise them to consult a healthcare professional.\"\n    output: system_instructions\n\n  - id: call_ai_coach\n    op: fetch_api\n    params:\n      endpoint: ai_chat_model\n      method: POST\n      body:\n        system_prompt: \"{{system_instructions}}\"\n        user_message: \"{{user_question}}\"\n        context: \"{{nutrition_context}}\"\n      timeout: 30\n    output: ai_response\n\n  - id: format_response\n    op: format_output\n    params:\n      template: \"{{ai_response.message}}\"\n      include_disclaimer: true\n      disclaimer_text: \"This is nutritional guidance only, not medical advice.\"\n    output: formatted_response\n\n  - id: return_response\n    op: notify_user\n    params:\n      channel: chat_interface\n      user_id: \"{{user_context.user_id}}\"\n      message: \"{{formatted_response}}\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_005.py::test_parses_and_type_checks": false,
+        "test_wf_ft_005.py::test_passes_taint_analysis": true,
+        "test_wf_ft_005.py::test_reads_user_context": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

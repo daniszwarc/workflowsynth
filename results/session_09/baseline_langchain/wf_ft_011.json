@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_ft_011",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 23.8355062501505,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_ft_011\nsteps:\n  - id: receive_photo_upload\n    op: extract_field\n    params:\n      source: trigger.payload\n      fields:\n        - photo_data\n        - upload_date\n        - notes\n    output: upload_info\n\n  - id: authenticate_user\n    op: authenticate_user\n    params:\n      token: \"{{trigger.auth_token}}\"\n    output: auth_result\n\n  - id: validate_image_format\n    op: validate_schema\n    params:\n      input: \"{{upload_info.photo_data}}\"\n      rules:\n        format:\n          allowed:\n            - \"image/jpeg\"\n            - \"image/png\"\n            - \"image/webp\"\n        max_size_mb: 10\n    output: validation_result\n\n  - id: handle_validation_failure\n    op: handle_error\n    params:\n      condition: \"{{validation_result.valid == false}}\"\n      error_message: \"Invalid image format or size exceeds 10MB limit.\"\n      action: terminate\n\n  - id: encrypt_photo\n    op: encrypt_field\n    params:\n      input: \"{{upload_info.photo_data}}\"\n      algorithm: \"AES-256\"\n    output: encrypted_photo\n\n  - id: store_photo\n    op: write_database\n    params:\n      table: progress_photos\n      record:\n        user_id: \"{{auth_result.user_id}}\"\n        photo_blob: \"{{encrypted_photo}}\"\n        upload_date: \"{{upload_info.upload_date}}\"\n        notes: \"{{upload_info.notes}}\"\n        visibility: private\n      access_control:\n        owner_only: true\n    output: stored_record\n\n  - id: log_upload_event\n    op: log_audit\n    params:\n      action: \"progress_photo_uploaded\"\n      user_id: \"{{auth_result.user_id}}\"\n      resource_id: \"{{stored_record.record_id}}\"\n      details:\n        visibility: private\n        timestamp: \"{{upload_info.upload_date}}\"\n\n  - id: notify_user_success\n    op: notify_user\n    params:\n      user_id: \"{{auth_result.user_id}}\"\n      channel: in_app\n      message: \"Your progress photo has been uploaded successfully and stored privately.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_011.py::test_parses_and_type_checks": false,
+        "test_wf_ft_011.py::test_passes_taint_analysis": true,
+        "test_wf_ft_011.py::test_validates_image": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "health_fitness",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

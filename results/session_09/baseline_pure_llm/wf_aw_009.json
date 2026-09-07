@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_aw_009",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 5,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 10.859162875451148,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: embeddings-backfill-cron\nsteps:\n  - id: scheduled_trigger\n    op: cron/schedule\n    params:\n      interval: \"*/15 * * * *\"\n      container: wiki\n      description: \"Trigger embeddings backfill every 15 minutes\"\n\n  - id: read_records_missing_embeddings\n    op: database/query\n    params:\n      description: \"Read all rules, articles, and SEDs that have no corresponding embedding record\"\n      queries:\n        - name: rules\n          sql: >\n            SELECT r.* FROM rules r\n            LEFT JOIN embeddings e ON e.record_type = 'rule' AND e.record_id = r.id\n            WHERE e.id IS NULL\n        - name: articles\n          sql: >\n            SELECT a.* FROM articles a\n            LEFT JOIN embeddings e ON e.record_type = 'article' AND e.record_id = a.id\n            WHERE e.id IS NULL\n        - name: seds\n          sql: >\n            SELECT s.* FROM seds s\n            LEFT JOIN embeddings e ON e.record_type = 'sed' AND e.record_id = s.id\n            WHERE e.id IS NULL\n    output: records_without_embeddings\n\n  - id: filter_missing_embeddings\n    op: data/filter\n    params:\n      input: \"{{ records_without_embeddings }}\"\n      condition: \"record has no corresponding embedding\"\n      merge_collections:\n        - source: rules\n          record_type: rule\n        - source: articles\n          record_type: article\n        - source: seds\n          record_type: sed\n    output: filtered_records\n\n  - id: generate_and_store_embeddings\n    op: loop/for_each\n    params:\n      collection: \"{{ filtered_records }}\"\n      concurrency: 5\n      retry:\n        enabled: true\n        max_attempts: 3\n        backoff_seconds: 30\n        description: \"Handle AI cold start gracefully (2-3 min startup possible)\"\n      timeout_seconds: 300\n      steps:\n        - id: generate_embedding\n          op: ai/generate_embedding\n          params:\n            text: \"{{ item.content }}\"\n            record_id: \"{{ item.id }}\"\n            record_type: \"{{ item.record_type }}\"\n          output: embedding_vector\n\n        - id: store_embedding\n          op: database/insert\n          params:\n            table: embeddings\n            data:\n              record_id: \"{{ item.id }}\"\n              record_type: \"{{ item.record_type }}\"\n              embedding: \"{{ embedding_vector }}\"\n              created_at: \"{{ now() }}\"\n\n  - id: log_results\n    op: logging/write\n    params:\n      destination: /var/log/backfill.log\n      level: info\n      message: >\n        Embeddings backfill completed.\n        Total records processed: {{ filtered_records | length }}.\n        Rules: {{ records_without_embeddings.rules | length }},\n        Articles: {{ records_without_embeddings.articles | length }},\n        SEDs: {{ records_without_embeddings.seds | length }}.\n        Timestamp: {{ now() }}",
+      "dsl_type_errors": [
+        "Step 'scheduled_trigger': unknown op 'cron/schedule'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'read_records_missing_embeddings': unknown op 'database/query'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'filter_missing_embeddings': unknown op 'data/filter'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'generate_and_store_embeddings': unknown op 'loop/for_each'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'log_results': unknown op 'logging/write'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "enterprise_knowledge",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 272,
+  "total_output_tokens": 782
+}

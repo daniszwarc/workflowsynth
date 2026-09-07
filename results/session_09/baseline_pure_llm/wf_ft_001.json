@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_ft_001",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 5,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 8.56050637550652,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: user_registration_and_profile_setup\nsteps:\n  - id: receive_registration_form\n    op: receive_form_submission\n    params:\n      source: mobile_app\n      required_fields:\n        - email\n        - password\n        - first_name\n        - last_name\n        - fitness_goals\n        - current_weight\n        - height\n        - dietary_preferences\n    output: registration_data\n\n  - id: create_auth_account\n    op: create_authentication_account\n    params:\n      provider: backend_as_a_service\n      email: \"{{ registration_data.email }}\"\n      password: \"{{ registration_data.password }}\"\n    output: auth_account\n\n  - id: validate_profile_data\n    op: validate_fields\n    params:\n      fields:\n        first_name: \"{{ registration_data.first_name }}\"\n        last_name: \"{{ registration_data.last_name }}\"\n        fitness_goals: \"{{ registration_data.fitness_goals }}\"\n        current_weight: \"{{ registration_data.current_weight }}\"\n        height: \"{{ registration_data.height }}\"\n        dietary_preferences: \"{{ registration_data.dietary_preferences }}\"\n      validation_rules:\n        current_weight:\n          type: number\n          min: 1\n        height:\n          type: number\n          min: 1\n        fitness_goals:\n          type: list\n          allowed_values:\n            - weight_loss\n            - muscle_gain\n            - endurance\n            - flexibility\n            - general_fitness\n        dietary_preferences:\n          type: list\n          allowed_values:\n            - omnivore\n            - vegetarian\n            - vegan\n            - keto\n            - paleo\n            - gluten_free\n            - no_preference\n    output: validated_profile_data\n\n  - id: create_user_profile\n    op: create_record\n    params:\n      collection: user_profiles\n      depends_on: create_auth_account\n      data:\n        auth_uid: \"{{ auth_account.uid }}\"\n        email: \"{{ registration_data.email }}\"\n        first_name: \"{{ validated_profile_data.first_name }}\"\n        last_name: \"{{ validated_profile_data.last_name }}\"\n        fitness_goals: \"{{ validated_profile_data.fitness_goals }}\"\n        current_weight: \"{{ validated_profile_data.current_weight }}\"\n        height: \"{{ validated_profile_data.height }}\"\n        dietary_preferences: \"{{ validated_profile_data.dietary_preferences }}\"\n        created_at: \"{{ now() }}\"\n    output: user_profile\n\n  - id: log_registration_event\n    op: log_event\n    params:\n      event_type: user_registration\n      details:\n        auth_uid: \"{{ auth_account.uid }}\"\n        profile_id: \"{{ user_profile.id }}\"\n        email: \"{{ registration_data.email }}\"\n        timestamp: \"{{ now() }}\"\n    output: registration_log_entry",
+      "dsl_type_errors": [
+        "Step 'receive_registration_form': unknown op 'receive_form_submission'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'create_auth_account': unknown op 'create_authentication_account'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_profile_data': unknown op 'validate_fields'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'create_user_profile': unknown op 'create_record'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'log_registration_event': unknown op 'log_event'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "health_fitness",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 262,
+  "total_output_tokens": 737
+}

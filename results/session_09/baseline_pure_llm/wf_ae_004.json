@@ -1,0 +1,42 @@
+{
+  "task_id": "wf_ae_004",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 7,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 11.40580074954778,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: cms_article_publication\n\nsteps:\n  - id: retrieve_csrf_token\n    op: http_request\n    params:\n      method: GET\n      url: \"{{cms_base_url}}/session/token\"\n      headers:\n        Accept: text/plain\n    output: csrf_token\n\n  - id: authenticate_publisher\n    op: http_request\n    params:\n      method: POST\n      url: \"{{cms_base_url}}/user/login\"\n      headers:\n        Content-Type: application/json\n        X-CSRF-Token: \"{{csrf_token}}\"\n      body:\n        name: \"{{publisher_username}}\"\n        pass: \"{{publisher_password}}\"\n    output: auth_session\n\n  - id: validate_article_payload\n    op: schema_validate\n    params:\n      schema: cms_article_schema\n      payload: \"{{article_payload}}\"\n    output: validation_result\n\n  - id: create_paragraph_blocks\n    op: loop\n    params:\n      items: \"{{article_payload.content_sections}}\"\n      step:\n        id: create_paragraph_block\n        op: http_request\n        params:\n          method: POST\n          url: \"{{cms_base_url}}/jsonapi/paragraph/content_block\"\n          headers:\n            Content-Type: application/vnd.api+json\n            Accept: application/vnd.api+json\n            X-CSRF-Token: \"{{csrf_token}}\"\n          body:\n            data:\n              type: paragraph--content_block\n              attributes:\n                field_body:\n                  value: \"{{item.html}}\"\n                  format: full_html\n    output: paragraph_blocks\n\n  - id: create_article_node\n    op: http_request\n    params:\n      method: POST\n      url: \"{{cms_base_url}}/jsonapi/node/article\"\n      headers:\n        Content-Type: application/vnd.api+json\n        Accept: application/vnd.api+json\n        X-CSRF-Token: \"{{csrf_token}}\"\n      body:\n        data:\n          type: node--article\n          attributes:\n            title: \"{{article_payload.title}}\"\n            field_summary: \"{{article_payload.summary}}\"\n            field_category: \"{{article_payload.category}}\"\n            field_tags: \"{{article_payload.tags}}\"\n            field_author: \"{{article_payload.author}}\"\n            status: true\n          relationships:\n            field_content_blocks:\n              data: \"{{paragraph_blocks | map(block => { type: 'paragraph--content_block', id: block.data.id })}}\"\n    output: article_node\n\n  - id: validate_article_creation\n    op: assertion\n    params:\n      conditions:\n        - field: \"{{article_node.data.id}}\"\n          operator: is_not_null\n        - field: \"{{article_node.data.attributes.status}}\"\n          operator: equals\n          value: true\n    output: creation_validated\n\n  - id: write_audit_log\n    op: audit_log\n    params:\n      event: article_published\n      details:\n        title: \"{{article_node.data.attributes.title}}\"\n        node_id: \"{{article_node.data.id}}\"\n        timestamp: \"{{now_iso8601}}\"\n        published_by: \"{{publisher_username}}\"\n    output: audit_entry",
+      "dsl_type_errors": [
+        "Step 'retrieve_csrf_token': unknown op 'http_request'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'authenticate_publisher': unknown op 'http_request'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_article_payload': unknown op 'schema_validate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'create_paragraph_blocks': unknown op 'loop'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'create_article_node': unknown op 'http_request'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_article_creation': unknown op 'assertion'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'write_audit_log': unknown op 'audit_log'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "publishing",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 333,
+  "total_output_tokens": 837
+}

@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_pb_007",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 6,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 10.811107167042792,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: duplicate_ticket_merge\n\nsteps:\n  - id: receive_merge_request\n    op: receive_event\n    params:\n      event_type: merge_action_clicked\n      required_fields:\n        - duplicate_ticket_id\n        - target_ticket_id\n    output:\n      duplicate_ticket_id: \"{{ event.duplicate_ticket_id }}\"\n      target_ticket_id: \"{{ event.target_ticket_id }}\"\n\n  - id: read_duplicate_ticket\n    op: database_read\n    params:\n      table: tickets\n      record_id: \"{{ duplicate_ticket_id }}\"\n    output:\n      duplicate_ticket: \"{{ result }}\"\n\n  - id: read_target_ticket\n    op: database_read\n    params:\n      table: tickets\n      record_id: \"{{ target_ticket_id }}\"\n    output:\n      target_ticket: \"{{ result }}\"\n\n  - id: extract_message_content\n    op: extract_field\n    params:\n      source: \"{{ duplicate_ticket }}\"\n      field: message_content\n    output:\n      extracted_message: \"{{ result }}\"\n\n  - id: append_message_to_target\n    op: database_update\n    params:\n      table: ticket_messages\n      action: append\n      target_ticket_id: \"{{ target_ticket_id }}\"\n      message:\n        content: \"{{ extracted_message }}\"\n        source_ticket_id: \"{{ duplicate_ticket_id }}\"\n        appended_at: \"{{ now() }}\"\n    output:\n      updated_message_log: \"{{ result }}\"\n\n  - id: update_target_resumen\n    op: ai_summarize\n    params:\n      existing_resumen: \"{{ target_ticket.resumen }}\"\n      new_message: \"{{ extracted_message }}\"\n      instruction: \"Update the resumen only if the new message adds meaningful information. Return the original resumen unchanged if no new information is present.\"\n    output:\n      updated_resumen: \"{{ result }}\"\n\n  - id: save_updated_resumen\n    op: database_update\n    params:\n      table: tickets\n      record_id: \"{{ target_ticket_id }}\"\n      fields:\n        resumen: \"{{ updated_resumen }}\"\n\n  - id: archive_duplicate_ticket\n    op: database_update\n    params:\n      table: tickets\n      record_id: \"{{ duplicate_ticket_id }}\"\n      fields:\n        visible: false\n        status: archived\n        archived_at: \"{{ now() }}\"\n        archived_reason: \"merged_into_{{ target_ticket_id }}\"\n\n  - id: log_merge_action\n    op: database_insert\n    params:\n      table: ticket_history\n      record:\n        ticket_id: \"{{ target_ticket_id }}\"\n        action: ticket_merge\n        details:\n          merged_from_ticket_id: \"{{ duplicate_ticket_id }}\"\n          message_appended: true\n          resumen_updated: \"{{ updated_resumen != target_ticket.resumen }}\"\n        performed_at: \"{{ now() }}\"\n        performed_by: \"{{ event.actor_id }}\"",
+      "dsl_type_errors": [
+        "Step at index 0 (id='receive_merge_request'): 'output' must be a string if present.",
+        "Step at index 1 (id='read_duplicate_ticket'): 'output' must be a string if present.",
+        "Step at index 2 (id='read_target_ticket'): 'output' must be a string if present.",
+        "Step at index 3 (id='extract_message_content'): 'output' must be a string if present.",
+        "Step at index 4 (id='append_message_to_target'): 'output' must be a string if present.",
+        "Step at index 5 (id='update_target_resumen'): 'output' must be a string if present."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "insurance_brokerage",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 285,
+  "total_output_tokens": 770
+}

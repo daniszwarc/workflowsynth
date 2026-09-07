@@ -1,0 +1,54 @@
+{
+  "task_id": "wf_lf_003",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 14.729841208085418,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: tts_playback_sentence_highlighting\nsteps:\n  - id: step_receive_cleaned_text\n    op: fetch_api\n    params:\n      endpoint: \"/api/tts/cleaned-text-sections\"\n    output: raw_text_sections\n\n  - id: step_validate_text_sections\n    op: validate_schema\n    params:\n      input: raw_text_sections\n      schema: cleaned_text_sections_schema\n    output: validated_text_sections\n\n  - id: step_split_sentences\n    op: transform_json\n    params:\n      input: validated_text_sections\n      mapping:\n        operation: split_sections_into_sentences\n        delimiter: sentence_boundary\n    output: sentence_list\n\n  - id: step_fetch_user_config\n    op: fetch_api\n    params:\n      endpoint: \"/api/tts/user-config\"\n    output: raw_user_config\n\n  - id: step_validate_user_config\n    op: validate_schema\n    params:\n      input: raw_user_config\n      schema: tts_config_schema\n    output: user_config\n\n  - id: step_extract_rate\n    op: extract_field\n    params:\n      input: user_config\n      field: rate\n    output: tts_rate\n\n  - id: step_extract_pitch\n    op: extract_field\n    params:\n      input: user_config\n      field: pitch\n    output: tts_pitch\n\n  - id: step_extract_pause_duration\n    op: extract_field\n    params:\n      input: user_config\n      field: inter_section_pause_ms\n    output: pause_duration\n\n  - id: step_create_utterances\n    op: transform_json\n    params:\n      input: sentence_list\n      mapping:\n        operation: create_speech_synthesis_utterances\n        lang: fr-FR\n        rate: tts_rate\n        pitch: tts_pitch\n    output: utterance_objects\n\n  - id: step_apply_pause_rule\n    op: apply_rule\n    params:\n      rule: insert_inter_section_pause\n      pause_ms: pause_duration\n      input_utterances: utterance_objects\n    output: utterance_queue_with_pauses\n\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      role: tts_listener\n    output: auth_result\n\n  - id: step_loop_utterances\n    op: loop_records\n    params:\n      input: utterance_queue_with_pauses\n      step: step_process_single_utterance\n    output: playback_results\n\n  - id: step_process_single_utterance\n    op: parallel_execute\n    params:\n      steps:\n        - step_queue_utterance\n        - step_highlight_sentence\n\n  - id: step_queue_utterance\n    op: call_webhook\n    params:\n      input: utterance_queue_with_pauses\n      url: \"local://web-speech-api/speak\"\n      method: POST\n      payload_fields:\n        - utterance\n        - lang\n        - rate\n        - pitch\n    output: speech_event\n\n  - id: step_wait_utterance_start\n    op: wait_for_condition\n    params:\n      condition: \"speech_event.status == 'utterance_start'\"\n      timeout_ms: 10000\n    output: utterance_start_event\n\n  - id: step_highlight_sentence\n    op: transform_json\n    params:\n      input: utterance_start_event\n      mapping:\n        operation: generate_highlight_command\n        action: highlight_and_scroll\n        target: current_sentence_element\n    output: highlight_command\n\n  - id: step_send_highlight_to_ui\n    op: send_to_queue\n    params:\n      input: highlight_command\n      queue: ui_highlight_events\n    output: highlight_dispatch_result\n\n  - id: step_handle_tts_error\n    op: handle_error\n    params:\n      monitored_steps:\n        - step_queue_utterance\n        - step_wait_utterance_start\n      on_error: step_retry_utterance\n    output: error_context\n\n  - id: step_retry_utterance\n    op: retry_step\n    params:\n      step: step_queue_utterance\n      max_retries: 2\n      backoff_ms: 500\n    output: retry_result\n\n  - id: step_log_playback\n    op: log_audit\n    params:\n      input: playback_results\n      event: tts_playback_completed\n      details:\n        lang: fr-FR\n        total_sentences: sentence_count\n    output: audit_log_entry\n\n  - id: step_notify_playback_complete\n    op: notify_user\n    params:\n      input: audit_log_entry\n      message: \"TTS playback of French text completed successfully.\"\n      channel: in_app\n    output: notification_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: success\n      message: \"TTS playback with sentence highlighting finished.\"",
+      "dsl_type_errors": [
+        "Step 'step_highlight_sentence': op 'transform_json' requires input of type 'records' but 'utterance_start_event' has type 'none'. Make sure the step producing 'utterance_start_event' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1163,
+      "output_tokens": 1248
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: tts_playback_sentence_highlighting\nsteps:\n  - id: step_receive_cleaned_text\n    op: fetch_api\n    params:\n      endpoint: \"/api/tts/cleaned-text-sections\"\n    output: raw_text_sections\n\n  - id: step_validate_text_sections\n    op: validate_schema\n    params:\n      input: raw_text_sections\n      schema: cleaned_text_sections_schema\n    output: validated_text_sections\n\n  - id: step_split_sentences\n    op: transform_json\n    params:\n      input: validated_text_sections\n      mapping:\n        operation: split_sections_into_sentences\n        delimiter: sentence_boundary\n    output: sentence_list\n\n  - id: step_fetch_user_config\n    op: fetch_api\n    params:\n      endpoint: \"/api/tts/user-config\"\n    output: raw_user_config\n\n  - id: step_validate_user_config\n    op: validate_schema\n    params:\n      input: raw_user_config\n      schema: tts_config_schema\n    output: user_config\n\n  - id: step_extract_rate\n    op: extract_field\n    params:\n      input: user_config\n      field: rate\n    output: tts_rate\n\n  - id: step_extract_pitch\n    op: extract_field\n    params:\n      input: user_config\n      field: pitch\n    output: tts_pitch\n\n  - id: step_extract_pause_duration\n    op: extract_field\n    params:\n      input: user_config\n      field: inter_section_pause_ms\n    output: pause_duration\n\n  - id: step_create_utterances\n    op: transform_json\n    params:\n      input: sentence_list\n      mapping:\n        operation: create_speech_synthesis_utterances\n        lang: fr-FR\n        rate: tts_rate\n        pitch: tts_pitch\n    output: utterance_objects\n\n  - id: step_apply_pause_rule\n    op: apply_rule\n    params:\n      rule: insert_inter_section_pause\n      pause_ms: pause_duration\n      input_utterances: utterance_objects\n    output: utterance_queue_with_pauses\n\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      role: tts_listener\n    output: auth_result\n\n  - id: step_loop_utterances\n    op: loop_records\n    params:\n      input: utterance_queue_with_pauses\n      step: step_process_single_utterance\n    output: playback_results\n\n  - id: step_process_single_utterance\n    op: parallel_execute\n    params:\n      steps:\n        - step_queue_utterance\n        - step_highlight_flow\n\n  - id: step_queue_utterance\n    op: call_webhook\n    params:\n      input: utterance_queue_with_pauses\n      url: \"local://web-speech-api/speak\"\n      method: POST\n      payload_fields:\n        - utterance\n        - lang\n        - rate\n        - pitch\n    output: speech_event\n\n  - id: step_fetch_utterance_status\n    op: fetch_api\n    params:\n      endpoint: \"/api/tts/utterance-start-event\"\n    output: raw_utterance_start_event\n\n  - id: step_validate_utterance_event\n    op: validate_schema\n    params:\n      input: raw_utterance_start_event\n      schema: utterance_start_event_schema\n    output: utterance_start_event\n\n  - id: step_wait_utterance_start\n    op: wait_for_condition\n    params:\n      condition: \"utterance_start_event.status == 'utterance_start'\"\n      timeout_ms: 10000\n    output: utterance_ready\n\n  - id: step_highlight_flow\n    op: transform_json\n    params:\n      input: utterance_start_event\n      mapping:\n        operation: generate_highlight_command\n        action: highlight_and_scroll\n        target: current_sentence_element\n    output: highlight_command\n\n  - id: step_send_highlight_to_ui\n    op: send_to_queue\n    params:\n      input: highlight_command\n      queue: ui_highlight_events\n    output: highlight_dispatch_result\n\n  - id: step_handle_tts_error\n    op: handle_error\n    params:\n      monitored_steps:\n        - step_queue_utterance\n        - step_fetch_utterance_status\n      on_error: step_retry_utterance\n    output: error_context\n\n  - id: step_retry_utterance\n    op: retry_step\n    params:\n      step: step_queue_utterance\n      max_retries: 2\n      backoff_ms: 500\n    output: retry_result\n\n  - id: step_log_playback\n    op: log_audit\n    params:\n      input: playback_results\n      event: tts_playback_completed\n      details:\n        lang: fr-FR\n        total_sentences: sentence_count\n    output: audit_log_entry\n\n  - id: step_notify_playback_complete\n    op: notify_user\n    params:\n      input: audit_log_entry\n      message: \"TTS playback of French text completed successfully.\"\n      channel: in_app\n    output: notification_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: success\n      message: \"TTS playback with sentence highlighting finished.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_lf_003.py::test_parses_and_type_checks": true,
+        "test_wf_lf_003.py::test_passes_taint_analysis": true,
+        "test_wf_lf_003.py::test_splits_into_sentences": true,
+        "test_wf_lf_003.py::test_applies_pause_rule": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 2563,
+      "output_tokens": 1360
+    }
+  ],
+  "complexity": 3,
+  "domain": "personal_tool",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 3726,
+  "total_output_tokens": 2608
+}

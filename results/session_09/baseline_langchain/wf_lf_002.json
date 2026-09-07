@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_lf_002",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 25.970202833414078,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_lf_002\nsteps:\n  - id: receive_text\n    op: extract_field\n    params:\n      source: request.body\n      field: text_section\n    output: extracted_text\n\n  - id: validate_cors_origin\n    op: apply_rule\n    params:\n      rule: \"request.headers.origin == 'https://<username>.github.io'\"\n      on_fail: reject\n      allowed_origin: \"https://<username>.github.io\"\n    output: origin_valid\n\n  - id: reject_invalid_origin\n    op: handle_error\n    params:\n      condition: \"origin_valid == false\"\n      error_code: 403\n      message: \"CORS origin not allowed\"\n\n  - id: forward_to_llm\n    op: fetch_api\n    params:\n      method: POST\n      url: \"https://llm-api.example.com/v1/chat/completions\"\n      headers:\n        Content-Type: application/json\n        Authorization: \"Bearer ${LLM_API_KEY}\"\n      body:\n        model: \"gpt-4o-mini\"\n        messages:\n          - role: system\n            content: >\n              Tu es un assistant de nettoyage de texte fran\u00e7ais.\n              Supprime les num\u00e9ros de page, les en-t\u00eates courants,\n              les notes de bas de page et les artefacts de c\u00e9sure.\n              Retourne uniquement le texte nettoy\u00e9, sans commentaire.\n          - role: user\n            content: \"${extracted_text}\"\n      timeout_seconds: 30\n    output: llm_raw_response\n\n  - id: extract_cleaned_text\n    op: extract_field\n    params:\n      source: llm_raw_response\n      field: \"choices[0].message.content\"\n    output: cleaned_text\n\n  - id: format_response\n    op: format_output\n    params:\n      content_type: application/json\n      template:\n        cleaned_text: \"${cleaned_text}\"\n    output: api_response\n\n  - id: log_request\n    op: log_audit\n    params:\n      action: llm_text_cleanup\n      detail: \"Proxied text cleanup request; no user data retained\"\n      retain_data: false\n\n  - id: return_cleaned_text\n    op: call_webhook\n    params:\n      direction: response\n      status: 200\n      body: \"${api_response}\"\n      headers:\n        Access-Control-Allow-Origin: \"https://<username>.github.io\"\n        Content-Type: application/json\n    output: final_response",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_lf_002.py::test_parses_and_type_checks": false,
+        "test_wf_lf_002.py::test_passes_taint_analysis": true,
+        "test_wf_lf_002.py::test_validates_cors_origin": false
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "personal_tool",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

@@ -1,0 +1,42 @@
+{
+  "task_id": "wf_ft_004",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 7,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 9.95953620877117,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: workout_session_logging\n\nsteps:\n  - id: receive_session_data\n    op: receive_input\n    params:\n      source: user_submission\n      required_fields:\n        - user_id\n        - session_date\n        - exercises:\n            - exercise_name\n            - sets\n            - reps\n            - weight\n    output: raw_session_data\n\n  - id: validate_session_data\n    op: validate\n    params:\n      input: raw_session_data\n      rules:\n        - field: user_id\n          check: not_empty\n        - field: session_date\n          check: valid_date\n        - field: exercises\n          check: non_empty_list\n        - field: exercises.*.sets\n          check: positive_integer\n        - field: exercises.*.reps\n          check: positive_integer\n        - field: exercises.*.weight\n          check: non_negative_number\n    output: validated_session_data\n\n  - id: lookup_training_plan\n    op: database_query\n    params:\n      collection: training_plans\n      filters:\n        user_id: validated_session_data.user_id\n        status: active\n    output: active_training_plan\n\n  - id: verify_active_plan_exists\n    op: assert\n    params:\n      condition: active_training_plan != null\n      error_message: \"User does not have an active training plan. Session must be linked to an active plan.\"\n\n  - id: compute_exercise_volumes\n    op: transform\n    params:\n      input: validated_session_data.exercises\n      for_each_exercise:\n        compute:\n          volume:\n            expression: \"exercise.sets * exercise.reps * exercise.weight\"\n    output: exercises_with_volume\n\n  - id: store_workout_session\n    op: database_insert\n    params:\n      collection: workout_sessions\n      record:\n        user_id: validated_session_data.user_id\n        session_date: validated_session_data.session_date\n        training_plan_id: active_training_plan.id\n        exercises: exercises_with_volume\n        total_volume:\n          expression: \"sum(exercises_with_volume.*.volume)\"\n        created_at: now()\n    output: stored_session\n\n  - id: update_training_plan_progress\n    op: database_update\n    params:\n      collection: training_plans\n      filter:\n        id: active_training_plan.id\n      update:\n        increment:\n          completed_sessions: 1\n        append:\n          session_history:\n            session_id: stored_session.id\n            session_date: validated_session_data.session_date\n            total_volume: stored_session.total_volume\n        set:\n          last_session_date: validated_session_data.session_date\n    output: updated_training_plan",
+      "dsl_type_errors": [
+        "Step 'receive_session_data': unknown op 'receive_input'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_session_data': unknown op 'validate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'lookup_training_plan': unknown op 'database_query'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'verify_active_plan_exists': unknown op 'assert'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'compute_exercise_volumes': unknown op 'transform'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'store_workout_session': unknown op 'database_insert'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'update_training_plan_progress': unknown op 'database_update'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 251,
+  "total_output_tokens": 685
+}

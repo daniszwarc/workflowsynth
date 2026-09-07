@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_pb_004",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 4,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 14.074360250495374,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: daily_ticket_summary_email\ntrigger:\n  type: schedule\n  cron: \"0 11 * * 1-5\"\n  timezone: America/New_York\nsteps:\n  - id: fetch_open_tickets\n    op: database.query\n    params:\n      source: tickets_db\n      query: >\n        SELECT t.ticket_id, t.subject, t.status, t.priority, t.producer_id,\n               t.created_at, t.last_status_update,\n               p.full_name AS producer_name, p.email AS producer_email\n        FROM tickets t\n        JOIN producers p ON t.producer_id = p.producer_id\n        WHERE t.status != 'cerrado'\n          AND t.archived = false\n          AND t.visible = true\n        ORDER BY t.producer_id, t.created_at\n    output: open_tickets\n\n  - id: group_and_calculate_stale\n    op: transform.group_and_enrich\n    params:\n      input: \"{{ open_tickets }}\"\n      group_by: producer_id\n      computed_fields:\n        - name: hours_since_update\n          expression: \"ROUND((NOW() - last_status_update) / 3600, 1)\"\n        - name: is_stalled\n          expression: \"hours_since_update > 4\"\n      include_producer_metadata:\n        - producer_name\n        - producer_email\n    output: grouped_by_producer\n\n  - id: format_summary_emails\n    op: template.render\n    params:\n      input: \"{{ grouped_by_producer }}\"\n      iterate_over: producers\n      template: |\n        Subject: Daily Open Tickets Summary - {{ current_date }}\n\n        Hello {{ producer.producer_name }},\n\n        Here is your daily summary of open tickets as of {{ current_time }}:\n\n        Total Open Tickets: {{ producer.tickets | length }}\n        Stalled Tickets (>4 hrs): {{ producer.tickets | selectattr('is_stalled', 'true') | list | length }}\n\n        {% for ticket in producer.tickets %}\n        --------------------------------------------------\n        {% if ticket.is_stalled %}\u26a0\ufe0f WARNING: STALLED ({{ ticket.hours_since_update }} hrs without update){% endif %}\n        Ticket ID:    {{ ticket.ticket_id }}\n        Subject:      {{ ticket.subject }}\n        Status:       {{ ticket.status }}\n        Priority:     {{ ticket.priority }}\n        Created:      {{ ticket.created_at }}\n        Last Updated: {{ ticket.last_status_update }}\n        Hours Since Update: {{ ticket.hours_since_update }}\n        --------------------------------------------------\n        {% endfor %}\n\n        Please review and update any stalled tickets at your earliest convenience.\n\n        \u2014 Ticket Management System\n      output_fields:\n        - to\n        - subject\n        - body\n    output: formatted_emails\n\n  - id: send_summary_emails\n    op: email.send_batch\n    params:\n      input: \"{{ formatted_emails }}\"\n      iterate_over: emails\n      email:\n        to: \"{{ email.producer_email }}\"\n        subject: \"{{ email.subject }}\"\n        body: \"{{ email.body }}\"\n        content_type: text/plain\n        from: noreply@brokerage-tickets.com\n        reply_to: support@brokerage-tickets.com\n      retry:\n        max_attempts: 3\n        backoff_seconds: 30\n    output: send_results",
+      "dsl_type_errors": [
+        "Step 'fetch_open_tickets': unknown op 'database.query'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'group_and_calculate_stale': unknown op 'transform.group_and_enrich'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'format_summary_emails': unknown op 'template.render'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'send_summary_emails': unknown op 'email.send_batch'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "insurance_brokerage",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 264,
+  "total_output_tokens": 840
+}

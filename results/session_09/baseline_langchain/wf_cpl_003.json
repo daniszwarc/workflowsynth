@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_cpl_003",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 31.57379345782101,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_cpl_003\nsteps:\n  - id: receive_game_form\n    op: validate_schema\n    params:\n      schema:\n        required_fields:\n          - home_team\n          - away_team\n          - league\n          - date\n          - time\n          - venue\n    output: game_form_data\n\n  - id: authenticate_admin\n    op: authenticate_user\n    params:\n      role: admin\n    output: admin_auth\n\n  - id: validate_home_team_league\n    op: read_database\n    params:\n      table: teams\n      filter:\n        team_id: \"{{game_form_data.home_team}}\"\n        league_id: \"{{game_form_data.league}}\"\n    output: home_team_record\n\n  - id: validate_away_team_league\n    op: read_database\n    params:\n      table: teams\n      filter:\n        team_id: \"{{game_form_data.away_team}}\"\n        league_id: \"{{game_form_data.league}}\"\n    output: away_team_record\n\n  - id: validate_teams_in_league\n    op: apply_rule\n    params:\n      rule: \"home_team_record != null AND away_team_record != null\"\n      on_fail: terminate\n      message: \"Both teams must belong to the specified league\"\n    output: league_validation\n\n  - id: check_home_team_conflict\n    op: read_database\n    params:\n      table: games\n      filter:\n        team_id: \"{{game_form_data.home_team}}\"\n        date: \"{{game_form_data.date}}\"\n    output: home_conflict_records\n\n  - id: check_away_team_conflict\n    op: read_database\n    params:\n      table: games\n      filter:\n        team_id: \"{{game_form_data.away_team}}\"\n        date: \"{{game_form_data.date}}\"\n    output: away_conflict_records\n\n  - id: apply_conflict_rule\n    op: apply_rule\n    params:\n      rule: \"home_conflict_records.count == 0 AND away_conflict_records.count == 0\"\n      on_fail: terminate\n      message: \"A team cannot play two games on the same date\"\n    output: conflict_check\n\n  - id: insert_game_record\n    op: write_database\n    params:\n      table: games\n      operation: insert\n      data:\n        home_team: \"{{game_form_data.home_team}}\"\n        away_team: \"{{game_form_data.away_team}}\"\n        league: \"{{game_form_data.league}}\"\n        date: \"{{game_form_data.date}}\"\n        time: \"{{game_form_data.time}}\"\n        venue: \"{{game_form_data.venue}}\"\n        status: scheduled\n    output: game_record",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_cpl_003.py::test_parses_and_type_checks": false,
+        "test_wf_cpl_003.py::test_passes_taint_analysis": true,
+        "test_wf_cpl_003.py::test_checks_scheduling_conflict": true,
+        "test_wf_cpl_003.py::test_applies_conflict_rule": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "sports_media",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

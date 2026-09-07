@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_ft_007",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 40.73566525056958,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_ft_007\nsteps:\n  - id: authenticate\n    op: authenticate_user\n    params:\n      token: \"{{request.auth_token}}\"\n    output: user_context\n\n  - id: read_fitness_profile\n    op: read_database\n    params:\n      table: user_fitness_profiles\n      filter:\n        user_id: \"{{user_context.user_id}}\"\n      fields:\n        - fitness_goals\n        - fitness_level\n        - available_equipment\n        - health_restrictions\n    output: fitness_profile\n\n  - id: read_workout_history\n    op: read_database\n    params:\n      table: workout_history\n      filter:\n        user_id: \"{{user_context.user_id}}\"\n      sort_by: completed_at\n      sort_order: desc\n      limit: 30\n    output: recent_workouts\n\n  - id: merge_user_data\n    op: merge_datasets\n    params:\n      sources:\n        - \"{{fitness_profile}}\"\n        - \"{{recent_workouts}}\"\n    output: merged_user_data\n\n  - id: generate_weekly_plan\n    op: fetch_api\n    params:\n      url: \"{{env.AI_MODEL_ENDPOINT}}/generate-workout-plan\"\n      method: POST\n      body:\n        fitness_goals: \"{{merged_user_data.fitness_goals}}\"\n        fitness_level: \"{{merged_user_data.fitness_level}}\"\n        available_equipment: \"{{merged_user_data.available_equipment}}\"\n        health_restrictions: \"{{merged_user_data.health_restrictions}}\"\n        recent_workouts: \"{{merged_user_data.recent_workouts}}\"\n        plan_duration: weekly\n      headers:\n        Authorization: \"Bearer {{env.AI_SERVICE_API_KEY}}\"\n    output: generated_plan\n\n  - id: validate_plan_schema\n    op: validate_schema\n    params:\n      data: \"{{generated_plan}}\"\n      schema: weekly_workout_plan_schema\n    output: schema_validation_result\n\n  - id: validate_safety\n    op: apply_rule\n    params:\n      rule: workout_safety_check\n      conditions:\n        - field: \"{{generated_plan.max_intensity}}\"\n          operator: lte\n          value: \"{{fitness_profile.fitness_level}}\"\n        - field: \"{{generated_plan.total_weekly_volume}}\"\n          operator: lte\n          value: \"{{fitness_profile.max_weekly_volume}}\"\n        - field: \"{{generated_plan.exercises}}\"\n          operator: not_in\n          value: \"{{fitness_profile.health_restrictions}}\"\n    output: safety_validation_result\n\n  - id: handle_validation_failure\n    op: handle_error\n    params:\n      condition: \"{{safety_validation_result.passed == false}}\"\n      message: \"Generated plan exceeds user capability range or violates safety constraints.\"\n      action: terminate\n\n  - id: deactivate_previous_plan\n    op: write_database\n    params:\n      table: training_plans\n      operation: update\n      filter:\n        user_id: \"{{user_context.user_id}}\"\n        status: active\n      values:\n        status: inactive\n        deactivated_at: \"{{now}}\"\n    output: deactivation_result\n\n  - id: store_new_plan\n    op: write_database\n    params:\n      table: training_plans\n      operation: insert\n      values:\n        user_id: \"{{user_context.user_id}}\"\n        plan_data: \"{{generated_plan}}\"\n        status: active\n        created_at: \"{{now}}\"\n        valid_from: \"{{now}}\"\n        valid_until: \"{{now + 7d}}\"\n    output: stored_plan\n\n  - id: log_plan_creation\n    op: log_audit\n    params:\n      action: weekly_plan_generated\n      user_id: \"{{user_context.user_id}}\"\n      details:\n        plan_id: \"{{stored_plan.id}}\"\n        replaced_plan: \"{{deactivation_result.updated_ids}}\"\n\n  - id: notify_user_plan_ready\n    op: notify_user\n    params:\n      user_id: \"{{user_context.user_id}}\"\n      channel: push\n      title: \"Your New Weekly Workout Plan is Ready!\"\n      message: \"Your personalized weekly workout plan has been generated and is now active. Open the app to view your schedule.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_007.py::test_parses_and_type_checks": false,
+        "test_wf_ft_007.py::test_passes_taint_analysis": true,
+        "test_wf_ft_007.py::test_validates_plan_safety": true,
+        "test_wf_ft_007.py::test_reads_history": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

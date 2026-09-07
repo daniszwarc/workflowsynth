@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_aw_007",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 22.340917624533176,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_aw_007\nsteps:\n  - id: receive_query\n    op: extract_field\n    params:\n      source: request.body\n      field: query\n    output: sed_query\n\n  - id: authenticate\n    op: authenticate_user\n    params:\n      token: request.headers.authorization\n    output: auth_context\n\n  - id: generate_embedding\n    op: fetch_api\n    params:\n      method: POST\n      url: /api/embeddings\n      body:\n        text: \"{{sed_query}}\"\n    output: query_embedding\n\n  - id: search_seds\n    op: read_database\n    params:\n      table: seds\n      match_column: embedding\n      match_value: \"{{query_embedding.vector}}\"\n      method: vector_similarity\n      limit: 20\n    output: matching_seds\n\n  - id: stream_per_sed_summaries\n    op: loop_records\n    params:\n      collection: \"{{matching_seds}}\"\n      steps:\n        - id: build_sed_summary\n          op: transform_json\n          params:\n            template:\n              type: sed_result\n              sed_id: \"{{item.id}}\"\n              title: \"{{item.title}}\"\n              summary: \"{{item.summary}}\"\n              score: \"{{item.similarity_score}}\"\n          output: sed_chunk\n        - id: stream_sed_chunk\n          op: format_output\n          params:\n            format: ndjson\n            stream: true\n            data: \"{{sed_chunk}}\"\n\n  - id: generate_synthesis\n    op: fetch_api\n    params:\n      method: POST\n      url: /api/llm/synthesize\n      body:\n        query: \"{{sed_query}}\"\n        results: \"{{matching_seds}}\"\n      stream: true\n    output: synthesis_result\n\n  - id: stream_synthesis\n    op: format_output\n    params:\n      format: ndjson\n      stream: true\n      data:\n        type: synthesis\n        content: \"{{synthesis_result.text}}\"\n\n  - id: log_search\n    op: log_audit\n    params:\n      action: sed_search\n      user: \"{{auth_context.user_id}}\"\n      query: \"{{sed_query}}\"\n      result_count: \"{{matching_seds.length}}\"\n      timestamp: \"{{now}}\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_aw_007.py::test_parses_and_type_checks": false,
+        "test_wf_aw_007.py::test_passes_taint_analysis": true,
+        "test_wf_aw_007.py::test_generates_synthesis": false
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 4,
+  "domain": "enterprise_knowledge",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

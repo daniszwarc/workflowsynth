@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_ae_005",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 21.871467042714357,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: wf_ae_005\nsteps:\n  - id: move_pdf_to_completados\n    op: call_webhook\n    params:\n      service: google_drive\n      action: move_file\n      source_folder: pending\n      destination_folder: completados\n      file_type: pdf\n      file_id: \"{{trigger.article.source_pdf_id}}\"\n    output: move_result\n\n  - id: read_category_spreadsheet\n    op: read_database\n    params:\n      source: google_sheets\n      spreadsheet_id: \"{{config.category_spreadsheet_id}}\"\n      sheet_name: \"{{trigger.article.category}}\"\n    output: spreadsheet_data\n\n  - id: update_article_row\n    op: write_database\n    params:\n      target: google_sheets\n      spreadsheet_id: \"{{config.category_spreadsheet_id}}\"\n      sheet_name: \"{{trigger.article.category}}\"\n      row_id: \"{{trigger.article.row_id}}\"\n      updates:\n        status: published\n        published_date: \"{{trigger.article.published_date}}\"\n        file_location: completados\n    output: update_result\n\n  - id: write_audit_log\n    op: log_audit\n    params:\n      action: post_publication_file_management\n      article_id: \"{{trigger.article.id}}\"\n      details:\n        file_moved: true\n        source_folder: pending\n        destination_folder: completados\n        spreadsheet_updated: true\n        status_set: published\n      timestamp: \"{{system.current_timestamp}}\"\n    output: audit_entry",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ae_005.py::test_parses_and_type_checks": false,
+        "test_wf_ae_005.py::test_passes_taint_analysis": true,
+        "test_wf_ae_005.py::test_moves_file": true,
+        "test_wf_ae_005.py::test_updates_registry": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "publishing",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

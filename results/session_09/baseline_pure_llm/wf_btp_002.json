@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_btp_002",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 6,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 10.339519667439163,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: document_indexing_pipeline\n\nsteps:\n  - id: receive_document\n    op: receive_event\n    params:\n      event_type: document_uploaded\n      extract_fields:\n        - document_id\n        - document_text\n        - metadata\n    output: raw_document\n\n  - id: authenticate_indexing_service\n    op: authenticate\n    params:\n      service: indexing_service\n      method: service_account\n      scopes:\n        - vector_db:write\n        - embedding_model:invoke\n    output: auth_token\n\n  - id: validate_anonymization\n    op: validate\n    params:\n      input: raw_document.document_text\n      checks:\n        - type: pii_detection\n          scanner: pii_scanner\n          categories:\n            - names\n            - emails\n            - phone_numbers\n            - addresses\n            - social_security_numbers\n            - credit_card_numbers\n          action_on_fail: reject\n      error_message: \"Document contains PII and must be anonymized before indexing.\"\n    output: anonymization_validation_result\n\n  - id: chunk_document\n    op: split_text\n    params:\n      input: raw_document.document_text\n      strategy: overlapping_window\n      chunk_size: 512\n      chunk_overlap: 64\n      metadata:\n        source_document_id: raw_document.document_id\n        document_metadata: raw_document.metadata\n    output: document_chunks\n\n  - id: generate_embeddings\n    op: embed\n    params:\n      auth_token: auth_token\n      model: embedding_model\n      inputs: document_chunks\n      batch_size: 64\n      input_field: chunk_text\n    output: chunk_embeddings\n\n  - id: store_embeddings\n    op: vector_db_upsert\n    params:\n      auth_token: auth_token\n      database: vector_store\n      collection: document_embeddings\n      records: chunk_embeddings\n      fields:\n        vector: embedding\n        payload:\n          chunk_text: chunk_text\n          source_document_id: raw_document.document_id\n          chunk_index: chunk_index\n          document_metadata: raw_document.metadata\n      dedup_key:\n        - source_document_id\n        - chunk_index\n    output: upsert_result",
+      "dsl_type_errors": [
+        "Step 'receive_document': unknown op 'receive_event'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'authenticate_indexing_service': unknown op 'authenticate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_anonymization': unknown op 'validate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'chunk_document': unknown op 'split_text'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'generate_embeddings': unknown op 'embed'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'store_embeddings': unknown op 'vector_db_upsert'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "clinical_ai",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 275,
+  "total_output_tokens": 563
+}

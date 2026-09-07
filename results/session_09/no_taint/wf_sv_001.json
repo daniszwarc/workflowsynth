@@ -1,0 +1,59 @@
+{
+  "task_id": "wf_sv_001",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 9.695161749608815,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: website_content_ingestion_pipeline\nsteps:\n  - id: authenticate_admin\n    op: authenticate_user\n    params:\n      role: \"club_administrator\"\n    output: auth_result\n\n  - id: fetch_sitemap\n    op: fetch_api\n    params:\n      endpoint: \"/sitemap.xml\"\n      format: \"xml\"\n    output: raw_sitemap\n\n  - id: validate_sitemap\n    op: validate_schema\n    params:\n      input: raw_sitemap\n      schema: sitemap_xml_schema\n    output: validated_sitemap\n\n  - id: extract_urls\n    op: transform_json\n    params:\n      input: validated_sitemap\n      mapping: \"parse_xml_extract_urls\"\n      description: \"Parse XML sitemap and extract all page URLs into a list\"\n    output: url_list\n\n  - id: loop_url_batches\n    op: loop_records\n    params:\n      input: url_list\n      batch_size: 10\n      iterate_step: process_batch\n    output: batch_results\n\n  - id: process_batch\n    op: call_subworkflow\n    params:\n      workflow_id: process_page_batch\n      input: current_batch\n    output: batch_output\n\n  - id: wait_between_batches\n    op: wait_for_condition\n    params:\n      condition: \"delay_seconds\"\n      delay_seconds: 5\n      description: \"Wait 5 seconds between batches to rate limit\"\n\n  - id: handle_batch_errors\n    op: handle_error\n    params:\n      step: process_batch\n      action: skip\n      description: \"Skip pages that return errors without halting pipeline\"\n\n  - id: fetch_page_content\n    op: fetch_api\n    params:\n      endpoint: \"{{current_url}}\"\n      format: \"html\"\n    output: raw_page_html\n\n  - id: handle_fetch_errors\n    op: handle_error\n    params:\n      step: fetch_page_content\n      action: skip\n      description: \"Skip individual pages that fail to fetch\"\n\n  - id: extract_main_content\n    op: extract_field\n    params:\n      input: raw_page_html\n      field: \".main_content\"\n      selector_type: \"css\"\n    output: extracted_content\n\n  - id: validate_extracted_content\n    op: validate_schema\n    params:\n      input: extracted_content\n      schema: page_content_schema\n    output: validated_content\n\n  - id: transform_for_vector_store\n    op: transform_json\n    params:\n      input: validated_content\n      mapping:\n        content: \"{{validated_content.text}}\"\n        source_url: \"{{current_url}}\"\n        namespace: \"knowledge_base\"\n        generate_embeddings: true\n    output: vector_payload\n\n  - id: send_to_vector_store\n    op: call_webhook\n    params:\n      input: vector_payload\n      url: \"https://vectorstore.internal/api/upsert\"\n      method: \"POST\"\n      namespace: \"knowledge_base\"\n    output: vector_store_response\n\n  - id: log_ingestion_audit\n    op: log_audit\n    params:\n      input: vector_store_response\n      action: \"knowledge_base_refresh\"\n      description: \"Content ingestion completed for club website\"\n    output: audit_entry\n\n  - id: notify_admin\n    op: notify_user\n    params:\n      input: audit_entry\n      recipient: \"club_administrator\"\n      channel: \"email\"\n      message: \"Knowledge base refresh completed successfully.\"\n    output: notification_result\n\n  - id: terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      summary: \"Website content ingestion pipeline finished\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_sv_001.py::test_parses_and_type_checks": true,
+        "test_wf_sv_001.py::test_passes_taint_analysis": false,
+        "test_wf_sv_001.py::test_has_sitemap_fetch": true,
+        "test_wf_sv_001.py::test_extracts_content": true,
+        "test_wf_sv_001.py::test_indexes_to_store": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1151,
+      "output_tokens": 924
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: website_content_ingestion_pipeline\nsteps:\n  - id: authenticate_admin\n    op: authenticate_user\n    params:\n      role: \"club_administrator\"\n    output: auth_result\n\n  - id: fetch_sitemap\n    op: fetch_api\n    params:\n      endpoint: \"/sitemap.xml\"\n      format: \"xml\"\n    output: raw_sitemap\n\n  - id: validate_sitemap\n    op: validate_schema\n    params:\n      input: raw_sitemap\n      schema: sitemap_xml_schema\n    output: validated_sitemap\n\n  - id: extract_urls\n    op: transform_json\n    params:\n      input: validated_sitemap\n      mapping: \"parse_xml_extract_urls\"\n    output: url_list\n\n  - id: loop_url_batches\n    op: loop_records\n    params:\n      input: url_list\n      batch_size: 10\n      iterate_step: process_single_batch\n    output: all_batch_results\n\n  - id: process_single_batch\n    op: call_subworkflow\n    params:\n      workflow_id: process_page_batch\n      input: url_list\n    output: batch_output\n\n  - id: handle_batch_errors\n    op: handle_error\n    params:\n      step: process_single_batch\n      action: skip\n\n  - id: wait_between_batches\n    op: wait_for_condition\n    params:\n      condition: \"delay_seconds >= 5\"\n      delay_seconds: 5\n\n  - id: fetch_page_content\n    op: fetch_api\n    params:\n      endpoint: \"{{current_url}}\"\n    output: raw_page_html\n\n  - id: handle_fetch_errors\n    op: handle_error\n    params:\n      step: fetch_page_content\n      action: skip\n\n  - id: extract_main_content\n    op: extract_field\n    params:\n      input: raw_page_html\n      field: \".main_content\"\n      selector_type: \"css\"\n    output: extracted_content\n\n  - id: validate_extracted_content\n    op: validate_schema\n    params:\n      input: extracted_content\n      schema: page_content_schema\n    output: validated_content\n\n  - id: transform_for_vector_store\n    op: transform_json\n    params:\n      input: validated_content\n      mapping:\n        content: \"{{validated_content.text}}\"\n        source_url: \"{{current_url}}\"\n        namespace: \"knowledge_base\"\n        generate_embeddings: true\n    output: vector_payload\n\n  - id: send_to_vector_store\n    op: send_to_queue\n    params:\n      input: vector_payload\n      queue: \"vector_store_knowledge_base\"\n      namespace: \"knowledge_base\"\n    output: vector_store_response\n\n  - id: log_ingestion_audit\n    op: log_audit\n    params:\n      input: vector_payload\n      action: \"knowledge_base_refresh\"\n\n  - id: notify_admin\n    op: notify_user\n    params:\n      input: vector_payload\n      recipient: \"club_administrator\"\n      channel: \"email\"\n      message: \"Knowledge base refresh completed successfully.\"\n    output: notification_result\n\n  - id: terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_sv_001.py::test_parses_and_type_checks": true,
+        "test_wf_sv_001.py::test_passes_taint_analysis": true,
+        "test_wf_sv_001.py::test_has_sitemap_fetch": true,
+        "test_wf_sv_001.py::test_extracts_content": true,
+        "test_wf_sv_001.py::test_indexes_to_store": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 2178,
+      "output_tokens": 821
+    }
+  ],
+  "complexity": 2,
+  "domain": "community_sports",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 3329,
+  "total_output_tokens": 1745
+}

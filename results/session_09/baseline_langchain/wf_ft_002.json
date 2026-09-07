@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_ft_002",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 28.93768858257681,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_ft_002\nsteps:\n  - id: receive_food_entry\n    op: extract_field\n    params:\n      source: trigger.payload\n      fields:\n        - item_name\n        - meal_type\n        - calories\n        - protein_g\n        - carbs_g\n        - fat_g\n        - user_id\n        - timestamp\n    output: food_entry\n\n  - id: validate_entry\n    op: validate_schema\n    params:\n      input: food_entry\n      schema:\n        required:\n          - item_name\n          - meal_type\n          - calories\n          - protein_g\n          - carbs_g\n          - fat_g\n          - user_id\n          - timestamp\n        properties:\n          item_name:\n            type: string\n          meal_type:\n            type: string\n            enum:\n              - breakfast\n              - lunch\n              - dinner\n              - snack\n          calories:\n            type: number\n            minimum: 0\n          protein_g:\n            type: number\n            minimum: 0\n          carbs_g:\n            type: number\n            minimum: 0\n          fat_g:\n            type: number\n            minimum: 0\n          user_id:\n            type: string\n          timestamp:\n            type: string\n            format: date-time\n    output: validation_result\n\n  - id: lookup_food_item\n    op: read_database\n    params:\n      collection: nutrition_database\n      query:\n        item_name: food_entry.item_name\n    output: nutrition_record\n\n  - id: enrich_entry\n    op: transform_json\n    params:\n      input: food_entry\n      mapping:\n        item_name: food_entry.item_name\n        meal_type: food_entry.meal_type\n        calories: nutrition_record.calories || food_entry.calories\n        protein_g: nutrition_record.protein_g || food_entry.protein_g\n        carbs_g: nutrition_record.carbs_g || food_entry.carbs_g\n        fat_g: nutrition_record.fat_g || food_entry.fat_g\n        user_id: food_entry.user_id\n        timestamp: food_entry.timestamp\n    output: enriched_entry\n\n  - id: store_log_entry\n    op: write_database\n    params:\n      collection: nutrition_logs\n      document:\n        user_id: enriched_entry.user_id\n        date: enriched_entry.timestamp\n        item_name: enriched_entry.item_name\n        meal_type: enriched_entry.meal_type\n        calories: enriched_entry.calories\n        protein_g: enriched_entry.protein_g\n        carbs_g: enriched_entry.carbs_g\n        fat_g: enriched_entry.fat_g\n        timestamp: enriched_entry.timestamp\n    output: stored_entry\n\n  - id: fetch_daily_entries\n    op: read_database\n    params:\n      collection: nutrition_logs\n      query:\n        user_id: enriched_entry.user_id\n        date: enriched_entry.timestamp\n    output: daily_entries\n\n  - id: compute_daily_totals\n    op: aggregate_data\n    params:\n      input: daily_entries\n      operations:\n        - field: calories\n          function: sum\n        - field: protein_g\n          function: sum\n        - field: carbs_g\n          function: sum\n        - field: fat_g\n          function: sum\n    output: daily_totals\n\n  - id: store_daily_totals\n    op: write_database\n    params:\n      collection: daily_nutrition_totals\n      document:\n        user_id: enriched_entry.user_id\n        date: enriched_entry.timestamp\n        total_calories: daily_totals.calories\n        total_protein_g: daily_totals.protein_g\n        total_carbs_g: daily_totals.carbs_g\n        total_fat_g: daily_totals.fat_g\n      upsert: true\n    output: stored_totals",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_002.py::test_parses_and_type_checks": false,
+        "test_wf_ft_002.py::test_passes_taint_analysis": true,
+        "test_wf_ft_002.py::test_computes_daily_totals": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

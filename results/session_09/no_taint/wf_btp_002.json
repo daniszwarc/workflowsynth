@@ -1,0 +1,53 @@
+{
+  "task_id": "wf_btp_002",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 8.670926458202302,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: document_indexing_pipeline\nsteps:\n  - id: fetch_uploaded_document\n    op: fetch_api\n    params:\n      endpoint: \"/api/documents/uploaded/pending\"\n    output: raw_document\n\n  - id: authenticate_indexing_service\n    op: authenticate_user\n    params:\n      role: \"indexing_service\"\n    output: auth_result\n\n  - id: validate_anonymization\n    op: validate_schema\n    params:\n      input: raw_document\n      schema: anonymized_document_schema\n    output: validated_document\n\n  - id: extract_document_id\n    op: extract_field\n    params:\n      input: validated_document\n      field: \"document_id\"\n    output: source_document_id\n\n  - id: split_into_chunks\n    op: transform_json\n    params:\n      input: validated_document\n      mapping:\n        operation: \"split_overlapping_chunks\"\n        chunk_size: 512\n        overlap: 64\n        source_document_id: source_document_id\n    output: document_chunks\n\n  - id: log_chunking_complete\n    op: log_audit\n    params:\n      input: document_chunks\n      action: \"document_chunked\"\n      message: \"Document split into overlapping chunks for embedding\"\n\n  - id: generate_embeddings\n    op: loop_records\n    params:\n      input: document_chunks\n      step: embed_single_chunk\n    output: chunks_with_embeddings_raw\n\n  - id: embed_single_chunk\n    op: call_webhook\n    params:\n      input: document_chunks\n      url: \"/embedding-service/v1/embed\"\n      method: \"POST\"\n    output: embedding_response_raw\n\n  - id: validate_embeddings\n    op: validate_schema\n    params:\n      input: chunks_with_embeddings_raw\n      schema: embedding_vector_schema\n    output: validated_embeddings\n\n  - id: filter_valid_embeddings\n    op: filter_records\n    params:\n      input: validated_embeddings\n      condition: \"embedding_vector IS NOT NULL AND dimension == 1536\"\n    output: valid_embeddings\n\n  - id: format_for_vector_store\n    op: transform_json\n    params:\n      input: valid_embeddings\n      mapping:\n        vector: \"$.embedding_vector\"\n        metadata:\n          source_document_id: \"$.source_document_id\"\n          chunk_index: \"$.chunk_index\"\n          text: \"$.chunk_text\"\n    output: vector_store_records\n\n  - id: store_embeddings\n    op: write_database\n    params:\n      input: vector_store_records\n      table: \"vector_embeddings\"\n    output: write_result\n\n  - id: handle_storage_error\n    op: handle_error\n    params:\n      step: store_embeddings\n      on_error: retry_storage\n\n  - id: retry_storage\n    op: retry_step\n    params:\n      step: store_embeddings\n      max_retries: 3\n      backoff: \"exponential\"\n\n  - id: log_indexing_complete\n    op: log_audit\n    params:\n      input: write_result\n      action: \"document_indexed\"\n      message: \"Document embeddings stored in vector database\"\n\n  - id: notify_indexing_complete\n    op: notify_user\n    params:\n      input: write_result\n      recipient: \"indexing_service\"\n      message: \"Document indexing pipeline completed successfully\"\n\n  - id: end_workflow\n    op: terminate_workflow\n    params:\n      status: \"success\"",
+      "dsl_type_errors": [
+        "Step 'validate_embeddings': op 'validate_schema' requires input of type 'records' but 'chunks_with_embeddings_raw' has type 'none'. Make sure the step producing 'chunks_with_embeddings_raw' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1124,
+      "output_tokens": 881
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: document_indexing_pipeline\nsteps:\n  - id: fetch_uploaded_document\n    op: fetch_api\n    params:\n      endpoint: \"/api/documents/uploaded/pending\"\n    output: raw_document\n\n  - id: authenticate_indexing_service\n    op: authenticate_user\n    params:\n      role: \"indexing_service\"\n    output: auth_result\n\n  - id: validate_anonymization\n    op: validate_schema\n    params:\n      input: raw_document\n      schema: anonymized_document_schema\n    output: validated_document\n\n  - id: extract_document_id\n    op: extract_field\n    params:\n      input: validated_document\n      field: \"document_id\"\n    output: source_document_id\n\n  - id: split_into_chunks\n    op: transform_json\n    params:\n      input: validated_document\n      mapping:\n        operation: \"split_overlapping_chunks\"\n        chunk_size: 512\n        overlap: 64\n        source_document_id: source_document_id\n    output: document_chunks\n\n  - id: log_chunking_complete\n    op: log_audit\n    params:\n      input: document_chunks\n      action: \"document_chunked\"\n      message: \"Document split into overlapping chunks for embedding\"\n\n  - id: generate_embeddings\n    op: call_webhook\n    params:\n      input: document_chunks\n      url: \"/embedding-service/v1/embed\"\n      method: \"POST\"\n    output: embedding_response_raw\n\n  - id: validate_embeddings\n    op: validate_schema\n    params:\n      input: embedding_response_raw\n      schema: embedding_vector_schema\n    output: validated_embeddings\n\n  - id: filter_valid_embeddings\n    op: filter_records\n    params:\n      input: validated_embeddings\n      condition: \"embedding_vector IS NOT NULL AND dimension == 1536\"\n    output: valid_embeddings\n\n  - id: format_for_vector_store\n    op: transform_json\n    params:\n      input: valid_embeddings\n      mapping:\n        vector: \"$.embedding_vector\"\n        metadata:\n          source_document_id: \"$.source_document_id\"\n          chunk_index: \"$.chunk_index\"\n          text: \"$.chunk_text\"\n    output: vector_store_records\n\n  - id: store_embeddings\n    op: write_database\n    params:\n      input: vector_store_records\n      table: \"vector_embeddings\"\n    output: write_result\n\n  - id: handle_storage_error\n    op: handle_error\n    params:\n      step: store_embeddings\n      on_error: retry_storage\n\n  - id: retry_storage\n    op: retry_step\n    params:\n      step: store_embeddings\n      max_retries: 3\n      backoff: \"exponential\"\n\n  - id: log_indexing_complete\n    op: log_audit\n    params:\n      input: write_result\n      action: \"document_indexed\"\n      message: \"Document embeddings stored in vector database\"\n\n  - id: notify_indexing_complete\n    op: notify_user\n    params:\n      input: write_result\n      recipient: \"indexing_service\"\n      message: \"Document indexing pipeline completed successfully\"\n\n  - id: end_workflow\n    op: terminate_workflow\n    params:\n      status: \"success\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_btp_002.py::test_parses_and_type_checks": true,
+        "test_wf_btp_002.py::test_passes_taint_analysis": true,
+        "test_wf_btp_002.py::test_validates_anonymization_before_indexing": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 2160,
+      "output_tokens": 829
+    }
+  ],
+  "complexity": 3,
+  "domain": "clinical_ai",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 3284,
+  "total_output_tokens": 1710
+}

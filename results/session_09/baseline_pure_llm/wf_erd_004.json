@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_erd_004",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 6,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 13.074594374746084,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: timesheet_daily_entry\n\nsteps:\n  - id: receive_cell_update\n    op: capture_ajax_request\n    params:\n      source: timesheet_editable_grid\n      expected_fields:\n        - composite_key\n        - new_value\n    output:\n      composite_key: \"{{request.composite_key}}\"\n      new_value: \"{{request.new_value}}\"\n      session_token: \"{{request.session_token}}\"\n\n  - id: authenticate_worker\n    op: authenticate\n    params:\n      session_token: \"{{receive_cell_update.output.session_token}}\"\n    output:\n      authenticated: \"{{auth.success}}\"\n      authenticated_worker_id: \"{{auth.worker_id}}\"\n\n  - id: parse_composite_key\n    op: parse_key\n    params:\n      composite_key: \"{{receive_cell_update.output.composite_key}}\"\n      delimiter: \"_\"\n      format: \"workerID_patientID_date_flag\"\n    output:\n      worker_id: \"{{parsed.workerID}}\"\n      patient_id: \"{{parsed.patientID}}\"\n      date: \"{{parsed.date}}\"\n      entry_type: \"{{parsed.flag}}\"\n\n  - id: authorize_ownership\n    op: assert\n    params:\n      condition: \"{{parse_composite_key.output.worker_id}} == {{authenticate_worker.output.authenticated_worker_id}}\"\n      error_message: \"Workers can only edit their own timesheet entries.\"\n\n  - id: check_timesheet_status\n    op: database_lookup\n    params:\n      table: timesheets\n      filters:\n        worker_id: \"{{parse_composite_key.output.worker_id}}\"\n        date: \"{{parse_composite_key.output.date}}\"\n      return_fields:\n        - status\n    output:\n      timesheet_status: \"{{result.status}}\"\n\n  - id: assert_draft_status\n    op: assert\n    params:\n      condition: \"{{check_timesheet_status.output.timesheet_status}} == 1\"\n      error_message: \"Timesheet must be in draft status (status=1) to accept edits.\"\n\n  - id: validate_value\n    op: validate\n    params:\n      value: \"{{receive_cell_update.output.new_value}}\"\n      entry_type: \"{{parse_composite_key.output.entry_type}}\"\n      rules:\n        - rule: is_numeric\n          error_message: \"Value must be a valid number.\"\n        - rule: non_negative\n          error_message: \"Value must not be negative.\"\n        - rule: max_hours\n          condition: \"{{parse_composite_key.output.entry_type}} == 'hours'\"\n          max: 24\n          error_message: \"Hours per patient per day cannot exceed 24.\"\n        - rule: max_kilometres\n          condition: \"{{parse_composite_key.output.entry_type}} == 'km'\"\n          max: 9999\n          error_message: \"Kilometres value exceeds maximum allowed.\"\n    output:\n      validated: true\n\n  - id: update_timesheet_detail\n    op: database_upsert\n    params:\n      table: timesheet_details\n      match_keys:\n        worker_id: \"{{parse_composite_key.output.worker_id}}\"\n        patient_id: \"{{parse_composite_key.output.patient_id}}\"\n        date: \"{{parse_composite_key.output.date}}\"\n        entry_type: \"{{parse_composite_key.output.entry_type}}\"\n      set_fields:\n        value: \"{{receive_cell_update.output.new_value}}\"\n        updated_at: \"{{now}}\"\n        updated_by: \"{{authenticate_worker.output.authenticated_worker_id}}\"\n    output:\n      success: \"{{result.success}}\"\n      record_id: \"{{result.record_id}}\"",
+      "dsl_type_errors": [
+        "Step at index 0 (id='receive_cell_update'): 'output' must be a string if present.",
+        "Step at index 1 (id='authenticate_worker'): 'output' must be a string if present.",
+        "Step at index 2 (id='parse_composite_key'): 'output' must be a string if present.",
+        "Step at index 4 (id='check_timesheet_status'): 'output' must be a string if present.",
+        "Step at index 6 (id='validate_value'): 'output' must be a string if present.",
+        "Step at index 7 (id='update_timesheet_detail'): 'output' must be a string if present."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "healthcare_billing",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 263,
+  "total_output_tokens": 969
+}

@@ -1,0 +1,54 @@
+{
+  "task_id": "wf_aw_002",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 12.578181999735534,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: document_upload_pipeline_trigger\nsteps:\n  - id: receive_document_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge-base/upload\"\n      method: \"POST\"\n      headers:\n        Cache-Control: \"private, no-store\"\n    output: raw_upload\n\n  - id: authenticate_uploader\n    op: authenticate_user\n    params:\n      role: \"Editor,Admin,Developer\"\n    output: auth_result\n\n  - id: validate_upload_schema\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema: document_upload_schema\n      rules:\n        allowed_formats:\n          - \"application/pdf\"\n          - \"application/vnd.openxmlformats-officedocument.wordprocessingml.document\"\n          - \"text/plain\"\n        sed_format_constraint: \"DOCX\"\n    output: validated_upload\n\n  - id: check_document_type_rule\n    op: apply_rule\n    params:\n      rule: \"if document_type == 'SED' and file_format != 'DOCX' then reject\"\n      input_ref: validated_upload\n    output: rule_result\n\n  - id: handle_rule_violation\n    op: route_to_step\n    params:\n      condition: \"rule_result.rejected == true\"\n      target_step: terminate_invalid_format\n      fallback_step: extract_file_metadata\n\n  - id: terminate_invalid_format\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"SED documents must be in DOCX format\"\n\n  - id: extract_file_metadata\n    op: extract_field\n    params:\n      input: validated_upload\n      fields:\n        - \"file_content\"\n        - \"document_type\"\n        - \"filename\"\n        - \"uploader_id\"\n    output: extracted_metadata\n\n  - id: encrypt_sensitive_fields\n    op: encrypt_field\n    params:\n      input: extracted_metadata\n      fields:\n        - \"file_content\"\n    output: secured_metadata\n\n  - id: store_uploaded_file\n    op: write_database\n    params:\n      input: secured_metadata\n      table: uploads_volume\n      columns:\n        - \"file_content\"\n        - \"document_type\"\n        - \"filename\"\n        - \"uploader_id\"\n        - \"upload_timestamp\"\n    output: stored_record\n\n  - id: prepare_pipeline_payload\n    op: transform_json\n    params:\n      input: stored_record\n      mapping:\n        document_id: \"stored_record.id\"\n        document_type: \"stored_record.document_type\"\n        file_path: \"stored_record.file_path\"\n        triggered_by: \"stored_record.uploader_id\"\n    output: pipeline_payload\n\n  - id: trigger_extraction_pipeline\n    op: call_webhook\n    params:\n      input: pipeline_payload\n      url: \"/services/pipeline/extract\"\n      method: \"POST\"\n    output: pipeline_response\n\n  - id: validate_pipeline_response\n    op: validate_schema\n    params:\n      input: pipeline_response\n      schema: pipeline_response_schema\n    output: validated_pipeline_response\n\n  - id: log_upload_audit\n    op: log_audit\n    params:\n      input: validated_pipeline_response\n      event: \"document_upload_pipeline_triggered\"\n      details:\n        uploader: \"auth_result.user_id\"\n        role: \"auth_result.role\"\n        document_type: \"extracted_metadata.document_type\"\n        filename: \"extracted_metadata.filename\"\n\n  - id: notify_uploader\n    op: notify_user\n    params:\n      input: validated_pipeline_response\n      recipient: \"auth_result.user_id\"\n      template: \"document_upload_success\"\n      message: \"Your document has been uploaded and the extraction pipeline has been triggered.\"\n\n  - id: handle_workflow_error\n    op: handle_error\n    params:\n      on_error: \"notify_admin_and_terminate\"\n      retry_eligible_steps:\n        - trigger_extraction_pipeline\n\n  - id: retry_pipeline_trigger\n    op: retry_step\n    params:\n      step_id: trigger_extraction_pipeline\n      max_retries: 3\n      backoff_seconds: 5\n\n  - id: terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Document uploaded and pipeline triggered successfully\"",
+      "dsl_type_errors": [
+        "Step 'prepare_pipeline_payload': op 'transform_json' requires input of type 'records' but 'stored_record' has type 'none'. Make sure the step producing 'stored_record' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1121,
+      "output_tokens": 1109
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: document_upload_pipeline_trigger\nsteps:\n  - id: receive_document_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge-base/upload\"\n      method: \"POST\"\n      headers:\n        Cache-Control: \"private, no-store\"\n    output: raw_upload\n\n  - id: authenticate_uploader\n    op: authenticate_user\n    params:\n      role: \"Editor,Admin,Developer\"\n    output: auth_result\n\n  - id: validate_upload_schema\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema: document_upload_schema\n      rules:\n        allowed_formats:\n          - \"application/pdf\"\n          - \"application/vnd.openxmlformats-officedocument.wordprocessingml.document\"\n          - \"text/plain\"\n        sed_format_constraint: \"DOCX\"\n    output: validated_upload\n\n  - id: check_document_type_rule\n    op: apply_rule\n    params:\n      rule: \"if document_type == 'SED' and file_format != 'DOCX' then reject\"\n      input_ref: validated_upload\n    output: rule_result\n\n  - id: handle_rule_violation\n    op: route_to_step\n    params:\n      condition: \"rule_result.rejected == true\"\n      target_step: terminate_invalid_format\n      fallback_step: extract_file_metadata\n\n  - id: terminate_invalid_format\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"SED documents must be in DOCX format\"\n\n  - id: extract_file_metadata\n    op: extract_field\n    params:\n      input: validated_upload\n      fields:\n        - \"file_content\"\n        - \"document_type\"\n        - \"filename\"\n        - \"uploader_id\"\n    output: extracted_metadata\n\n  - id: encrypt_sensitive_fields\n    op: encrypt_field\n    params:\n      input: extracted_metadata\n      fields:\n        - \"file_content\"\n    output: secured_metadata\n\n  - id: store_uploaded_file\n    op: write_database\n    params:\n      input: secured_metadata\n      table: uploads_volume\n      columns:\n        - \"file_content\"\n        - \"document_type\"\n        - \"filename\"\n        - \"uploader_id\"\n        - \"upload_timestamp\"\n    output: stored_record\n\n  - id: read_stored_record\n    op: read_database\n    params:\n      table: uploads_volume\n      filter: \"id = stored_record.id\"\n    output: stored_record_data\n\n  - id: prepare_pipeline_payload\n    op: transform_json\n    params:\n      input: stored_record_data\n      mapping:\n        document_id: \"id\"\n        document_type: \"document_type\"\n        file_path: \"file_path\"\n        triggered_by: \"uploader_id\"\n    output: pipeline_payload\n\n  - id: trigger_extraction_pipeline\n    op: call_webhook\n    params:\n      input: pipeline_payload\n      url: \"/services/pipeline/extract\"\n      method: \"POST\"\n    output: pipeline_response\n\n  - id: validate_pipeline_response\n    op: validate_schema\n    params:\n      input: pipeline_response\n      schema: pipeline_response_schema\n    output: validated_pipeline_response\n\n  - id: log_upload_audit\n    op: log_audit\n    params:\n      input: validated_pipeline_response\n      event: \"document_upload_pipeline_triggered\"\n      details:\n        uploader: \"auth_result.user_id\"\n        role: \"auth_result.role\"\n        document_type: \"extracted_metadata.document_type\"\n        filename: \"extracted_metadata.filename\"\n\n  - id: notify_uploader\n    op: notify_user\n    params:\n      input: validated_pipeline_response\n      recipient: \"auth_result.user_id\"\n      template: \"document_upload_success\"\n      message: \"Your document has been uploaded and the extraction pipeline has been triggered.\"\n\n  - id: handle_workflow_error\n    op: handle_error\n    params:\n      on_error: \"notify_admin_and_terminate\"\n      retry_eligible_steps:\n        - trigger_extraction_pipeline\n\n  - id: retry_pipeline_trigger\n    op: retry_step\n    params:\n      step_id: trigger_extraction_pipeline\n      max_retries: 3\n      backoff_seconds: 5\n\n  - id: terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Document uploaded and pipeline triggered successfully\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_aw_002.py::test_parses_and_type_checks": true,
+        "test_wf_aw_002.py::test_passes_taint_analysis": true,
+        "test_wf_aw_002.py::test_validates_format": true,
+        "test_wf_aw_002.py::test_triggers_pipeline": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 2376,
+      "output_tokens": 1145
+    }
+  ],
+  "complexity": 2,
+  "domain": "enterprise_knowledge",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 3497,
+  "total_output_tokens": 2254
+}

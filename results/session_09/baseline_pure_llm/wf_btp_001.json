@@ -1,0 +1,42 @@
+{
+  "task_id": "wf_btp_001",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 7,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 10.658228208310902,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: medical_pdf_upload_and_auto_naming\nsteps:\n  - id: receive_pdf_upload\n    op: receive_upload\n    params:\n      source: platform_upload_endpoint\n      accepted_types:\n        - application/pdf\n    output: raw_upload\n\n  - id: authenticate_and_authorize\n    op: auth_check\n    params:\n      user_token: \"{{raw_upload.user_token}}\"\n      required_role: admin\n    output: auth_result\n\n  - id: validate_pdf\n    op: file_validation\n    params:\n      file: \"{{raw_upload.file}}\"\n      expected_mime_type: application/pdf\n      max_size_mb: 50\n    output: validation_result\n\n  - id: generate_filename_via_vision_ai\n    op: ai_vision_api_call\n    params:\n      endpoint: vision_model/generate_filename\n      input_binary: \"{{raw_upload.file}}\"\n      prompt: \"Read this medical PDF document and generate a standardized filename following the pattern: YYYY-MM-DD_DocumentType_PatientOrSubject.pdf\"\n      response_format: standardized_filename\n    output: ai_generated_filename\n\n  - id: encrypt_document\n    op: encrypt\n    params:\n      input: \"{{raw_upload.file}}\"\n      algorithm: AES-256-GCM\n      key_reference: document_encryption_key\n    output: encrypted_document\n\n  - id: store_document\n    op: document_store_write\n    params:\n      content: \"{{encrypted_document.ciphertext}}\"\n      filename: \"{{ai_generated_filename.filename}}\"\n      metadata:\n        uploaded_by: \"{{auth_result.user_id}}\"\n        upload_timestamp: \"{{raw_upload.timestamp}}\"\n        original_filename: \"{{raw_upload.original_filename}}\"\n        encryption_iv: \"{{encrypted_document.iv}}\"\n        encryption_tag: \"{{encrypted_document.auth_tag}}\"\n    output: stored_document\n\n  - id: write_audit_log\n    op: audit_log_entry\n    params:\n      event_type: document_upload\n      actor: \"{{auth_result.user_id}}\"\n      actor_role: admin\n      resource_id: \"{{stored_document.document_id}}\"\n      resource_name: \"{{ai_generated_filename.filename}}\"\n      original_filename: \"{{raw_upload.original_filename}}\"\n      timestamp: \"{{raw_upload.timestamp}}\"\n      status: success\n      details:\n        file_size: \"{{validation_result.file_size}}\"\n        encryption_algorithm: AES-256-GCM\n        storage_location: \"{{stored_document.storage_path}}\"\n    output: audit_record",
+      "dsl_type_errors": [
+        "Step 'receive_pdf_upload': unknown op 'receive_upload'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'authenticate_and_authorize': unknown op 'auth_check'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_pdf': unknown op 'file_validation'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'generate_filename_via_vision_ai': unknown op 'ai_vision_api_call'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'encrypt_document': unknown op 'encrypt'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'store_document': unknown op 'document_store_write'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'write_audit_log': unknown op 'audit_log_entry'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "clinical_ai",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 310,
+  "total_output_tokens": 679
+}

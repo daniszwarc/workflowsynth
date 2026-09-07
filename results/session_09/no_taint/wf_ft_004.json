@@ -1,0 +1,55 @@
+{
+  "task_id": "wf_ft_004",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 3,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 13.265608041547239,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: workout_session_logging\nsteps:\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      role: \"gym_user\"\n    output: auth_result\n\n  - id: step_receive_session\n    op: fetch_api\n    params:\n      endpoint: \"/api/workout/session/complete\"\n    output: raw_session_data\n\n  - id: step_validate_session\n    op: validate_schema\n    params:\n      input: raw_session_data\n      schema: workout_session_schema\n    output: validated_session\n\n  - id: step_extract_user_id\n    op: extract_field\n    params:\n      input: validated_session\n      field: \"user_id\"\n    output: user_id\n\n  - id: step_lookup_training_plan\n    op: read_database\n    params:\n      table: training_plans\n      query:\n        user_id: user_id\n        status: \"active\"\n    output: raw_training_plan\n\n  - id: step_validate_training_plan\n    op: validate_schema\n    params:\n      input: raw_training_plan\n      schema: training_plan_schema\n    output: training_plan\n\n  - id: step_check_plan_exists\n    op: apply_rule\n    params:\n      rule: \"training_plan is not empty\"\n      input: training_plan\n    output: plan_exists_result\n\n  - id: step_route_no_plan\n    op: route_to_step\n    params:\n      condition: \"plan_exists_result == false\"\n      target: step_terminate_no_plan\n\n  - id: step_extract_plan_id\n    op: extract_field\n    params:\n      input: training_plan\n      field: \"plan_id\"\n    output: plan_id\n\n  - id: step_compute_volume\n    op: loop_records\n    params:\n      input: validated_session\n      collection_field: \"exercises\"\n      operation: \"compute volume as sets * reps * weight per exercise\"\n    output: exercises_with_volume\n\n  - id: step_transform_session_for_storage\n    op: transform_json\n    params:\n      input: exercises_with_volume\n      mapping:\n        user_id: user_id\n        plan_id: plan_id\n        exercises: exercises_with_volume\n        session_date: \"validated_session.session_date\"\n    output: session_record\n\n  - id: step_write_session\n    op: write_database\n    params:\n      input: session_record\n      table: workout_sessions\n    output: write_session_result\n\n  - id: step_aggregate_progress\n    op: aggregate_data\n    params:\n      input: exercises_with_volume\n      group_by: \"exercise_id\"\n      operations:\n        total_volume: \"sum(volume)\"\n        total_sets: \"sum(sets)\"\n    output: progress_summary\n\n  - id: step_transform_progress_update\n    op: transform_json\n    params:\n      input: progress_summary\n      mapping:\n        plan_id: plan_id\n        user_id: user_id\n        progress: progress_summary\n        last_session_date: \"validated_session.session_date\"\n    output: progress_update_record\n\n  - id: step_update_training_plan_progress\n    op: write_database\n    params:\n      input: progress_update_record\n      table: training_plan_progress\n    output: write_progress_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: session_record\n      action: \"workout_session_logged\"\n      user_id: user_id\n    output: audit_result\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: progress_summary\n      recipient: user_id\n      message: \"Your workout session has been logged and training plan progress updated.\"\n    output: notify_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"Workout session logged and training plan updated successfully.\"\n\n  - id: step_terminate_no_plan\n    op: terminate_workflow\n    params:\n      status: \"error\"\n      message: \"No active training plan found for user.\"",
+      "dsl_type_errors": [
+        "Step 'step_transform_session_for_storage': op 'transform_json' requires input of type 'records' but 'exercises_with_volume' has type 'none'. Make sure the step producing 'exercises_with_volume' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database).",
+        "Step 'step_aggregate_progress': op 'aggregate_data' requires input of type 'records' but 'exercises_with_volume' has type 'none'. Make sure the step producing 'exercises_with_volume' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database).",
+        "Step 'step_transform_progress_update': op 'transform_json' requires input of type 'records' but 'progress_summary' has type 'record'. Make sure the step producing 'progress_summary' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1100,
+      "output_tokens": 1045
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: workout_session_logging\nsteps:\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      role: \"gym_user\"\n    output: auth_result\n\n  - id: step_receive_session\n    op: fetch_api\n    params:\n      endpoint: \"/api/workout/session/complete\"\n    output: raw_session_data\n\n  - id: step_validate_session\n    op: validate_schema\n    params:\n      input: raw_session_data\n      schema: workout_session_schema\n    output: validated_session\n\n  - id: step_extract_user_id\n    op: extract_field\n    params:\n      input: validated_session\n      field: \"user_id\"\n    output: user_id\n\n  - id: step_lookup_training_plan\n    op: read_database\n    params:\n      table: training_plans\n      query:\n        user_id: user_id\n        status: \"active\"\n    output: raw_training_plan\n\n  - id: step_validate_training_plan\n    op: validate_schema\n    params:\n      input: raw_training_plan\n      schema: training_plan_schema\n    output: training_plan\n\n  - id: step_check_plan_exists\n    op: apply_rule\n    params:\n      rule: \"training_plan is not empty\"\n      input: training_plan\n    output: plan_exists_result\n\n  - id: step_route_no_plan\n    op: route_to_step\n    params:\n      condition: \"plan_exists_result == false\"\n      target: step_terminate_no_plan\n\n  - id: step_extract_plan_id\n    op: extract_field\n    params:\n      input: training_plan\n      field: \"plan_id\"\n    output: plan_id\n\n  - id: step_extract_exercises\n    op: extract_field\n    params:\n      input: validated_session\n      field: \"exercises\"\n    output: exercises_list_raw\n\n  - id: step_validate_exercises\n    op: validate_schema\n    params:\n      input: exercises_list_raw\n      schema: exercises_list_schema\n    output: exercises_list\n\n  - id: step_compute_volume\n    op: transform_json\n    params:\n      input: exercises_list\n      mapping:\n        exercise_id: \"exercise_id\"\n        sets: \"sets\"\n        reps: \"reps\"\n        weight: \"weight\"\n        volume: \"sets * reps * weight\"\n    output: exercises_with_volume\n\n  - id: step_transform_session_for_storage\n    op: transform_json\n    params:\n      input: exercises_with_volume\n      mapping:\n        user_id: user_id\n        plan_id: plan_id\n        exercises: exercises_with_volume\n        session_date: \"validated_session.session_date\"\n    output: session_record\n\n  - id: step_write_session\n    op: write_database\n    params:\n      input: session_record\n      table: workout_sessions\n    output: write_session_result\n\n  - id: step_aggregate_progress\n    op: aggregate_data\n    params:\n      input: exercises_with_volume\n      group_by: \"exercise_id\"\n      operations:\n        total_volume: \"sum(volume)\"\n        total_sets: \"sum(sets)\"\n    output: progress_summary\n\n  - id: step_filter_progress\n    op: filter_records\n    params:\n      input: exercises_with_volume\n      condition: \"true\"\n    output: progress_base\n\n  - id: step_transform_progress_update\n    op: transform_json\n    params:\n      input: progress_base\n      mapping:\n        plan_id: plan_id\n        user_id: user_id\n        progress: progress_summary\n        last_session_date: \"validated_session.session_date\"\n    output: progress_update_record\n\n  - id: step_update_training_plan_progress\n    op: write_database\n    params:\n      input: progress_update_record\n      table: training_plan_progress\n    output: write_progress_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: session_record\n      action: \"workout_session_logged\"\n      user_id: user_id\n    output: audit_result\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: session_record\n      recipient: user_id\n      message: \"Your workout session has been logged and training plan progress updated.\"\n    output: notify_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"Workout session logged and training plan updated successfully.\"\n\n  - id: step_terminate_no_plan\n    op: terminate_workflow\n    params:\n      status: \"error\"\n      message: \"No active training plan found for user.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_004.py::test_parses_and_type_checks": true,
+        "test_wf_ft_004.py::test_passes_taint_analysis": true,
+        "test_wf_ft_004.py::test_links_to_training_plan": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 2465,
+      "output_tokens": 1203
+    }
+  ],
+  "complexity": 2,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 3565,
+  "total_output_tokens": 2248
+}

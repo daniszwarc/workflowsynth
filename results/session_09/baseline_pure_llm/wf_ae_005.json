@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_ae_005",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 4,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 8.210007792338729,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: post_publication_file_management\n\nsteps:\n  - id: move_pdf_to_completed\n    op: google_drive/move_file\n    params:\n      file_id: \"{{ trigger.source_pdf_file_id }}\"\n      source_folder: \"{{ trigger.pending_folder_id }}\"\n      destination_folder: \"{{ trigger.completados_folder_id }}\"\n    output: moved_file\n\n  - id: read_category_spreadsheet\n    op: google_sheets/read_spreadsheet\n    params:\n      spreadsheet_id: \"{{ trigger.category_spreadsheet_id }}\"\n      sheet_name: \"{{ trigger.category_sheet_name }}\"\n    output: spreadsheet_data\n\n  - id: update_article_status\n    op: google_sheets/update_row\n    params:\n      spreadsheet_id: \"{{ trigger.category_spreadsheet_id }}\"\n      sheet_name: \"{{ trigger.category_sheet_name }}\"\n      row_match_column: \"article_id\"\n      row_match_value: \"{{ trigger.article_id }}\"\n      updates:\n        status: \"published\"\n        published_date: \"{{ now() }}\"\n        cms_url: \"{{ trigger.published_url }}\"\n    output: updated_row\n\n  - id: write_audit_log\n    op: logging/write_audit_entry\n    params:\n      log_source: post_publication_file_management\n      article_id: \"{{ trigger.article_id }}\"\n      timestamp: \"{{ now() }}\"\n      actions_completed:\n        - description: \"PDF moved to completados folder\"\n          file_id: \"{{ moved_file.id }}\"\n          source_folder: \"{{ trigger.pending_folder_id }}\"\n          destination_folder: \"{{ trigger.completados_folder_id }}\"\n        - description: \"Category spreadsheet updated with published status\"\n          spreadsheet_id: \"{{ trigger.category_spreadsheet_id }}\"\n          row_updated: \"{{ updated_row.row_number }}\"\n      status: success\n    output: audit_entry",
+      "dsl_type_errors": [
+        "Step 'move_pdf_to_completed': unknown op 'google_drive/move_file'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'read_category_spreadsheet': unknown op 'google_sheets/read_spreadsheet'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'update_article_status': unknown op 'google_sheets/update_row'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'write_audit_log': unknown op 'logging/write_audit_entry'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "publishing",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 225,
+  "total_output_tokens": 506
+}

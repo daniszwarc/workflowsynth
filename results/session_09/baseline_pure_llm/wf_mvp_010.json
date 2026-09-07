@@ -1,0 +1,42 @@
+{
+  "task_id": "wf_mvp_010",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 7,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 10.138172292150557,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: post_install_geocoding_service_partner_lookup\n\nsteps:\n  - id: receive_registration_form\n    op: receive_form\n    params:\n      form_type: post_install_registration\n      required_fields:\n        - unit_id\n        - customer_name\n        - installation_address\n        - installation_city\n        - installation_state\n        - installation_zip\n        - installation_country\n    output: registration_data\n\n  - id: geocode_address\n    op: api_call\n    params:\n      service: external_maps_api\n      endpoint: /geocode\n      method: POST\n      payload:\n        address: \"{{ registration_data.installation_address }}\"\n        city: \"{{ registration_data.installation_city }}\"\n        state: \"{{ registration_data.installation_state }}\"\n        zip: \"{{ registration_data.installation_zip }}\"\n        country: \"{{ registration_data.installation_country }}\"\n    output: geocoder_raw_response\n\n  - id: parse_geocoder_response\n    op: transform\n    params:\n      action: extract_fields\n      source: \"{{ geocoder_raw_response }}\"\n      fields:\n        latitude: \"{{ geocoder_raw_response.results[0].geometry.location.lat }}\"\n        longitude: \"{{ geocoder_raw_response.results[0].geometry.location.lng }}\"\n    output: installation_coordinates\n\n  - id: read_service_partners\n    op: database_query\n    params:\n      datasource: service_partners_db\n      query: \"SELECT partner_id, partner_name, address, latitude, longitude, phone, email FROM authorized_service_partners WHERE active = true\"\n    output: all_service_partners\n\n  - id: compute_distances\n    op: transform\n    params:\n      action: haversine_distance\n      origin:\n        latitude: \"{{ installation_coordinates.latitude }}\"\n        longitude: \"{{ installation_coordinates.longitude }}\"\n      targets: \"{{ all_service_partners }}\"\n      target_lat_field: latitude\n      target_lng_field: longitude\n      output_field: distance_km\n    output: partners_with_distances\n\n  - id: filter_partners_within_threshold\n    op: filter\n    params:\n      source: \"{{ partners_with_distances }}\"\n      condition: \"distance_km <= max_distance_threshold_km\"\n      max_distance_threshold_km: 100\n      sort_by: distance_km\n      sort_order: ascending\n    output: eligible_partners\n\n  - id: return_nearest_partner\n    op: transform\n    params:\n      action: select_first\n      source: \"{{ eligible_partners }}\"\n      fields:\n        partner_id: partner_id\n        partner_name: partner_name\n        address: address\n        phone: phone\n        email: email\n        distance_km: distance_km\n      fallback_message: \"No authorized service partner found within the distance threshold.\"\n    output: nearest_service_partner",
+      "dsl_type_errors": [
+        "Step 'receive_registration_form': unknown op 'receive_form'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'geocode_address': unknown op 'api_call'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'parse_geocoder_response': unknown op 'transform'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'read_service_partners': unknown op 'database_query'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'compute_distances': unknown op 'transform'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'filter_partners_within_threshold': unknown op 'filter'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'return_nearest_partner': unknown op 'transform'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 4,
+  "domain": "manufacturing",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 292,
+  "total_output_tokens": 714
+}

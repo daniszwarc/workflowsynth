@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_aw_002",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 5,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 11.53360062558204,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: document_upload_and_pipeline_trigger\n\nsteps:\n  - id: receive_upload\n    op: receive_document_upload\n    params:\n      source: knowledge_base_interface\n      required_fields:\n        - file\n        - document_type\n      accepted_formats:\n        - PDF\n        - DOCX\n        - TXT\n    output: uploaded_document\n\n  - id: authenticate_user\n    op: authenticate_and_authorize\n    params:\n      input: uploaded_document.user_context\n      allowed_roles:\n        - Editor\n        - Admin\n        - Developer\n      action: upload_document\n    output: auth_result\n\n  - id: validate_file_format\n    op: validate_document_format\n    params:\n      file: uploaded_document.file\n      document_type: uploaded_document.document_type\n      rules:\n        - condition: document_type == 'SED'\n          required_format: DOCX\n          error_message: \"SED documents must be in DOCX format.\"\n        - condition: document_type != 'SED'\n          allowed_formats:\n            - PDF\n            - DOCX\n            - TXT\n          error_message: \"Uploaded file format does not match the selected document type.\"\n    output: validation_result\n\n  - id: store_uploaded_file\n    op: store_file\n    params:\n      file: uploaded_document.file\n      destination_volume: uploads\n      path_prefix: \"documents/{{uploaded_document.document_type}}\"\n      metadata:\n        uploaded_by: auth_result.user_id\n        document_type: uploaded_document.document_type\n        uploaded_at: \"{{now}}\"\n      cache_control: \"private, no-store\"\n    output: stored_file\n\n  - id: trigger_extraction_pipeline\n    op: invoke_pipeline_service\n    params:\n      service: document_extraction_pipeline\n      payload:\n        file_reference: stored_file.file_path\n        document_type: uploaded_document.document_type\n        file_format: validation_result.detected_format\n        metadata:\n          uploaded_by: auth_result.user_id\n          upload_timestamp: stored_file.uploaded_at\n      routing_key: \"pipeline.{{uploaded_document.document_type}}\"\n    output: pipeline_response",
+      "dsl_type_errors": [
+        "Step 'receive_upload': unknown op 'receive_document_upload'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'authenticate_user': unknown op 'authenticate_and_authorize'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_file_format': unknown op 'validate_document_format'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'store_uploaded_file': unknown op 'store_file'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'trigger_extraction_pipeline': unknown op 'invoke_pipeline_service'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "enterprise_knowledge",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 272,
+  "total_output_tokens": 556
+}

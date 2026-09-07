@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_erd_003",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 5,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 8.105830417014658,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: worker_assignment_to_patient\nsteps:\n  - id: receive_assignment_request\n    op: receive_request\n    params:\n      source: office_staff\n      required_fields:\n        - patient_id\n        - worker_id\n        - submitted_by_user_id\n    output:\n      patient_id: \"{{request.patient_id}}\"\n      worker_id: \"{{request.worker_id}}\"\n      submitted_by_user_id: \"{{request.submitted_by_user_id}}\"\n\n  - id: authenticate_submitting_user\n    op: authenticate_user\n    params:\n      user_id: \"{{receive_assignment_request.output.submitted_by_user_id}}\"\n      required_role: office_staff\n    output:\n      authenticated: \"{{auth.result}}\"\n\n  - id: verify_patient_record\n    op: lookup_record\n    params:\n      entity: patient\n      id: \"{{receive_assignment_request.output.patient_id}}\"\n      required_status: active\n    output:\n      patient_exists: \"{{record.found}}\"\n      patient_status: \"{{record.status}}\"\n\n  - id: verify_worker_record\n    op: lookup_record\n    params:\n      entity: worker\n      id: \"{{receive_assignment_request.output.worker_id}}\"\n      required_status: active\n    output:\n      worker_exists: \"{{record.found}}\"\n      worker_status: \"{{record.status}}\"\n\n  - id: create_assignment_record\n    op: create_record\n    params:\n      entity: worker_patient_assignment\n      fields:\n        patient_id: \"{{receive_assignment_request.output.patient_id}}\"\n        worker_id: \"{{receive_assignment_request.output.worker_id}}\"\n        assigned_by: \"{{receive_assignment_request.output.submitted_by_user_id}}\"\n        assigned_at: \"{{now}}\"\n        status: active\n      links:\n        - timesheet_generation\n        - invoice_generation\n    output:\n      assignment_id: \"{{record.id}}\"\n      assignment_status: \"{{record.status}}\"",
+      "dsl_type_errors": [
+        "Step at index 0 (id='receive_assignment_request'): 'output' must be a string if present.",
+        "Step at index 1 (id='authenticate_submitting_user'): 'output' must be a string if present.",
+        "Step at index 2 (id='verify_patient_record'): 'output' must be a string if present.",
+        "Step at index 3 (id='verify_worker_record'): 'output' must be a string if present.",
+        "Step at index 4 (id='create_assignment_record'): 'output' must be a string if present."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 1,
+  "domain": "healthcare_billing",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 218,
+  "total_output_tokens": 529
+}

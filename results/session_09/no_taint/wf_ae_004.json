@@ -1,0 +1,55 @@
+{
+  "task_id": "wf_ae_004",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 10.446202124468982,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: cms_article_publication\nsteps:\n  - id: fetch_csrf_token\n    op: fetch_api\n    params:\n      endpoint: \"/session/token\"\n      method: GET\n    output: raw_csrf_token\n\n  - id: extract_csrf_token\n    op: extract_field\n    params:\n      input: raw_csrf_token\n      field: \"csrf_token\"\n    output: csrf_token\n\n  - id: authenticate_publisher\n    op: authenticate_user\n    params:\n      role: \"publisher\"\n    output: auth_result\n\n  - id: validate_article_payload\n    op: validate_schema\n    params:\n      input: article_payload\n      schema: cms_article_schema\n    output: validated_article\n\n  - id: extract_content_sections\n    op: extract_field\n    params:\n      input: validated_article\n      field: \"content_sections\"\n    output: content_sections\n\n  - id: loop_content_sections\n    op: loop_records\n    params:\n      input: content_sections\n      steps:\n        - id: transform_section_to_paragraph\n          op: transform_json\n          params:\n            input: \"$$current_item\"\n            mapping:\n              type: \"paragraph--content_block\"\n              attributes:\n                field_body:\n                  value: \"$$current_item.html\"\n                  format: \"full_html\"\n          output: paragraph_payload\n\n        - id: create_paragraph_block\n          op: call_webhook\n          params:\n            input: paragraph_payload\n            url: \"/jsonapi/paragraph/content_block\"\n            method: POST\n            headers:\n              Content-Type: \"application/vnd.api+json\"\n              X-CSRF-Token: \"$$csrf_token\"\n          output: raw_paragraph_response\n\n        - id: validate_paragraph_response\n          op: validate_schema\n          params:\n            input: raw_paragraph_response\n            schema: paragraph_response_schema\n          output: validated_paragraph\n\n        - id: extract_paragraph_uuid\n          op: extract_field\n          params:\n            input: validated_paragraph\n            field: \"data.id\"\n          output: paragraph_uuid\n    output: paragraph_uuids\n\n  - id: transform_article_node_payload\n    op: transform_json\n    params:\n      input: validated_article\n      mapping:\n        type: \"node--article\"\n        attributes:\n          title: \"$$validated_article.title\"\n          field_metadata: \"$$validated_article.metadata\"\n        relationships:\n          field_content_blocks: \"$$paragraph_uuids\"\n    output: article_node_payload\n\n  - id: create_article_node\n    op: call_webhook\n    params:\n      input: article_node_payload\n      url: \"/jsonapi/node/article\"\n      method: POST\n      headers:\n        Content-Type: \"application/vnd.api+json\"\n        X-CSRF-Token: \"$$csrf_token\"\n    output: raw_article_response\n\n  - id: validate_article_node_response\n    op: validate_schema\n    params:\n      input: raw_article_response\n      schema: article_node_response_schema\n    output: validated_article_node\n\n  - id: extract_node_id\n    op: extract_field\n    params:\n      input: validated_article_node\n      field: \"data.id\"\n    output: article_node_id\n\n  - id: extract_article_title\n    op: extract_field\n    params:\n      input: validated_article_node\n      field: \"data.attributes.title\"\n    output: article_title\n\n  - id: log_publication_audit\n    op: log_audit\n    params:\n      input: article_node_id\n      entry:\n        action: \"article_published\"\n        article_title: \"$$article_title\"\n        node_id: \"$$article_node_id\"\n        timestamp: \"$$NOW\"",
+      "dsl_type_errors": [
+        "Step 'validate_article_payload' (op: validate_schema): input 'article_payload' is not defined. Available outputs at this point: ['auth_result', 'csrf_token', 'raw_csrf_token']. Make sure the step that produces 'article_payload' comes before this step and declares 'output: article_payload'."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1182,
+      "output_tokens": 954
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: cms_article_publication\nsteps:\n  - id: fetch_csrf_token\n    op: fetch_api\n    params:\n      endpoint: \"/session/token\"\n      method: GET\n    output: raw_csrf_token\n\n  - id: extract_csrf_token\n    op: extract_field\n    params:\n      input: raw_csrf_token\n      field: \"csrf_token\"\n    output: csrf_token\n\n  - id: authenticate_publisher\n    op: authenticate_user\n    params:\n      role: \"publisher\"\n    output: auth_result\n\n  - id: fetch_article_payload\n    op: fetch_api\n    params:\n      endpoint: \"/api/articles/pending\"\n    output: raw_article_payload\n\n  - id: validate_article_payload\n    op: validate_schema\n    params:\n      input: raw_article_payload\n      schema: cms_article_schema\n    output: validated_article\n\n  - id: extract_content_sections\n    op: extract_field\n    params:\n      input: validated_article\n      field: \"content_sections\"\n    output: content_sections\n\n  - id: loop_content_sections\n    op: loop_records\n    params:\n      input: content_sections\n      steps:\n        - id: transform_section_to_paragraph\n          op: transform_json\n          params:\n            input: \"$$current_item\"\n            mapping:\n              type: \"paragraph--content_block\"\n              attributes:\n                field_body:\n                  value: \"$$current_item.html\"\n                  format: \"full_html\"\n          output: paragraph_payload\n\n        - id: create_paragraph_block\n          op: call_webhook\n          params:\n            input: paragraph_payload\n            url: \"/jsonapi/paragraph/content_block\"\n            method: POST\n            headers:\n              Content-Type: \"application/vnd.api+json\"\n              X-CSRF-Token: \"$$csrf_token\"\n          output: raw_paragraph_response\n\n        - id: validate_paragraph_response\n          op: validate_schema\n          params:\n            input: raw_paragraph_response\n            schema: paragraph_response_schema\n          output: validated_paragraph\n\n        - id: extract_paragraph_uuid\n          op: extract_field\n          params:\n            input: validated_paragraph\n            field: \"data.id\"\n          output: paragraph_uuid\n    output: paragraph_uuids\n\n  - id: transform_article_node_payload\n    op: transform_json\n    params:\n      input: validated_article\n      mapping:\n        type: \"node--article\"\n        attributes:\n          title: \"$$validated_article.title\"\n          field_metadata: \"$$validated_article.metadata\"\n        relationships:\n          field_content_blocks: \"$$paragraph_uuids\"\n    output: article_node_payload\n\n  - id: create_article_node\n    op: call_webhook\n    params:\n      input: article_node_payload\n      url: \"/jsonapi/node/article\"\n      method: POST\n      headers:\n        Content-Type: \"application/vnd.api+json\"\n        X-CSRF-Token: \"$$csrf_token\"\n    output: raw_article_response\n\n  - id: validate_article_node_response\n    op: validate_schema\n    params:\n      input: raw_article_response\n      schema: article_node_response_schema\n    output: validated_article_node\n\n  - id: extract_node_id\n    op: extract_field\n    params:\n      input: validated_article_node\n      field: \"data.id\"\n    output: article_node_id\n\n  - id: extract_article_title\n    op: extract_field\n    params:\n      input: validated_article_node\n      field: \"data.attributes.title\"\n    output: article_title\n\n  - id: log_publication_audit\n    op: log_audit\n    params:\n      input: article_node_id\n      entry:\n        action: \"article_published\"\n        article_title: \"$$article_title\"\n        node_id: \"$$article_node_id\"\n        timestamp: \"$$NOW\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ae_004.py::test_parses_and_type_checks": true,
+        "test_wf_ae_004.py::test_passes_taint_analysis": true,
+        "test_wf_ae_004.py::test_csrf_before_post": true,
+        "test_wf_ae_004.py::test_auth_before_publish": true,
+        "test_wf_ae_004.py::test_has_audit_log": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 2283,
+      "output_tokens": 997
+    }
+  ],
+  "complexity": 3,
+  "domain": "publishing",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 3465,
+  "total_output_tokens": 1951
+}

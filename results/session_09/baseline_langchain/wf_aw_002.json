@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_aw_002",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 26.01009437534958,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_aw_002\nsteps:\n  - id: receive_upload\n    op: fetch_api\n    params:\n      method: POST\n      endpoint: /api/knowledge-base/upload\n      headers:\n        Cache-Control: \"private, no-store\"\n      accept_formats:\n        - PDF\n        - DOCX\n        - TXT\n    output: upload_payload\n\n  - id: authenticate_user\n    op: authenticate_user\n    params:\n      token: \"{{upload_payload.auth_token}}\"\n      allowed_roles:\n        - Editor\n        - Admin\n        - Developer\n    output: auth_result\n\n  - id: validate_file_format\n    op: validate_schema\n    params:\n      input: \"{{upload_payload}}\"\n      rules:\n        - field: file_format\n          must_match: \"{{upload_payload.document_type}}\"\n        - condition: \"{{upload_payload.document_type == 'SED'}}\"\n          required_format: DOCX\n    output: validation_result\n\n  - id: handle_validation_error\n    op: handle_error\n    params:\n      condition: \"{{validation_result.valid == false}}\"\n      message: \"File format does not match the selected document type\"\n      action: terminate\n\n  - id: store_file\n    op: write_database\n    params:\n      destination: uploads_volume\n      file: \"{{upload_payload.file}}\"\n      metadata:\n        document_type: \"{{upload_payload.document_type}}\"\n        uploaded_by: \"{{auth_result.user_id}}\"\n        uploaded_at: \"{{now()}}\"\n    output: stored_file\n\n  - id: trigger_extraction_pipeline\n    op: call_webhook\n    params:\n      url: \"{{pipeline_service_url}}/extract\"\n      method: POST\n      payload:\n        file_path: \"{{stored_file.path}}\"\n        document_type: \"{{upload_payload.document_type}}\"\n        file_format: \"{{upload_payload.file_format}}\"\n        user_id: \"{{auth_result.user_id}}\"\n    output: pipeline_response\n\n  - id: log_upload_event\n    op: log_audit\n    params:\n      action: document_upload_and_pipeline_trigger\n      user_id: \"{{auth_result.user_id}}\"\n      role: \"{{auth_result.role}}\"\n      document_type: \"{{upload_payload.document_type}}\"\n      file_path: \"{{stored_file.path}}\"\n      pipeline_status: \"{{pipeline_response.status}}\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_aw_002.py::test_parses_and_type_checks": false,
+        "test_wf_aw_002.py::test_passes_taint_analysis": true,
+        "test_wf_aw_002.py::test_validates_format": true,
+        "test_wf_aw_002.py::test_triggers_pipeline": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "enterprise_knowledge",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

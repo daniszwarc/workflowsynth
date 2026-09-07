@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_ft_008",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.5112563753500581,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: body_weight_measurement_logging\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: step_receive_measurement\n    op: fetch_api\n    params:\n      endpoint: \"/api/weight/measurement\"\n      method: \"POST\"\n    output: raw_measurement\n\n  - id: step_validate_schema\n    op: validate_schema\n    params:\n      input: raw_measurement\n      schema:\n        type: object\n        required:\n          - user_id\n          - weight_kg\n          - date\n          - time\n        properties:\n          user_id:\n            type: string\n          weight_kg:\n            type: number\n          date:\n            type: string\n            format: date\n          time:\n            type: string\n            format: time\n    output: validated_measurement\n\n  - id: step_filter_plausible_range\n    op: filter_records\n    params:\n      input: validated_measurement\n      condition: \"weight_kg >= 30 AND weight_kg <= 300\"\n    output: plausible_measurement\n\n  - id: step_check_implausible\n    op: apply_rule\n    params:\n      rule: \"plausible_measurement is empty\"\n      on_true: step_terminate_rejected\n      on_false: step_check_existing\n    output: plausibility_result\n\n  - id: step_terminate_rejected\n    op: terminate_workflow\n    params:\n      status: \"rejected\"\n      reason: \"Measurement outside plausible range (30-300 kg)\"\n\n  - id: step_check_existing\n    op: read_database\n    params:\n      table: weight_measurements\n      query: \"user_id = plausible_measurement.user_id AND date = plausible_measurement.date\"\n    output: existing_records\n\n  - id: step_filter_existing\n    op: filter_records\n    params:\n      input: existing_records\n      condition: \"count > 0\"\n    output: duplicate_check\n\n  - id: step_apply_duplicate_rule\n    op: apply_rule\n    params:\n      rule: \"duplicate_check is not empty\"\n      on_true: step_notify_duplicate\n      on_false: step_write_measurement\n    output: duplicate_result\n\n  - id: step_notify_duplicate\n    op: notify_user\n    params:\n      input: plausible_measurement\n      message: \"A measurement already exists for this date. This entry will overwrite the previous one.\"\n      channel: \"in_app\"\n    output: duplicate_notification\n\n  - id: step_write_measurement\n    op: write_database\n    params:\n      input: plausible_measurement\n      table: weight_measurements\n      mode: \"upsert\"\n      key: [\"user_id\", \"date\"]\n    output: write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: plausible_measurement\n      event: \"weight_measurement_logged\"\n      details:\n        user_id: \"plausible_measurement.user_id\"\n        weight_kg: \"plausible_measurement.weight_kg\"\n        date: \"plausible_measurement.date\"\n    output: audit_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Weight measurement logged successfully\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_008.py::test_parses_and_type_checks": true,
+        "test_wf_ft_008.py::test_passes_taint_analysis": true,
+        "test_wf_ft_008.py::test_validates_measurement": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1060,
+      "output_tokens": 836
+    }
+  ],
+  "complexity": 1,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1060,
+  "total_output_tokens": 836
+}

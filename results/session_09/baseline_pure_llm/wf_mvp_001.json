@@ -1,0 +1,42 @@
+{
+  "task_id": "wf_mvp_001",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 7,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 8.445604625158012,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: user_authentication_and_session_bootstrap\nsteps:\n  - id: intercept_request\n    op: middleware/check_session\n    params:\n      check: session_authenticated\n      session_cookie: staff_session\n      timeout_hours: 8\n    output: session_status\n\n  - id: redirect_to_login\n    op: http/redirect\n    params:\n      condition: \"{{ session_status.authenticated == false }}\"\n      target_url: /admin/login\n      http_status: 302\n    output: redirect_result\n\n  - id: receive_login_submission\n    op: http/receive_form\n    params:\n      method: POST\n      endpoint: /admin/login\n      fields:\n        - username\n        - password\n    output: login_credentials\n\n  - id: verify_credentials\n    op: auth/verify_user\n    params:\n      username: \"{{ login_credentials.username }}\"\n      password: \"{{ login_credentials.password }}\"\n      lookup_source: staff_users_table\n      hash_algorithm: bcrypt\n    output: auth_result\n\n  - id: establish_session\n    op: session/create\n    params:\n      condition: \"{{ auth_result.verified == true }}\"\n      user_id: \"{{ auth_result.user_id }}\"\n      role: \"{{ auth_result.role }}\"\n      session_cookie: staff_session\n      timeout_hours: 8\n      attributes:\n        display_name: \"{{ auth_result.display_name }}\"\n        permissions: \"{{ auth_result.role_permissions }}\"\n        visible_menus: \"{{ auth_result.role_menus }}\"\n    output: session_details\n\n  - id: redirect_to_main_menu\n    op: http/redirect\n    params:\n      condition: \"{{ session_details.created == true }}\"\n      target_url: /admin/main-menu\n      http_status: 302\n    output: final_redirect\n\n  - id: handle_failed_login\n    op: http/render_template\n    params:\n      condition: \"{{ auth_result.verified == false }}\"\n      template: admin/login\n      context:\n        error_message: \"Invalid username or password. Please try again.\"\n    output: login_error_page",
+      "dsl_type_errors": [
+        "Step 'intercept_request': unknown op 'middleware/check_session'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'redirect_to_login': unknown op 'http/redirect'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'receive_login_submission': unknown op 'http/receive_form'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'verify_credentials': unknown op 'auth/verify_user'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'establish_session': unknown op 'session/create'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'redirect_to_main_menu': unknown op 'http/redirect'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'handle_failed_login': unknown op 'http/render_template'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "manufacturing",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 260,
+  "total_output_tokens": 543
+}

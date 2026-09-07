@@ -1,0 +1,42 @@
+{
+  "task_id": "wf_ts_002",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 7,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 9.772544708102942,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: timesheet_hours_edit\n\nsteps:\n  - id: receive_edit_form\n    op: receive_form_submission\n    params:\n      trigger: timesheet_edit_submitted\n      required_fields:\n        - record_id\n        - staff_id\n        - date\n        - start_time\n        - end_time\n        - hourly_rate\n    output: edit_payload\n\n  - id: authenticate_user\n    op: authenticate\n    params:\n      user_id: \"{{ edit_payload.staff_id }}\"\n      session_token: \"{{ edit_payload.session_token }}\"\n    output: auth_result\n\n  - id: read_existing_record\n    op: database_read\n    params:\n      table: timesheet_entries\n      filter:\n        id: \"{{ edit_payload.record_id }}\"\n    output: existing_record\n\n  - id: check_overlapping_entries\n    op: database_query\n    params:\n      table: timesheet_entries\n      filter:\n        staff_id: \"{{ edit_payload.staff_id }}\"\n        date: \"{{ edit_payload.date }}\"\n        exclude_record_id: \"{{ edit_payload.record_id }}\"\n        overlaps_with:\n          start_time: \"{{ edit_payload.start_time }}\"\n          end_time: \"{{ edit_payload.end_time }}\"\n      description: \"Check for overlapping timesheet entries, excluding the record being edited\"\n    output: overlapping_entries\n\n  - id: validate_no_overlap\n    op: assert\n    params:\n      condition: \"{{ overlapping_entries | length == 0 }}\"\n      error_message: \"Updated timesheet entry overlaps with an existing entry for this staff member on the same date.\"\n\n  - id: compute_updated_pay\n    op: calculate\n    params:\n      hours_worked: \"( {{ edit_payload.end_time }} - {{ edit_payload.start_time }} ) / 3600\"\n      hourly_rate: \"{{ edit_payload.hourly_rate }}\"\n      total_pay: \"{{ hours_worked * hourly_rate }}\"\n    output: pay_calculation\n\n  - id: update_timesheet_record\n    op: database_update\n    params:\n      table: timesheet_entries\n      filter:\n        id: \"{{ edit_payload.record_id }}\"\n      update_fields:\n        date: \"{{ edit_payload.date }}\"\n        start_time: \"{{ edit_payload.start_time }}\"\n        end_time: \"{{ edit_payload.end_time }}\"\n        hourly_rate: \"{{ edit_payload.hourly_rate }}\"\n        hours_worked: \"{{ pay_calculation.hours_worked }}\"\n        total_pay: \"{{ pay_calculation.total_pay }}\"\n        updated_at: \"{{ now() }}\"\n    output: updated_record",
+      "dsl_type_errors": [
+        "Step 'receive_edit_form': unknown op 'receive_form_submission'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'authenticate_user': unknown op 'authenticate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'read_existing_record': unknown op 'database_read'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'check_overlapping_entries': unknown op 'database_query'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_no_overlap': unknown op 'assert'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'compute_updated_pay': unknown op 'calculate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'update_timesheet_record': unknown op 'database_update'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "community_sports",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 248,
+  "total_output_tokens": 694
+}

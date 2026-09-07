@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_ft_006",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 16.708044291473925,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_ft_006\nsteps:\n  - id: authenticate\n    op: authenticate_user\n    params:\n      source: session_token\n    output: user_context\n\n  - id: read_nutrition_log\n    op: read_database\n    params:\n      collection: nutrition_logs\n      filters:\n        user_id: \"{{user_context.user_id}}\"\n        date: \"{{today}}\"\n    output: nutrition_entries\n\n  - id: aggregate_nutrition\n    op: aggregate_data\n    params:\n      input: \"{{nutrition_entries}}\"\n      fields:\n        - name: total_calories\n          function: sum\n          field: calories\n        - name: total_protein\n          function: sum\n          field: protein\n        - name: total_carbs\n          function: sum\n          field: carbs\n        - name: total_fat\n          function: sum\n          field: fat\n    output: nutrition_totals\n\n  - id: format_progress_summary\n    op: format_output\n    params:\n      template: daily_progress_summary\n      data:\n        consumed: \"{{nutrition_totals}}\"\n        daily_targets: \"{{user_context.profile.daily_targets}}\"\n      comparisons:\n        - metric: calories\n          actual: \"{{nutrition_totals.total_calories}}\"\n          target: \"{{user_context.profile.daily_targets.calories}}\"\n        - metric: protein\n          actual: \"{{nutrition_totals.total_protein}}\"\n          target: \"{{user_context.profile.daily_targets.protein}}\"\n        - metric: carbs\n          actual: \"{{nutrition_totals.total_carbs}}\"\n          target: \"{{user_context.profile.daily_targets.carbs}}\"\n        - metric: fat\n          actual: \"{{nutrition_totals.total_fat}}\"\n          target: \"{{user_context.profile.daily_targets.fat}}\"\n    output: progress_summary",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_006.py::test_parses_and_type_checks": false,
+        "test_wf_ft_006.py::test_passes_taint_analysis": true,
+        "test_wf_ft_006.py::test_aggregates_daily": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

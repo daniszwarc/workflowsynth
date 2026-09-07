@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_pb_005",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.4676940403878689,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: manual_ticket_creation\nsteps:\n  - id: step_authenticate_producer\n    op: authenticate_user\n    params:\n      role: \"producer\"\n    output: auth_result\n\n  - id: step_receive_request\n    op: fetch_api\n    params:\n      endpoint: \"/api/dashboard/manual-ticket\"\n    output: raw_request\n\n  - id: step_validate_request\n    op: validate_schema\n    params:\n      input: raw_request\n      schema:\n        type: object\n        required:\n          - tipo\n        properties:\n          tipo:\n            type: string\n            enum:\n              - alta\n              - baja\n              - a_definir\n          client_name:\n            type: string\n          notes:\n            type: string\n    output: validated_request\n\n  - id: step_check_tipo_rule\n    op: apply_rule\n    params:\n      rule: \"tipo_must_be_valid\"\n      condition: \"validated_request.tipo in ['alta', 'baja', 'a_definir']\"\n    output: tipo_rule_result\n\n  - id: step_route_on_invalid_tipo\n    op: route_to_step\n    params:\n      condition: \"tipo_rule_result == false\"\n      target: step_terminate_invalid\n\n  - id: step_extract_client_info\n    op: extract_field\n    params:\n      input: validated_request\n      field: \"client_name\"\n    output: client_name\n\n  - id: step_upsert_client\n    op: write_database\n    params:\n      input: client_name\n      table: clients\n      operation: upsert\n      match_key: client_name\n    output: client_record\n\n  - id: step_build_ticket\n    op: transform_json\n    params:\n      input: validated_request\n      mapping:\n        tipo: \"$.tipo\"\n        client_name: \"$.client_name\"\n        notes: \"$.notes\"\n        status: \"pendiente\"\n        source: \"manual\"\n        client_id: \"$.client_record.id\"\n      context:\n        client_record: client_record\n    output: ticket_payload\n\n  - id: step_create_ticket\n    op: write_database\n    params:\n      input: ticket_payload\n      table: tickets\n      operation: insert\n    output: created_ticket\n\n  - id: step_log_creation\n    op: log_audit\n    params:\n      input: created_ticket\n      action: \"manual_ticket_created\"\n      actor: auth_result\n    output: audit_entry\n\n  - id: step_notify_producer\n    op: notify_user\n    params:\n      input: created_ticket\n      recipient: auth_result\n      template: \"ticket_created_confirmation\"\n    output: notification_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"Manual ticket created successfully\"\n\n  - id: step_terminate_invalid\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"Invalid tipo value. Must be one of: alta, baja, a_definir\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_005.py::test_parses_and_type_checks": true,
+        "test_wf_pb_005.py::test_passes_taint_analysis": true,
+        "test_wf_pb_005.py::test_has_validation": true,
+        "test_wf_pb_005.py::test_has_ticket_write": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1081,
+      "output_tokens": 771
+    }
+  ],
+  "complexity": 1,
+  "domain": "insurance_brokerage",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1081,
+  "total_output_tokens": 771
+}

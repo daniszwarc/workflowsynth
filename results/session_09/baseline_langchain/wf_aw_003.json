@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_aw_003",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 26.38742637448013,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_aw_003\nsteps:\n  - id: receive_document\n    op: fetch_api\n    params:\n      source: upload_pipeline\n      resource: process_document\n      timeout_seconds: 300\n    output: raw_document\n\n  - id: authenticate_pipeline\n    op: authenticate_user\n    params:\n      service: pipeline_service\n      method: service_account\n    output: auth_context\n\n  - id: extract_text\n    op: extract_field\n    params:\n      input: \"{{raw_document}}\"\n      field: document_content\n      format: plain_text\n    output: document_text\n\n  - id: extract_business_rules\n    op: call_webhook\n    params:\n      url: langgraph/extract_business_rules\n      method: POST\n      body:\n        document_text: \"{{document_text}}\"\n        instruction: \"Identify and extract individual business rules from the process document\"\n      timeout_seconds: 300\n      auth: \"{{auth_context}}\"\n    output: extracted_rules\n\n  - id: validate_rules_structure\n    op: validate_schema\n    params:\n      input: \"{{extracted_rules}}\"\n      schema: business_rule_schema\n      require_fields:\n        - rule_id\n        - rule_text\n        - rule_category\n    output: validated_rules\n\n  - id: store_rules\n    op: loop_records\n    params:\n      collection: \"{{validated_rules}}\"\n      steps:\n        - id: write_rule\n          op: write_database\n          params:\n            table: rules\n            data:\n              rule_id: \"{{item.rule_id}}\"\n              rule_text: \"{{item.rule_text}}\"\n              rule_category: \"{{item.rule_category}}\"\n              status: pending_review\n              source_document: \"{{raw_document.document_id}}\"\n    output: stored_rules\n\n  - id: generate_embeddings\n    op: loop_records\n    params:\n      collection: \"{{stored_rules}}\"\n      steps:\n        - id: call_embedding_api\n          op: call_webhook\n          params:\n            url: embeddings/generate\n            method: POST\n            body:\n              text: \"{{item.rule_text}}\"\n              dimensions: 4096\n            timeout_seconds: 300\n          output: rule_embedding\n        - id: store_embedding\n          op: write_database\n          params:\n            table: rule_embeddings\n            engine: pgvector\n            data:\n              rule_id: \"{{item.rule_id}}\"\n              embedding: \"{{rule_embedding}}\"\n              dimensions: 4096\n              searchable: false\n    output: stored_embeddings\n\n  - id: log_extraction\n    op: log_audit\n    params:\n      action: business_rule_extraction\n      document_id: \"{{raw_document.document_id}}\"\n      rules_count: \"{{validated_rules.length}}\"\n      status: completed",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_aw_003.py::test_parses_and_type_checks": false,
+        "test_wf_aw_003.py::test_passes_taint_analysis": true,
+        "test_wf_aw_003.py::test_stores_pending_review": false,
+        "test_wf_aw_003.py::test_generates_embeddings": false
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 4,
+  "domain": "enterprise_knowledge",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

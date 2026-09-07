@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_ft_008",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 24.708366750739515,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_ft_008\nsteps:\n  - id: receive_measurement\n    op: extract_field\n    params:\n      source: trigger.payload\n      fields:\n        - user_id\n        - weight_kg\n        - measured_date\n        - measured_time\n    output: measurement_data\n\n  - id: validate_schema\n    op: validate_schema\n    params:\n      input: \"{{measurement_data}}\"\n      schema:\n        required:\n          - user_id\n          - weight_kg\n          - measured_date\n        properties:\n          user_id:\n            type: string\n          weight_kg:\n            type: number\n          measured_date:\n            type: string\n            format: date\n          measured_time:\n            type: string\n    output: schema_result\n\n  - id: handle_schema_error\n    op: handle_error\n    params:\n      condition: \"{{schema_result.valid}} == false\"\n      action: terminate\n      message: \"Invalid measurement payload: missing or malformed fields.\"\n\n  - id: validate_plausible_range\n    op: apply_rule\n    params:\n      input: \"{{measurement_data.weight_kg}}\"\n      rule: \"value >= 30 AND value <= 300\"\n    output: range_check\n\n  - id: reject_implausible\n    op: terminate_workflow\n    params:\n      condition: \"{{range_check.passed}} == false\"\n      reason: \"Weight measurement {{measurement_data.weight_kg}} kg is outside plausible range (30-300 kg).\"\n\n  - id: check_existing_today\n    op: read_database\n    params:\n      collection: weight_measurements\n      filter:\n        user_id: \"{{measurement_data.user_id}}\"\n        measured_date: \"{{measurement_data.measured_date}}\"\n    output: existing_records\n\n  - id: warn_duplicate_day\n    op: notify_user\n    params:\n      condition: \"{{existing_records.count}} > 0\"\n      user_id: \"{{measurement_data.user_id}}\"\n      channel: in_app\n      message: \"You already have a weight entry for today. This new measurement will be stored alongside it. Only one measurement per day is recommended.\"\n\n  - id: store_measurement\n    op: write_database\n    params:\n      collection: weight_measurements\n      document:\n        user_id: \"{{measurement_data.user_id}}\"\n        weight_kg: \"{{measurement_data.weight_kg}}\"\n        measured_date: \"{{measurement_data.measured_date}}\"\n        measured_time: \"{{measurement_data.measured_time}}\"\n        created_at: \"{{now()}}\"\n    output: stored_record\n\n  - id: log_audit\n    op: log_audit\n    params:\n      action: weight_measurement_logged\n      user_id: \"{{measurement_data.user_id}}\"\n      details:\n        weight_kg: \"{{measurement_data.weight_kg}}\"\n        measured_date: \"{{measurement_data.measured_date}}\"\n        record_id: \"{{stored_record.id}}\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_008.py::test_parses_and_type_checks": false,
+        "test_wf_ft_008.py::test_passes_taint_analysis": true,
+        "test_wf_ft_008.py::test_validates_measurement": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 1,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_ktg_002",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 34.04367720801383,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow validates. Here is the final YAML:\n\nworkflow_id: wf_ktg_002\nsteps:\n  - id: receive_tickler_request\n    op: extract_field\n    params:\n      source: trigger_payload\n      fields:\n        - action\n        - tickler_id\n        - claim_id\n        - case_manager_id\n        - due_date\n        - priority\n        - notes\n    output: tickler_request\n\n  - id: authenticate_case_manager\n    op: authenticate_user\n    params:\n      token: \"{{tickler_request.auth_token}}\"\n      role: case_manager\n    output: auth_result\n\n  - id: validate_tickler_fields\n    op: validate_schema\n    params:\n      input: \"{{tickler_request}}\"\n      schema:\n        required:\n          - action\n          - claim_id\n          - case_manager_id\n        properties:\n          action:\n            type: string\n            enum:\n              - create\n              - update\n              - complete\n          claim_id:\n            type: string\n          case_manager_id:\n            type: string\n          due_date:\n            type: string\n            format: date\n          priority:\n            type: string\n            enum:\n              - low\n              - medium\n              - high\n          notes:\n            type: string\n    output: validation_result\n\n  - id: generate_tickler_uuid\n    op: apply_rule\n    params:\n      condition: \"{{tickler_request.action}} == 'create'\"\n      action: generate_uuid\n    output: tickler_uuid\n\n  - id: resolve_tickler_id\n    op: apply_rule\n    params:\n      rule: >\n        if action is 'create' then use generated UUID,\n        otherwise use tickler_id from request\n      input:\n        action: \"{{tickler_request.action}}\"\n        generated_uuid: \"{{tickler_uuid}}\"\n        existing_id: \"{{tickler_request.tickler_id}}\"\n    output: resolved_tickler_id\n\n  - id: upsert_tickler_record\n    op: write_database\n    params:\n      table: ticklers\n      operation: upsert\n      primary_key: tickler_id\n      transaction: true\n      rollback_on_failure: true\n      record:\n        tickler_id: \"{{resolved_tickler_id}}\"\n        claim_id: \"{{tickler_request.claim_id}}\"\n        case_manager_id: \"{{tickler_request.case_manager_id}}\"\n        action: \"{{tickler_request.action}}\"\n        due_date: \"{{tickler_request.due_date}}\"\n        priority: \"{{tickler_request.priority}}\"\n        notes: \"{{tickler_request.notes}}\"\n        status: \"{{tickler_request.action}}\"\n        updated_at: \"{{now}}\"\n    output: db_write_result\n\n  - id: log_tickler_action\n    op: log_audit\n    params:\n      event: tickler_action\n      actor: \"{{tickler_request.case_manager_id}}\"\n      action: \"{{tickler_request.action}}\"\n      resource_type: tickler\n      resource_id: \"{{resolved_tickler_id}}\"\n      claim_id: \"{{tickler_request.claim_id}}\"\n      details:\n        priority: \"{{tickler_request.priority}}\"\n        due_date: \"{{tickler_request.due_date}}\"\n        status: \"{{tickler_request.action}}\"\n    output: audit_log_result\n\n  - id: handle_workflow_error\n    op: handle_error\n    params:\n      on_error: rollback\n      notify: \"{{tickler_request.case_manager_id}}\"\n      message: \"Tickler operation failed. Transaction rolled back.\"\n    output: error_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ktg_002.py::test_parses_and_type_checks": false,
+        "test_wf_ktg_002.py::test_passes_taint_analysis": false,
+        "test_wf_ktg_002.py::test_writes_tickler": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "workers_compensation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_ae_002",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 6,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 8.407540707848966,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: article_category_matching_from_excel\n\nsteps:\n  - id: read_category_spreadsheet\n    op: google_drive/read_spreadsheet\n    params:\n      file_name: category_mapping\n      sheet: Sheet1\n    output: category_rows\n\n  - id: extract_article_title\n    op: data/extract_field\n    params:\n      source: extracted_article_data\n      field: title\n    output: article_title\n\n  - id: normalise_article_title\n    op: text/normalise\n    params:\n      input: \"{{ article_title }}\"\n      remove_accents: true\n      lowercase: true\n      strip_non_alphanumeric: true\n    output: normalised_article_title\n\n  - id: normalise_spreadsheet_titles\n    op: text/normalise_batch\n    params:\n      input: \"{{ category_rows }}\"\n      field: title\n      remove_accents: true\n      lowercase: true\n      strip_non_alphanumeric: true\n    output: normalised_category_rows\n\n  - id: fuzzy_match_category\n    op: matching/fuzzy_lookup\n    params:\n      query: \"{{ normalised_article_title }}\"\n      candidates: \"{{ normalised_category_rows }}\"\n      match_field: normalised_title\n      accent_insensitive: true\n      punctuation_insensitive: true\n    output: match_result\n\n  - id: apply_matched_category\n    op: conditional/if_then_else\n    params:\n      condition: \"{{ match_result.found == true }}\"\n      if_true:\n        op: data/set_fields\n        params:\n          source: extracted_article_data\n          fields:\n            category: \"{{ match_result.row.category }}\"\n            section: \"{{ match_result.row.section }}\"\n            needs_review: false\n        output: categorised_article\n      if_false:\n        op: data/set_fields\n        params:\n          source: extracted_article_data\n          fields:\n            category: \"Ciencia economica\"\n            section: \"Dossier\"\n            needs_review: true\n            review_reason: \"No matching category found in spreadsheet for title\"\n        output: categorised_article\n    output: categorised_article",
+      "dsl_type_errors": [
+        "Step 'read_category_spreadsheet': unknown op 'google_drive/read_spreadsheet'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'extract_article_title': unknown op 'data/extract_field'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'normalise_article_title': unknown op 'text/normalise'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'normalise_spreadsheet_titles': unknown op 'text/normalise_batch'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'fuzzy_match_category': unknown op 'matching/fuzzy_lookup'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'apply_matched_category': unknown op 'conditional/if_then_else'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "publishing",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 325,
+  "total_output_tokens": 557
+}

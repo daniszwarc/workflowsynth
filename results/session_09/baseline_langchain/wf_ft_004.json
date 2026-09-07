@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_ft_004",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 28.759391833096743,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_ft_004\nsteps:\n  - id: receive_session_data\n    op: extract_field\n    params:\n      source: trigger.payload\n      fields:\n        - user_id\n        - exercises\n        - session_date\n    output: session_data\n\n  - id: validate_session\n    op: validate_schema\n    params:\n      input: \"{{session_data}}\"\n      schema:\n        required:\n          - user_id\n          - exercises\n          - session_date\n        exercise_fields:\n          - name\n          - sets\n          - reps\n          - weight\n    output: validation_result\n\n  - id: handle_validation_error\n    op: handle_error\n    params:\n      condition: \"{{validation_result.valid}} == false\"\n      message: \"Invalid workout session data\"\n      action: terminate\n\n  - id: lookup_training_plan\n    op: read_database\n    params:\n      table: training_plans\n      filters:\n        user_id: \"{{session_data.user_id}}\"\n        status: active\n    output: training_plan\n\n  - id: check_active_plan\n    op: apply_rule\n    params:\n      condition: \"{{training_plan}} == null\"\n      on_true: terminate\n      message: \"No active training plan found for user\"\n    output: plan_check\n\n  - id: compute_volume_per_exercise\n    op: loop_records\n    params:\n      collection: \"{{session_data.exercises}}\"\n      operation:\n        op: transform_json\n        params:\n          mapping:\n            exercise_name: \"{{item.name}}\"\n            sets: \"{{item.sets}}\"\n            reps: \"{{item.reps}}\"\n            weight: \"{{item.weight}}\"\n            volume: \"{{item.sets * item.reps * item.weight}}\"\n    output: exercises_with_volume\n\n  - id: store_workout_session\n    op: write_database\n    params:\n      table: workout_sessions\n      record:\n        user_id: \"{{session_data.user_id}}\"\n        session_date: \"{{session_data.session_date}}\"\n        training_plan_id: \"{{training_plan.id}}\"\n        exercises: \"{{exercises_with_volume}}\"\n    output: stored_session\n\n  - id: compute_total_volume\n    op: aggregate_data\n    params:\n      input: \"{{exercises_with_volume}}\"\n      operation: sum\n      field: volume\n    output: total_session_volume\n\n  - id: update_training_plan_progress\n    op: write_database\n    params:\n      table: training_plans\n      filters:\n        id: \"{{training_plan.id}}\"\n      update:\n        completed_sessions: \"{{training_plan.completed_sessions + 1}}\"\n        last_session_date: \"{{session_data.session_date}}\"\n        total_volume_logged: \"{{training_plan.total_volume_logged + total_session_volume}}\"\n    output: updated_plan\n\n  - id: log_session_audit\n    op: log_audit\n    params:\n      action: workout_session_logged\n      user_id: \"{{session_data.user_id}}\"\n      details:\n        session_id: \"{{stored_session.id}}\"\n        training_plan_id: \"{{training_plan.id}}\"\n        total_volume: \"{{total_session_volume}}\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_004.py::test_parses_and_type_checks": false,
+        "test_wf_ft_004.py::test_passes_taint_analysis": true,
+        "test_wf_ft_004.py::test_links_to_training_plan": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

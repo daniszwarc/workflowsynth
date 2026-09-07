@@ -1,0 +1,182 @@
+{
+  "task_id": "wf_sv_002",
+  "condition": "no_taint",
+  "success": false,
+  "attempts_used": 10,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 65.75681395921856,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: sent_email_history_ingestion\nsteps:\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      role: \"email_agent_service\"\n    output: auth_result\n\n  - id: fetch_sent_emails\n    op: fetch_api\n    params:\n      endpoint: \"/api/gmail/sent\"\n      query:\n        date_range: \"past_month_excluding_last_2_weeks\"\n    output: raw_sent_emails\n\n  - id: validate_sent_emails\n    op: validate_schema\n    params:\n      input: raw_sent_emails\n      schema: sent_email_schema\n    output: validated_emails\n\n  - id: filter_short_bodies\n    op: filter_records\n    params:\n      input: validated_emails\n      condition: \"body IS NOT NULL AND length(body) >= 20\"\n    output: filtered_emails\n\n  - id: loop_emails\n    op: loop_records\n    params:\n      input: filtered_emails\n      step: build_chunks_per_email\n    output: all_email_chunks\n\n  - id: build_chunks_per_email\n    op: transform_json\n    params:\n      input: filtered_emails\n      mapping:\n        operation: \"chunk_emails\"\n        combine_fields:\n          - \"subject\"\n          - \"date\"\n          - \"recipient\"\n          - \"body\"\n        chunk_size: 500\n        chunk_overlap: 50\n        chunk_id_template: \"sent-{messageId}-chunk-{index}\"\n    output: structured_chunks\n\n  - id: embed_chunks\n    op: call_webhook\n    params:\n      input: structured_chunks\n      url: \"/api/embeddings/generate\"\n      method: \"POST\"\n      payload_field: \"text_chunks\"\n    output: raw_embedded_chunks\n\n  - id: validate_embeddings\n    op: validate_schema\n    params:\n      input: raw_embedded_chunks\n      schema: embedding_result_schema\n    output: validated_embedded_chunks\n\n  - id: insert_into_vector_store\n    op: write_database\n    params:\n      input: validated_embedded_chunks\n      table: \"vector_store\"\n      namespace: \"email-history\"\n    output: write_result\n\n  - id: log_ingestion\n    op: log_audit\n    params:\n      input: write_result\n      message: \"Sent email history ingestion completed\"\n      details:\n        namespace: \"email-history\"\n        trigger: \"weekly_schedule\"\n\n  - id: handle_ingestion_error\n    op: handle_error\n    params:\n      step: insert_into_vector_store\n      action: \"retry_then_notify\"\n\n  - id: retry_vector_insert\n    op: retry_step\n    params:\n      step: insert_into_vector_store\n      retries: 3\n      backoff: \"exponential\"\n\n  - id: notify_on_failure\n    op: notify_user\n    params:\n      input: write_result\n      recipient: \"admin@club.com\"\n      message: \"Sent email history ingestion failed after retries\"\n      channel: \"email\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_sv_002.py::test_parses_and_type_checks": true,
+        "test_wf_sv_002.py::test_passes_taint_analysis": true,
+        "test_wf_sv_002.py::test_filters_short_emails": true,
+        "test_wf_sv_002.py::test_indexes_to_store": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1178,
+      "output_tokens": 765
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: sent_email_history_ingestion\nsteps:\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      role: \"email_agent_service\"\n    output: auth_result\n\n  - id: fetch_sent_emails\n    op: fetch_api\n    params:\n      endpoint: \"/api/gmail/sent\"\n      query:\n        date_range: \"past_month_excluding_last_2_weeks\"\n    output: raw_sent_emails\n\n  - id: validate_sent_emails\n    op: validate_schema\n    params:\n      input: raw_sent_emails\n      schema: sent_email_schema\n    output: validated_emails\n\n  - id: filter_short_bodies\n    op: filter_records\n    params:\n      input: validated_emails\n      condition: \"body IS NOT NULL AND length(body) >= 20\"\n    output: filtered_emails\n\n  - id: build_chunks\n    op: transform_json\n    params:\n      input: filtered_emails\n      mapping:\n        operation: \"chunk_emails\"\n        combine_fields:\n          - \"subject\"\n          - \"date\"\n          - \"recipient\"\n          - \"body\"\n        chunk_size: 500\n        chunk_overlap: 50\n        chunk_id_template: \"sent-{messageId}-chunk-{index}\"\n    output: structured_chunks\n\n  - id: loop_chunks\n    op: loop_records\n    params:\n      input: structured_chunks\n      step: embed_single_chunk\n    output: all_embedded_chunks\n\n  - id: embed_single_chunk\n    op: call_webhook\n    params:\n      input: structured_chunks\n      url: \"/api/embeddings/generate\"\n      method: \"POST\"\n      payload_field: \"text_chunks\"\n    output: raw_embedded_chunks\n\n  - id: validate_embeddings\n    op: validate_schema\n    params:\n      input: all_embedded_chunks\n      schema: embedding_result_schema\n    output: validated_embedded_chunks\n\n  - id: insert_into_vector_store\n    op: write_database\n    params:\n      input: validated_embedded_chunks\n      table: \"vector_store\"\n      namespace: \"email-history\"\n    output: write_result\n\n  - id: log_ingestion\n    op: log_audit\n    params:\n      input: write_result\n      message: \"Sent email history ingestion completed\"\n      details:\n        namespace: \"email-history\"\n        trigger: \"weekly_schedule\"\n\n  - id: handle_ingestion_error\n    op: handle_error\n    params:\n      step: insert_into_vector_store\n      action: \"retry_then_notify\"\n\n  - id: retry_vector_insert\n    op: retry_step\n    params:\n      step: insert_into_vector_store\n      retries: 3\n      backoff: \"exponential\"\n\n  - id: notify_on_failure\n    op: notify_user\n    params:\n      input: write_result\n      recipient: \"admin@club.com\"\n      message: \"Sent email history ingestion failed after retries\"\n      channel: \"email\"",
+      "dsl_type_errors": [
+        "Step 'validate_embeddings': op 'validate_schema' requires input of type 'records' but 'all_embedded_chunks' has type 'none'. Make sure the step producing 'all_embedded_chunks' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 2025,
+      "output_tokens": 761
+    },
+    {
+      "attempt_number": 2,
+      "llm_sketch": "workflow_id: sent_email_history_ingestion\nsteps:\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      role: \"email_agent_service\"\n    output: auth_result\n\n  - id: fetch_sent_emails\n    op: fetch_api\n    params:\n      endpoint: \"/api/gmail/sent\"\n      query:\n        date_range: \"past_month_excluding_last_2_weeks\"\n    output: raw_sent_emails\n\n  - id: validate_sent_emails\n    op: validate_schema\n    params:\n      input: raw_sent_emails\n      schema: sent_email_schema\n    output: validated_emails\n\n  - id: filter_short_bodies\n    op: filter_records\n    params:\n      input: validated_emails\n      condition: \"body IS NOT NULL AND length(body) >= 20\"\n    output: filtered_emails\n\n  - id: build_chunks\n    op: transform_json\n    params:\n      input: filtered_emails\n      mapping:\n        operation: \"chunk_emails\"\n        combine_fields:\n          - \"subject\"\n          - \"date\"\n          - \"recipient\"\n          - \"body\"\n        chunk_size: 500\n        chunk_overlap: 50\n        chunk_id_template: \"sent-{messageId}-chunk-{index}\"\n    output: structured_chunks\n\n  - id: embed_chunks\n    op: call_webhook\n    params:\n      input: structured_chunks\n      url: \"/api/embeddings/generate\"\n      method: \"POST\"\n      payload_field: \"text_chunks\"\n    output: raw_embedded_chunks\n\n  - id: validate_embeddings\n    op: validate_schema\n    params:\n      input: raw_embedded_chunks\n      schema: embedding_result_schema\n    output: validated_embedded_chunks\n\n  - id: insert_into_vector_store\n    op: write_database\n    params:\n      input: validated_embedded_chunks\n      table: \"vector_store\"\n      namespace: \"email-history\"\n    output: write_result\n\n  - id: log_ingestion\n    op: log_audit\n    params:\n      input: write_result\n      message: \"Sent email history ingestion completed\"\n      details:\n        namespace: \"email-history\"\n        trigger: \"weekly_schedule\"\n\n  - id: handle_ingestion_error\n    op: handle_error\n    params:\n      step: insert_into_vector_store\n      action: \"retry_then_notify\"\n\n  - id: retry_vector_insert\n    op: retry_step\n    params:\n      step: insert_into_vector_store\n      retries: 3\n      backoff: \"exponential\"\n\n  - id: notify_on_failure\n    op: notify_user\n    params:\n      input: write_result\n      recipient: \"admin@club.com\"\n      message: \"Sent email history ingestion failed after retries\"\n      channel: \"email\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_sv_002.py::test_parses_and_type_checks": true,
+        "test_wf_sv_002.py::test_passes_taint_analysis": true,
+        "test_wf_sv_002.py::test_filters_short_emails": true,
+        "test_wf_sv_002.py::test_indexes_to_store": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2088,
+      "output_tokens": 715
+    },
+    {
+      "attempt_number": 3,
+      "llm_sketch": "workflow_id: sent_email_history_ingestion\nsteps:\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      role: \"email_agent_service\"\n    output: auth_result\n\n  - id: fetch_sent_emails\n    op: fetch_api\n    params:\n      endpoint: \"/api/gmail/sent\"\n      query:\n        date_range: \"past_month_excluding_last_2_weeks\"\n    output: raw_sent_emails\n\n  - id: validate_sent_emails\n    op: validate_schema\n    params:\n      input: raw_sent_emails\n      schema: sent_email_schema\n    output: validated_emails\n\n  - id: filter_short_bodies\n    op: filter_records\n    params:\n      input: validated_emails\n      condition: \"body IS NOT NULL AND length(body) >= 20\"\n    output: filtered_emails\n\n  - id: build_chunks\n    op: transform_json\n    params:\n      input: filtered_emails\n      mapping:\n        operation: \"chunk_emails\"\n        combine_fields:\n          - \"subject\"\n          - \"date\"\n          - \"recipient\"\n          - \"body\"\n        chunk_size: 500\n        chunk_overlap: 50\n        chunk_id_template: \"sent-{messageId}-chunk-{index}\"\n    output: structured_chunks\n\n  - id: embed_chunks\n    op: call_webhook\n    params:\n      input: structured_chunks\n      url: \"/api/embeddings/generate\"\n      method: \"POST\"\n      payload_field: \"text_chunks\"\n    output: raw_embedded_chunks\n\n  - id: validate_embeddings\n    op: validate_schema\n    params:\n      input: raw_embedded_chunks\n      schema: embedding_result_schema\n    output: validated_embedded_chunks\n\n  - id: insert_into_vector_store\n    op: call_webhook\n    params:\n      input: validated_embedded_chunks\n      url: \"/api/vector-store/upsert\"\n      method: \"POST\"\n      namespace: \"email-history\"\n    output: vector_store_result\n\n  - id: validate_vector_result\n    op: validate_schema\n    params:\n      input: vector_store_result\n      schema: vector_store_result_schema\n    output: validated_vector_result\n\n  - id: log_ingestion\n    op: log_audit\n    params:\n      input: validated_vector_result\n      message: \"Sent email history ingestion completed\"\n      details:\n        namespace: \"email-history\"\n        trigger: \"weekly_schedule\"\n\n  - id: handle_ingestion_error\n    op: handle_error\n    params:\n      step: insert_into_vector_store\n      action: \"retry_then_notify\"\n\n  - id: retry_vector_insert\n    op: retry_step\n    params:\n      step: insert_into_vector_store\n      retries: 3\n      backoff: \"exponential\"\n\n  - id: notify_on_failure\n    op: notify_user\n    params:\n      input: validated_vector_result\n      recipient: \"admin@club.com\"\n      message: \"Sent email history ingestion failed after retries\"\n      channel: \"email\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_sv_002.py::test_parses_and_type_checks": true,
+        "test_wf_sv_002.py::test_passes_taint_analysis": true,
+        "test_wf_sv_002.py::test_filters_short_emails": true,
+        "test_wf_sv_002.py::test_indexes_to_store": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1975,
+      "output_tokens": 784
+    },
+    {
+      "attempt_number": 4,
+      "llm_sketch": "workflow_id: sent_email_history_ingestion\nsteps:\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      role: \"email_agent_service\"\n    output: auth_result\n\n  - id: fetch_sent_emails\n    op: fetch_api\n    params:\n      endpoint: \"/api/gmail/sent\"\n      query:\n        date_range: \"past_month_excluding_last_2_weeks\"\n    output: raw_sent_emails\n\n  - id: validate_sent_emails\n    op: validate_schema\n    params:\n      input: raw_sent_emails\n      schema: sent_email_schema\n    output: validated_emails\n\n  - id: filter_short_bodies\n    op: filter_records\n    params:\n      input: validated_emails\n      condition: \"body IS NOT NULL AND length(body) >= 20\"\n    output: filtered_emails\n\n  - id: build_chunks\n    op: transform_json\n    params:\n      input: filtered_emails\n      mapping:\n        operation: \"chunk_emails\"\n        combine_fields:\n          - \"subject\"\n          - \"date\"\n          - \"recipient\"\n          - \"body\"\n        chunk_size: 500\n        chunk_overlap: 50\n        chunk_id_template: \"sent-{messageId}-chunk-{index}\"\n    output: structured_chunks\n\n  - id: embed_chunks\n    op: call_webhook\n    params:\n      input: structured_chunks\n      url: \"/api/embeddings/generate\"\n      method: \"POST\"\n      payload_field: \"text_chunks\"\n    output: raw_embedded_chunks\n\n  - id: validate_embeddings\n    op: validate_schema\n    params:\n      input: raw_embedded_chunks\n      schema: embedding_result_schema\n    output: validated_embedded_chunks\n\n  - id: insert_into_vector_store\n    op: write_database\n    params:\n      input: validated_embedded_chunks\n      table: \"vector_store\"\n      namespace: \"email-history\"\n    output: write_result\n\n  - id: log_ingestion\n    op: log_audit\n    params:\n      input: write_result\n      message: \"Sent email history ingestion completed\"\n      details:\n        namespace: \"email-history\"\n        trigger: \"weekly_schedule\"\n\n  - id: handle_ingestion_error\n    op: handle_error\n    params:\n      step: insert_into_vector_store\n      action: \"retry_then_notify\"\n\n  - id: retry_vector_insert\n    op: retry_step\n    params:\n      step: insert_into_vector_store\n      retries: 3\n      backoff: \"exponential\"\n\n  - id: notify_on_failure\n    op: notify_user\n    params:\n      input: write_result\n      recipient: \"admin@club.com\"\n      message: \"Sent email history ingestion failed after retries\"\n      channel: \"email\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_sv_002.py::test_parses_and_type_checks": true,
+        "test_wf_sv_002.py::test_passes_taint_analysis": true,
+        "test_wf_sv_002.py::test_filters_short_emails": true,
+        "test_wf_sv_002.py::test_indexes_to_store": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2044,
+      "output_tokens": 715
+    },
+    {
+      "attempt_number": 5,
+      "llm_sketch": "workflow_id: sent_email_history_ingestion\nsteps:\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      role: \"email_agent_service\"\n    output: auth_result\n\n  - id: fetch_sent_emails\n    op: fetch_api\n    params:\n      endpoint: \"/api/gmail/sent\"\n      query:\n        date_range: \"past_month_excluding_last_2_weeks\"\n    output: raw_sent_emails\n\n  - id: validate_sent_emails\n    op: validate_schema\n    params:\n      input: raw_sent_emails\n      schema: sent_email_schema\n    output: validated_emails\n\n  - id: filter_short_bodies\n    op: filter_records\n    params:\n      input: validated_emails\n      condition: \"body IS NOT NULL AND length(body) >= 20\"\n    output: filtered_emails\n\n  - id: build_chunks\n    op: transform_json\n    params:\n      input: filtered_emails\n      mapping:\n        operation: \"chunk_emails\"\n        combine_fields:\n          - \"subject\"\n          - \"date\"\n          - \"recipient\"\n          - \"body\"\n        chunk_size: 500\n        chunk_overlap: 50\n        chunk_id_template: \"sent-{messageId}-chunk-{index}\"\n    output: structured_chunks\n\n  - id: embed_chunks\n    op: call_webhook\n    params:\n      input: structured_chunks\n      url: \"/api/embeddings/generate\"\n      method: \"POST\"\n      payload_field: \"text_chunks\"\n    output: raw_embedded_chunks\n\n  - id: validate_embeddings\n    op: validate_schema\n    params:\n      input: raw_embedded_chunks\n      schema: embedding_result_schema\n    output: validated_embedded_chunks\n\n  - id: insert_into_vector_store\n    op: call_webhook\n    params:\n      input: validated_embedded_chunks\n      url: \"/api/vector-store/upsert\"\n      method: \"POST\"\n      namespace: \"email-history\"\n    output: index_result\n\n  - id: validate_index_result\n    op: validate_schema\n    params:\n      input: index_result\n      schema: index_result_schema\n    output: validated_index_result\n\n  - id: log_ingestion\n    op: log_audit\n    params:\n      input: validated_index_result\n      message: \"Sent email history ingestion completed\"\n      details:\n        namespace: \"email-history\"\n        trigger: \"weekly_schedule\"\n\n  - id: handle_ingestion_error\n    op: handle_error\n    params:\n      step: insert_into_vector_store\n      action: \"retry_then_notify\"\n\n  - id: retry_vector_insert\n    op: retry_step\n    params:\n      step: insert_into_vector_store\n      retries: 3\n      backoff: \"exponential\"\n\n  - id: notify_on_failure\n    op: notify_user\n    params:\n      input: validated_index_result\n      recipient: \"admin@club.com\"\n      message: \"Sent email history ingestion failed after retries\"\n      channel: \"email\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_sv_002.py::test_parses_and_type_checks": true,
+        "test_wf_sv_002.py::test_passes_taint_analysis": true,
+        "test_wf_sv_002.py::test_filters_short_emails": true,
+        "test_wf_sv_002.py::test_indexes_to_store": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1975,
+      "output_tokens": 778
+    },
+    {
+      "attempt_number": 6,
+      "llm_sketch": "workflow_id: sent_email_history_ingestion\nsteps:\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      role: \"email_agent_service\"\n    output: auth_result\n\n  - id: fetch_sent_emails\n    op: fetch_api\n    params:\n      endpoint: \"/api/gmail/sent\"\n      query:\n        date_range: \"past_month_excluding_last_2_weeks\"\n    output: raw_sent_emails\n\n  - id: validate_sent_emails\n    op: validate_schema\n    params:\n      input: raw_sent_emails\n      schema: sent_email_schema\n    output: validated_emails\n\n  - id: filter_short_bodies\n    op: filter_records\n    params:\n      input: validated_emails\n      condition: \"body IS NOT NULL AND length(body) >= 20\"\n    output: filtered_emails\n\n  - id: build_chunks\n    op: transform_json\n    params:\n      input: filtered_emails\n      mapping:\n        operation: \"chunk_emails\"\n        combine_fields:\n          - \"subject\"\n          - \"date\"\n          - \"recipient\"\n          - \"body\"\n        chunk_size: 500\n        chunk_overlap: 50\n        chunk_id_template: \"sent-{messageId}-chunk-{index}\"\n    output: structured_chunks\n\n  - id: embed_chunks\n    op: call_webhook\n    params:\n      input: structured_chunks\n      url: \"/api/embeddings/generate\"\n      method: \"POST\"\n      payload_field: \"text_chunks\"\n    output: raw_embedded_chunks\n\n  - id: validate_embeddings\n    op: validate_schema\n    params:\n      input: raw_embedded_chunks\n      schema: embedding_result_schema\n    output: validated_embedded_chunks\n\n  - id: insert_into_vector_store\n    op: write_database\n    params:\n      input: validated_embedded_chunks\n      table: \"vector_store\"\n      namespace: \"email-history\"\n    output: index_result\n\n  - id: handle_ingestion_error\n    op: handle_error\n    params:\n      step: insert_into_vector_store\n      action: \"retry_then_notify\"\n\n  - id: retry_vector_insert\n    op: retry_step\n    params:\n      step: insert_into_vector_store\n      retries: 3\n      backoff: \"exponential\"\n\n  - id: extract_index_summary\n    op: extract_field\n    params:\n      input: index_result\n      field: \"summary\"\n    output: index_summary\n\n  - id: log_ingestion\n    op: log_audit\n    params:\n      input: index_summary\n      message: \"Sent email history ingestion completed\"\n      details:\n        namespace: \"email-history\"\n        trigger: \"weekly_schedule\"\n\n  - id: notify_on_failure\n    op: notify_user\n    params:\n      input: index_summary\n      recipient: \"admin@club.com\"\n      message: \"Sent email history ingestion failed after retries\"\n      channel: \"email\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_sv_002.py::test_parses_and_type_checks": true,
+        "test_wf_sv_002.py::test_passes_taint_analysis": true,
+        "test_wf_sv_002.py::test_filters_short_emails": true,
+        "test_wf_sv_002.py::test_indexes_to_store": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2038,
+      "output_tokens": 757
+    },
+    {
+      "attempt_number": 7,
+      "llm_sketch": "workflow_id: sent_email_history_ingestion\nsteps:\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      role: \"email_agent_service\"\n    output: auth_result\n\n  - id: fetch_sent_emails\n    op: fetch_api\n    params:\n      endpoint: \"/api/gmail/sent\"\n      query:\n        date_range: \"past_month_excluding_last_2_weeks\"\n    output: raw_sent_emails\n\n  - id: validate_sent_emails\n    op: validate_schema\n    params:\n      input: raw_sent_emails\n      schema: sent_email_schema\n    output: validated_emails\n\n  - id: filter_short_bodies\n    op: filter_records\n    params:\n      input: validated_emails\n      condition: \"body IS NOT NULL AND length(body) >= 20\"\n    output: filtered_emails\n\n  - id: build_chunks\n    op: transform_json\n    params:\n      input: filtered_emails\n      mapping:\n        operation: \"chunk_emails\"\n        combine_fields:\n          - \"subject\"\n          - \"date\"\n          - \"recipient\"\n          - \"body\"\n        chunk_size: 500\n        chunk_overlap: 50\n        chunk_id_template: \"sent-{messageId}-chunk-{index}\"\n    output: structured_chunks\n\n  - id: embed_chunks\n    op: call_webhook\n    params:\n      input: structured_chunks\n      url: \"/api/embeddings/generate\"\n      method: \"POST\"\n      payload_field: \"text_chunks\"\n    output: raw_embedded_chunks\n\n  - id: validate_embeddings\n    op: validate_schema\n    params:\n      input: raw_embedded_chunks\n      schema: embedding_result_schema\n    output: validated_embedded_chunks\n\n  - id: insert_into_vector_store\n    op: call_webhook\n    params:\n      input: validated_embedded_chunks\n      url: \"/api/vector-store/upsert\"\n      method: \"POST\"\n      namespace: \"email-history\"\n    output: index_result\n\n  - id: validate_index_result\n    op: validate_schema\n    params:\n      input: index_result\n      schema: index_result_schema\n    output: validated_index_result\n\n  - id: handle_ingestion_error\n    op: handle_error\n    params:\n      step: insert_into_vector_store\n      action: \"retry_then_notify\"\n\n  - id: retry_vector_insert\n    op: retry_step\n    params:\n      step: insert_into_vector_store\n      retries: 3\n      backoff: \"exponential\"\n\n  - id: extract_index_summary\n    op: extract_field\n    params:\n      input: validated_index_result\n      field: \"summary\"\n    output: index_summary\n\n  - id: log_ingestion\n    op: log_audit\n    params:\n      input: index_summary\n      message: \"Sent email history ingestion completed\"\n      details:\n        namespace: \"email-history\"\n        trigger: \"weekly_schedule\"\n\n  - id: notify_on_failure\n    op: notify_user\n    params:\n      input: index_summary\n      recipient: \"admin@club.com\"\n      message: \"Sent email history ingestion failed after retries\"\n      channel: \"email\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_sv_002.py::test_parses_and_type_checks": true,
+        "test_wf_sv_002.py::test_passes_taint_analysis": true,
+        "test_wf_sv_002.py::test_filters_short_emails": true,
+        "test_wf_sv_002.py::test_indexes_to_store": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2017,
+      "output_tokens": 818
+    },
+    {
+      "attempt_number": 8,
+      "llm_sketch": "workflow_id: sent_email_history_ingestion\nsteps:\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      role: \"email_agent_service\"\n    output: auth_result\n\n  - id: fetch_sent_emails\n    op: fetch_api\n    params:\n      endpoint: \"/api/gmail/sent\"\n      query:\n        date_range: \"past_month_excluding_last_2_weeks\"\n    output: raw_sent_emails\n\n  - id: validate_sent_emails\n    op: validate_schema\n    params:\n      input: raw_sent_emails\n      schema: sent_email_schema\n    output: validated_emails\n\n  - id: filter_short_bodies\n    op: filter_records\n    params:\n      input: validated_emails\n      condition: \"body IS NOT NULL AND length(body) >= 20\"\n    output: filtered_emails\n\n  - id: build_chunks\n    op: transform_json\n    params:\n      input: filtered_emails\n      mapping:\n        operation: \"chunk_emails\"\n        combine_fields:\n          - \"subject\"\n          - \"date\"\n          - \"recipient\"\n          - \"body\"\n        chunk_size: 500\n        chunk_overlap: 50\n        chunk_id_template: \"sent-{messageId}-chunk-{index}\"\n    output: structured_chunks\n\n  - id: embed_chunks\n    op: call_webhook\n    params:\n      input: structured_chunks\n      url: \"/api/embeddings/generate\"\n      method: \"POST\"\n      payload_field: \"text_chunks\"\n    output: raw_embedded_chunks\n\n  - id: validate_embeddings\n    op: validate_schema\n    params:\n      input: raw_embedded_chunks\n      schema: embedding_result_schema\n    output: validated_embedded_chunks\n\n  - id: transform_vector_upsert_payload\n    op: transform_json\n    params:\n      input: validated_embedded_chunks\n      mapping:\n        namespace: \"email-history\"\n        operation: \"vector_store_upsert_payload\"\n    output: vector_upsert_payload\n\n  - id: insert_into_vector_store\n    op: call_webhook\n    params:\n      input: vector_upsert_payload\n      url: \"/api/vector-store/upsert\"\n      method: \"POST\"\n    output: index_result\n\n  - id: validate_index_result\n    op: validate_schema\n    params:\n      input: index_result\n      schema: index_result_schema\n    output: validated_index_result\n\n  - id: extract_index_summary\n    op: extract_field\n    params:\n      input: validated_index_result\n      field: \"summary\"\n    output: index_summary\n\n  - id: log_ingestion\n    op: log_audit\n    params:\n      input: index_summary\n      message: \"Sent email history ingestion completed\"\n      details:\n        namespace: \"email-history\"\n        trigger: \"weekly_schedule\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_sv_002.py::test_parses_and_type_checks": true,
+        "test_wf_sv_002.py::test_passes_taint_analysis": true,
+        "test_wf_sv_002.py::test_filters_short_emails": true,
+        "test_wf_sv_002.py::test_indexes_to_store": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1754,
+      "output_tokens": 602
+    },
+    {
+      "attempt_number": 9,
+      "llm_sketch": "workflow_id: sent_email_history_ingestion\nsteps:\n  - id: authenticate_service\n    op: authenticate_user\n    params:\n      role: email_agent_service\n    output: auth_result\n\n  - id: fetch_sent_emails\n    op: fetch_api\n    params:\n      endpoint: /api/gmail/sent\n      query:\n        date_range: past_month_excluding_last_2_weeks\n    output: raw_sent_emails\n\n  - id: validate_sent_emails\n    op: validate_schema\n    params:\n      input: raw_sent_emails\n      schema: sent_email_schema\n    output: validated_emails\n\n  - id: filter_short_bodies\n    op: filter_records\n    params:\n      input: validated_emails\n      condition: body IS NOT NULL AND length(body) >= 20\n    output: filtered_emails\n\n  - id: build_chunks\n    op: transform_json\n    params:\n      input: filtered_emails\n      mapping:\n        operation: chunk_emails\n        combine_fields:\n          - subject\n          - date\n          - recipient\n          - body\n        chunk_size: 500\n        chunk_overlap: 50\n        chunk_id_template: sent-{messageId}-chunk-{index}\n    output: structured_chunks\n\n  - id: prepare_embedding_request\n    op: transform_json\n    params:\n      input: structured_chunks\n      mapping:\n        model: embedding_model\n        payload_field: text_chunks\n        namespace: email-history\n    output: embedding_request\n\n  - id: embed_chunks\n    op: call_webhook\n    params:\n      input: embedding_request\n      url: /api/embeddings/generate\n      method: POST\n    output: raw_embedded_chunks\n\n  - id: validate_embeddings\n    op: validate_schema\n    params:\n      input: raw_embedded_chunks\n      schema: embedding_result_schema\n    output: validated_embedded_chunks\n\n  - id: transform_vector_upsert_payload\n    op: transform_json\n    params:\n      input: validated_embedded_chunks\n      mapping:\n        operation: vector_store_upsert_payload\n        namespace: email-history\n        index_target: email_history_namespace\n    output: vector_upsert_payload\n\n  - id: insert_into_vector_store\n    op: call_webhook\n    params:\n      input: vector_upsert_payload\n      url: /api/vector-store/index\n      method: POST\n    output: index_result\n\n  - id: validate_index_result\n    op: validate_schema\n    params:\n      input: index_result\n      schema: index_result_schema\n    output: validated_index_result\n\n  - id: extract_index_summary\n    op: extract_field\n    params:\n      input: validated_index_result\n      field: summary\n    output: index_summary\n\n  - id: log_ingestion\n    op: log_audit\n    params:\n      input: index_summary\n      message: Sent email history ingestion completed\n      details:\n        namespace: email-history\n        trigger: weekly_schedule",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_sv_002.py::test_parses_and_type_checks": true,
+        "test_wf_sv_002.py::test_passes_taint_analysis": true,
+        "test_wf_sv_002.py::test_filters_short_emails": true,
+        "test_wf_sv_002.py::test_indexes_to_store": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1679,
+      "output_tokens": 634
+    }
+  ],
+  "complexity": 2,
+  "domain": "community_sports",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 18773,
+  "total_output_tokens": 7329
+}

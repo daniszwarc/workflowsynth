@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_ft_011",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.5420539993792772,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: progress_photo_upload\nsteps:\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/photos/upload\"\n      method: \"POST\"\n    output: raw_upload\n\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: step_validate_schema\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema:\n        required_fields:\n          - photo_data\n          - date\n        optional_fields:\n          - notes\n        constraints:\n          photo_format:\n            - \"image/jpeg\"\n            - \"image/png\"\n            - \"image/webp\"\n          max_size_bytes: 10485760\n    output: validated_upload\n\n  - id: step_extract_photo\n    op: extract_field\n    params:\n      input: validated_upload\n      field: \"photo_data\"\n    output: photo_data\n\n  - id: step_encrypt_photo\n    op: encrypt_field\n    params:\n      input: photo_data\n      algorithm: \"AES-256\"\n    output: encrypted_photo\n\n  - id: step_extract_metadata\n    op: transform_json\n    params:\n      input: validated_upload\n      mapping:\n        user_id: \"auth_result.user_id\"\n        date: \"date\"\n        notes: \"notes\"\n        visibility: \"private\"\n    output: photo_metadata\n\n  - id: step_merge_record\n    op: merge_datasets\n    params:\n      input: photo_metadata\n      secondary: encrypted_photo\n      key: \"user_id\"\n    output: complete_record\n\n  - id: step_write_photo\n    op: write_database\n    params:\n      input: complete_record\n      table: \"user_progress_photos\"\n      privacy: \"private\"\n    output: write_result\n\n  - id: step_audit_log\n    op: log_audit\n    params:\n      input: photo_metadata\n      action: \"progress_photo_uploaded\"\n      details: \"User uploaded a private progress photo\"\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: photo_metadata\n      recipient: \"auth_result.user_id\"\n      message: \"Your progress photo has been securely saved.\"\n      channel: \"in_app\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_011.py::test_parses_and_type_checks": true,
+        "test_wf_ft_011.py::test_passes_taint_analysis": true,
+        "test_wf_ft_011.py::test_validates_image": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1059,
+      "output_tokens": 589
+    }
+  ],
+  "complexity": 2,
+  "domain": "health_fitness",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1059,
+  "total_output_tokens": 589
+}

@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_erd_003",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 19.259733167476952,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: wf_erd_003\nsteps:\n  - id: receive_assignment_request\n    op: validate_schema\n    params:\n      schema: assignment_request\n      required_fields:\n        - patient_id\n        - worker_id\n        - submitted_by\n    output: assignment_request\n\n  - id: authenticate_submitter\n    op: authenticate_user\n    params:\n      user_id: \"{{assignment_request.submitted_by}}\"\n      role: office_staff\n    output: auth_result\n\n  - id: verify_patient_active\n    op: read_database\n    params:\n      table: patients\n      filters:\n        patient_id: \"{{assignment_request.patient_id}}\"\n        status: active\n    output: patient_record\n\n  - id: verify_worker_active\n    op: read_database\n    params:\n      table: workers\n      filters:\n        worker_id: \"{{assignment_request.worker_id}}\"\n        status: active\n    output: worker_record\n\n  - id: check_records_exist\n    op: apply_rule\n    params:\n      rule: \"patient_record != null AND worker_record != null\"\n      on_fail: terminate\n      error_message: \"Patient or worker record not found or inactive.\"\n    output: validation_result\n\n  - id: create_assignment_record\n    op: write_database\n    params:\n      table: worker_patient_assignments\n      data:\n        patient_id: \"{{assignment_request.patient_id}}\"\n        worker_id: \"{{assignment_request.worker_id}}\"\n        assigned_by: \"{{auth_result.user_id}}\"\n        status: active\n        linked_to:\n          - timesheets\n          - invoices\n    output: assignment_record\n\n  - id: log_assignment\n    op: log_audit\n    params:\n      action: worker_patient_assignment_created\n      details:\n        assignment_id: \"{{assignment_record.id}}\"\n        patient_id: \"{{assignment_request.patient_id}}\"\n        worker_id: \"{{assignment_request.worker_id}}\"\n        assigned_by: \"{{auth_result.user_id}}\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_erd_003.py::test_parses_and_type_checks": false,
+        "test_wf_erd_003.py::test_passes_taint_analysis": true,
+        "test_wf_erd_003.py::test_creates_assignment": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 1,
+  "domain": "healthcare_billing",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}
