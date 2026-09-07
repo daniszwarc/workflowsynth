@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_ae_002",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.5315785426646471,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: article_category_matching\nsteps:\n  - id: authenticate_drive_access\n    op: authenticate_user\n    params:\n      role: \"editorial_pipeline\"\n    output: auth_result\n\n  - id: fetch_category_spreadsheet\n    op: fetch_api\n    params:\n      endpoint: \"/integrations/google-drive/category-spreadsheet\"\n    output: raw_spreadsheet\n\n  - id: validate_spreadsheet_schema\n    op: validate_schema\n    params:\n      input: raw_spreadsheet\n      schema: category_spreadsheet_schema\n    output: validated_spreadsheet\n\n  - id: read_extracted_article\n    op: read_database\n    params:\n      table: extracted_articles\n      filter: \"status = 'pending_categorization'\"\n    output: raw_article_data\n\n  - id: validate_article_data\n    op: validate_schema\n    params:\n      input: raw_article_data\n      schema: extracted_article_schema\n    output: validated_article_data\n\n  - id: extract_article_title\n    op: extract_field\n    params:\n      input: validated_article_data\n      field: \"title\"\n    output: article_title\n\n  - id: normalise_article_title\n    op: transform_json\n    params:\n      input: article_title\n      mapping:\n        operations:\n          - remove_accents: true\n          - lowercase: true\n          - strip_non_alphanumeric: true\n    output: normalised_article_title\n\n  - id: normalise_spreadsheet_titles\n    op: loop_records\n    params:\n      collection: validated_spreadsheet\n      step: normalise_single_spreadsheet_row\n    output: normalised_spreadsheet\n\n  - id: normalise_single_spreadsheet_row\n    op: transform_json\n    params:\n      input: validated_spreadsheet\n      mapping:\n        operations:\n          - remove_accents: true\n          - lowercase: true\n          - strip_non_alphanumeric: true\n        fields:\n          - title\n    output: normalised_spreadsheet_rows\n\n  - id: merge_for_matching\n    op: merge_datasets\n    params:\n      input: normalised_article_title\n      secondary: normalised_spreadsheet_rows\n      key: \"normalised_title\"\n      join_type: \"left\"\n    output: match_result\n\n  - id: apply_category_match_rule\n    op: apply_rule\n    params:\n      input: match_result\n      rule: \"matched_row IS NOT NULL\"\n    output: match_decision\n\n  - id: route_on_match\n    op: route_to_step\n    params:\n      input: match_decision\n      conditions:\n        - when: \"match_decision.result == true\"\n          goto: extract_matched_category\n        - when: \"match_decision.result == false\"\n          goto: apply_default_category\n\n  - id: extract_matched_category\n    op: extract_field\n    params:\n      input: match_result\n      field: \"matched_row.category,matched_row.section\"\n    output: matched_category_info\n\n  - id: format_matched_output\n    op: transform_json\n    params:\n      input: matched_category_info\n      mapping:\n        category: \"$.category\"\n        section: \"$.section\"\n        needs_review: false\n        article_id: \"$.article_id\"\n    output: category_assignment\n\n  - id: route_to_write_matched\n    op: route_to_step\n    params:\n      input: category_assignment\n      conditions:\n        - when: \"true\"\n          goto: write_category_assignment\n\n  - id: apply_default_category\n    op: transform_json\n    params:\n      input: validated_article_data\n      mapping:\n        category: \"Ciencia economica\"\n        section: \"Dossier\"\n        needs_review: true\n        article_id: \"$.id\"\n    output: default_category_assignment\n\n  - id: notify_editorial_review\n    op: notify_user\n    params:\n      input: default_category_assignment\n      recipient: \"editorial_team\"\n      template: \"unmatched_article_review\"\n      message: \"Article could not be matched to a category and has been flagged for editorial review.\"\n    output: notification_result\n\n  - id: log_unmatched_article\n    op: log_audit\n    params:\n      input: default_category_assignment\n      action: \"category_match_failed\"\n      details: \"No fuzzy match found. Default category applied. Flagged for review.\"\n    output: audit_log_unmatched\n\n  - id: write_category_assignment\n    op: write_database\n    params:\n      input: category_assignment\n      table: article_categories\n    output: write_result\n\n  - id: write_default_category_assignment\n    op: write_database\n    params:\n      input: default_category_assignment\n      table: article_categories\n    output: write_default_result\n\n  - id: log_category_assignment\n    op: log_audit\n    params:\n      input: category_assignment\n      action: \"category_assigned\"\n      details: \"Article matched and category assigned successfully.\"\n    output: audit_log_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ae_002.py::test_parses_and_type_checks": true,
+        "test_wf_ae_002.py::test_passes_taint_analysis": true,
+        "test_wf_ae_002.py::test_reads_spreadsheet": true,
+        "test_wf_ae_002.py::test_applies_matching_rule": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1174,
+      "output_tokens": 1271
+    }
+  ],
+  "complexity": 2,
+  "domain": "publishing",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1174,
+  "total_output_tokens": 1271
+}

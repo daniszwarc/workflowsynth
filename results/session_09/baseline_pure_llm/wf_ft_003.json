@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_ft_003",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 6,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 10.55437754187733,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: food_label_ai_scanning\nsteps:\n  - id: receive_image\n    op: capture_image\n    params:\n      source: phone_camera\n      trigger: user_photo_capture\n    output: raw_image\n\n  - id: validate_image\n    op: validate_image\n    params:\n      input: raw_image\n      allowed_formats:\n        - jpeg\n        - png\n        - heic\n      max_size_mb: 20\n      min_resolution: 640x480\n    output: validated_image\n\n  - id: extract_nutritional_data\n    op: call_ai_vision_api\n    params:\n      input: validated_image\n      model: food_label_ocr_vision\n      extraction_fields:\n        - product_name\n        - serving_size\n        - servings_per_container\n        - calories\n        - total_fat\n        - saturated_fat\n        - trans_fat\n        - cholesterol\n        - sodium\n        - total_carbohydrates\n        - dietary_fiber\n        - total_sugars\n        - added_sugars\n        - protein\n        - vitamins_and_minerals\n      confidence_threshold: 0.75\n    output: ai_raw_response\n\n  - id: parse_ai_response\n    op: parse_nutrition_response\n    params:\n      input: ai_raw_response\n      required_fields:\n        - calories\n        - total_fat\n        - total_carbohydrates\n        - protein\n        - serving_size\n      normalize_units: true\n    output: parsed_nutrition_data\n\n  - id: validate_nutritional_data\n    op: validate_plausibility\n    params:\n      input: parsed_nutrition_data\n      rules:\n        - field: calories\n          min: 0\n          max: 2000\n          flag_above: 2000\n        - field: total_fat\n          min: 0\n          max: 200\n          flag_above: 200\n        - field: total_carbohydrates\n          min: 0\n          max: 500\n          flag_above: 500\n        - field: protein\n          min: 0\n          max: 300\n          flag_above: 300\n        - field: sodium\n          min: 0\n          max: 10000\n          flag_above: 10000\n      on_implausible: flag_for_review\n    output: validation_result\n\n  - id: return_prepopulated_form\n    op: render_food_entry_form\n    params:\n      nutrition_data: parsed_nutrition_data\n      validation_result: validation_result\n      show_flags: true\n      flag_message: \"Some values appear unusual. Please review before confirming.\"\n      editable: true\n      requires_user_confirmation: true\n      actions:\n        - confirm_entry\n        - edit_entry\n        - discard\n    output: food_entry_form_response",
+      "dsl_type_errors": [
+        "Step 'receive_image': unknown op 'capture_image'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_image': unknown op 'validate_image'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'extract_nutritional_data': unknown op 'call_ai_vision_api'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'parse_ai_response': unknown op 'parse_nutrition_response'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_nutritional_data': unknown op 'validate_plausibility'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'return_prepopulated_form': unknown op 'render_food_entry_form'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 293,
+  "total_output_tokens": 696
+}

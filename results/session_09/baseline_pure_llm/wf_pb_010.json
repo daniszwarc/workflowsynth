@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_pb_010",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 4,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 9.362102542072535,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: client_record_upsert\n\nsteps:\n  - id: extract_client_identifier\n    op: extract_field\n    params:\n      source: \"{{trigger.message}}\"\n      fields:\n        - name\n        - email\n        - channel\n    output: client_identifier\n\n  - id: validate_identifier\n    op: validate\n    params:\n      conditions:\n        - field: \"{{client_identifier.channel}}\"\n          operator: equals\n          value: whatsapp\n          then_check:\n            field: \"{{client_identifier.name}}\"\n            not_empty: true\n        - field: \"{{client_identifier.channel}}\"\n          operator: equals\n          value: email\n          then_check:\n            field: \"{{client_identifier.email}}\"\n            not_empty: true\n      error_message: \"Client identifier is empty. WhatsApp requires name; email channel requires email address.\"\n    output: validation_result\n\n  - id: determine_dedup_key\n    op: conditional\n    params:\n      cases:\n        - when: \"{{client_identifier.channel}} == 'whatsapp'\"\n          result:\n            dedup_field: name\n            dedup_value: \"{{client_identifier.name}}\"\n        - when: \"{{client_identifier.channel}} == 'email'\"\n          result:\n            dedup_field: email\n            dedup_value: \"{{client_identifier.email}}\"\n    output: dedup_key\n\n  - id: check_existing_client\n    op: db_lookup\n    params:\n      collection: clients\n      filter:\n        \"{{dedup_key.dedup_field}}\": \"{{dedup_key.dedup_value}}\"\n    output: existing_client\n\n  - id: upsert_client_record\n    op: db_upsert\n    params:\n      collection: clients\n      match_field: \"{{dedup_key.dedup_field}}\"\n      match_value: \"{{dedup_key.dedup_value}}\"\n      record:\n        name: \"{{client_identifier.name}}\"\n        email: \"{{client_identifier.email}}\"\n        channel: \"{{client_identifier.channel}}\"\n        last_contact: \"{{trigger.message.timestamp}}\"\n      on_conflict: update_existing\n    output: upserted_client\n\n  - id: extract_client_id\n    op: extract_field\n    params:\n      source: \"{{upserted_client}}\"\n      fields:\n        - client_id\n    output: client_id",
+      "dsl_type_errors": [
+        "Step 'validate_identifier': unknown op 'validate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'determine_dedup_key': unknown op 'conditional'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'check_existing_client': unknown op 'db_lookup'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'upsert_client_record': unknown op 'db_upsert'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "insurance_brokerage",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 248,
+  "total_output_tokens": 612
+}

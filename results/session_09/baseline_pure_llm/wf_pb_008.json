@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_pb_008",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 4,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 5.611220207996666,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: ticket_status_change\nsteps:\n  - id: receive_status_update\n    op: receive_request\n    params:\n      required_fields:\n        - ticket_id\n        - new_status\n      source: dashboard_kanban\n    output: status_update_request\n\n  - id: validate_new_status\n    op: validate_field\n    params:\n      field: \"{{ status_update_request.new_status }}\"\n      allowed_values:\n        - pendiente\n        - en_proceso\n        - cerrado\n      error_message: \"Invalid status. Must be one of: pendiente, en_proceso, cerrado.\"\n    output: validation_result\n\n  - id: update_ticket_status\n    op: update_record\n    params:\n      table: tickets\n      filter:\n        ticket_id: \"{{ status_update_request.ticket_id }}\"\n      set:\n        status: \"{{ status_update_request.new_status }}\"\n        updated_at: \"{{ now() }}\"\n    output: updated_ticket\n\n  - id: log_status_transition\n    op: insert_record\n    params:\n      table: ticket_history\n      record:\n        ticket_id: \"{{ status_update_request.ticket_id }}\"\n        previous_status: \"{{ updated_ticket.previous_status }}\"\n        new_status: \"{{ status_update_request.new_status }}\"\n        changed_by: \"{{ status_update_request.producer_id }}\"\n        changed_at: \"{{ now() }}\"\n    output: history_entry",
+      "dsl_type_errors": [
+        "Step 'receive_status_update': unknown op 'receive_request'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_new_status': unknown op 'validate_field'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'update_ticket_status': unknown op 'update_record'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'log_status_transition': unknown op 'insert_record'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 1,
+  "domain": "insurance_brokerage",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 244,
+  "total_output_tokens": 377
+}

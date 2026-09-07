@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_cpl_002",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 26.463226167485118,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: wf_cpl_002\nsteps:\n  - id: receive_league_form\n    op: validate_schema\n    params:\n      schema:\n        type: object\n        required:\n          - league_name\n          - display_properties\n          - admin_user_id\n          - action\n        properties:\n          league_name:\n            type: string\n          display_properties:\n            type: object\n          admin_user_id:\n            type: string\n          action:\n            type: string\n            enum:\n              - create\n              - update\n          league_id:\n            type: string\n    output: validated_form\n\n  - id: authenticate_admin\n    op: authenticate_user\n    params:\n      user_id: \"{{validated_form.admin_user_id}}\"\n      role: admin\n    output: auth_result\n\n  - id: check_auth_failure\n    op: handle_error\n    params:\n      condition: \"{{auth_result.authenticated == false}}\"\n      message: \"Admin authentication failed.\"\n\n  - id: check_unique_name\n    op: read_database\n    params:\n      table: leagues\n      filters:\n        league_name: \"{{validated_form.league_name}}\"\n    output: existing_leagues\n\n  - id: enforce_unique_name\n    op: apply_rule\n    params:\n      rule: \"{{validated_form.action == 'create' && existing_leagues.count == 0 || validated_form.action == 'update' && (existing_leagues.count == 0 || existing_leagues.records[0].league_id == validated_form.league_id)}}\"\n      on_fail: \"League name must be unique.\"\n    output: uniqueness_check\n\n  - id: check_active_references\n    op: read_database\n    params:\n      table: teams_and_games\n      filters:\n        league_id: \"{{validated_form.league_id}}\"\n        status: active\n    output: active_references\n\n  - id: prevent_delete_with_references\n    op: apply_rule\n    params:\n      rule: \"{{validated_form.action != 'delete' || active_references.count == 0}}\"\n      on_fail: \"Cannot delete league with active teams or games.\"\n    output: delete_check\n\n  - id: upsert_league\n    op: write_database\n    params:\n      table: leagues\n      action: \"{{validated_form.action}}\"\n      data:\n        league_name: \"{{validated_form.league_name}}\"\n        display_properties: \"{{validated_form.display_properties}}\"\n      key:\n        league_id: \"{{validated_form.league_id}}\"\n    output: league_record\n\n  - id: log_league_action\n    op: log_audit\n    params:\n      action: \"{{validated_form.action}}\"\n      entity: league\n      entity_id: \"{{league_record.league_id}}\"\n      performed_by: \"{{validated_form.admin_user_id}}\"\n    output: audit_entry",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_cpl_002.py::test_parses_and_type_checks": false,
+        "test_wf_cpl_002.py::test_passes_taint_analysis": true,
+        "test_wf_cpl_002.py::test_writes_league": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 1,
+  "domain": "sports_media",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

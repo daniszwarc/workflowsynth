@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_cpl_009",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 24.882433833554387,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_cpl_009\nsteps:\n  - id: receive_upload\n    op: extract_field\n    params:\n      source: trigger.payload\n      fields:\n        - file\n        - request_id\n    output: upload_data\n\n  - id: verify_parent_request\n    op: read_database\n    params:\n      table: requests\n      filter:\n        id: \"{{upload_data.request_id}}\"\n    output: parent_request\n\n  - id: check_request_exists\n    op: apply_rule\n    params:\n      condition: \"{{parent_request}} != null\"\n      on_false: terminate\n    output: request_valid\n\n  - id: terminate_if_no_request\n    op: terminate_workflow\n    params:\n      condition: \"{{request_valid}} == false\"\n      reason: \"Parent request not found\"\n\n  - id: validate_file\n    op: validate_schema\n    params:\n      input: \"{{upload_data.file}}\"\n      rules:\n        allowed_types:\n          - \"application/pdf\"\n          - \"image/png\"\n          - \"image/jpeg\"\n          - \"application/msword\"\n          - \"application/vnd.openxmlformats-officedocument.wordprocessingml.document\"\n        max_size_mb: 25\n    output: validation_result\n\n  - id: handle_validation_failure\n    op: handle_error\n    params:\n      condition: \"{{validation_result.valid}} == false\"\n      error_message: \"File validation failed: invalid type or size exceeded\"\n      action: terminate\n\n  - id: store_attachment\n    op: call_webhook\n    params:\n      method: POST\n      url: \"{{config.file_storage_endpoint}}\"\n      body:\n        file: \"{{upload_data.file}}\"\n        request_id: \"{{upload_data.request_id}}\"\n    output: storage_result\n\n  - id: insert_attachment_record\n    op: write_database\n    params:\n      table: attachments\n      operation: insert\n      data:\n        request_id: \"{{upload_data.request_id}}\"\n        file_name: \"{{upload_data.file.name}}\"\n        file_type: \"{{upload_data.file.type}}\"\n        file_size: \"{{upload_data.file.size}}\"\n        storage_path: \"{{storage_result.path}}\"\n        uploaded_at: \"{{now}}\"\n    output: attachment_record\n\n  - id: log_upload\n    op: log_audit\n    params:\n      action: attachment_uploaded\n      details:\n        request_id: \"{{upload_data.request_id}}\"\n        attachment_id: \"{{attachment_record.id}}\"\n        file_name: \"{{upload_data.file.name}}\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_cpl_009.py::test_parses_and_type_checks": false,
+        "test_wf_cpl_009.py::test_passes_taint_analysis": true,
+        "test_wf_cpl_009.py::test_validates_before_storing": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "sports_media",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

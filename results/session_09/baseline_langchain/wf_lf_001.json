@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_lf_001",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 22.470632375217974,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_lf_001\nsteps:\n  - id: receive_pdf_file\n    op: extract_field\n    params:\n      source: browser_file_input\n      field: pdf_file\n      client_side: true\n    output: pdf_binary\n\n  - id: load_and_iterate_pages\n    op: loop_records\n    params:\n      collection: \"{{pdf_binary}}\"\n      iterator: page\n      method: pdf_page_loader\n    output: pages_list\n\n  - id: extract_text_items\n    op: extract_field\n    params:\n      source: \"{{pages_list}}\"\n      fields:\n        - text_content\n        - font_size\n      extract_mode: all_text_items_with_metadata\n    output: text_items\n\n  - id: compute_median_font_size\n    op: aggregate_data\n    params:\n      collection: \"{{text_items}}\"\n      field: font_size\n      function: median\n    output: median_font_size\n\n  - id: classify_headings\n    op: apply_rule\n    params:\n      collection: \"{{text_items}}\"\n      rule: \"item.font_size > {{median_font_size}} * 1.2\"\n      classification:\n        match: heading\n        no_match: body\n      method: font_size_ratio_comparison\n    output: classified_items\n\n  - id: format_structured_output\n    op: format_output\n    params:\n      source: \"{{classified_items}}\"\n      format: structured_document\n      language: fr\n      sections_by: heading\n    output: structured_document",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_lf_001.py::test_parses_and_type_checks": false,
+        "test_wf_lf_001.py::test_passes_taint_analysis": true,
+        "test_wf_lf_001.py::test_applies_heading_rule": true,
+        "test_wf_lf_001.py::test_aggregates_font_sizes": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "personal_tool",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

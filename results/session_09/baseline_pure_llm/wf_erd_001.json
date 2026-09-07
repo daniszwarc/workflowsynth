@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_erd_001",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 6,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 9.681748041883111,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: user_authentication_and_session_initialization\nsteps:\n  - id: intercept_request\n    op: request_interceptor\n    params:\n      intercept_all: true\n      check: session_authenticated\n      session_timeout_hours: 8\n    output: auth_status\n\n  - id: redirect_if_unauthenticated\n    op: conditional_redirect\n    params:\n      condition: \"auth_status.authenticated == false AND auth_status.request_path != '/login'\"\n      redirect_to: /login\n    output: redirect_result\n\n  - id: receive_login_submission\n    op: form_receiver\n    params:\n      endpoint: /login\n      method: POST\n      fields:\n        - name: username\n          required: true\n        - name: password\n          required: true\n    output: login_credentials\n\n  - id: verify_credentials\n    op: authenticate_user\n    params:\n      username: \"{{ login_credentials.username }}\"\n      password: \"{{ login_credentials.password }}\"\n      actions:\n        - lookup_user_record\n        - verify_password_hash\n        - retrieve_assigned_role\n    output: auth_result\n\n  - id: handle_auth_failure\n    op: conditional_response\n    params:\n      condition: \"auth_result.success == false\"\n      response:\n        redirect_to: /login\n        flash_message: \"Invalid username or password. Please try again.\"\n    output: failure_response\n\n  - id: establish_session\n    op: create_session\n    params:\n      condition: \"auth_result.success == true\"\n      user_id: \"{{ auth_result.user_id }}\"\n      username: \"{{ auth_result.username }}\"\n      role: \"{{ auth_result.role }}\"\n      session_timeout_hours: 8\n      session_attributes:\n        authenticated: true\n        role: \"{{ auth_result.role }}\"\n        permissions: \"{{ auth_result.permissions }}\"\n        visible_menus: \"{{ auth_result.role_menus }}\"\n        login_timestamp: \"{{ now() }}\"\n    output: session_info\n\n  - id: redirect_to_main_menu\n    op: redirect\n    params:\n      condition: \"session_info.created == true\"\n      redirect_to: /main-menu\n      role_based_view: \"{{ session_info.role }}\"\n    output: redirect_main",
+      "dsl_type_errors": [
+        "Step 'intercept_request': unknown op 'request_interceptor'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'redirect_if_unauthenticated': unknown op 'conditional_redirect'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'receive_login_submission': unknown op 'form_receiver'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'handle_auth_failure': unknown op 'conditional_response'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'establish_session': unknown op 'create_session'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'redirect_to_main_menu': unknown op 'redirect'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "healthcare_billing",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 268,
+  "total_output_tokens": 578
+}

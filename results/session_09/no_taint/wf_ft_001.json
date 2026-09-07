@@ -1,0 +1,53 @@
+{
+  "task_id": "wf_ft_001",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 9.697199459187686,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: user_registration_profile_setup\nsteps:\n  - id: step_receive_registration\n    op: fetch_api\n    params:\n      endpoint: \"/api/registration/form\"\n    output: raw_registration_data\n\n  - id: step_validate_registration\n    op: validate_schema\n    params:\n      input: raw_registration_data\n      schema: registration_form_schema\n    output: validated_registration_data\n\n  - id: step_extract_auth_fields\n    op: extract_field\n    params:\n      input: validated_registration_data\n      fields:\n        - email\n        - password\n    output: auth_credentials\n\n  - id: step_extract_profile_fields\n    op: extract_field\n    params:\n      input: validated_registration_data\n      fields:\n        - fitness_goals\n        - current_weight\n        - height\n        - dietary_preferences\n    output: profile_data\n\n  - id: step_encrypt_password\n    op: encrypt_field\n    params:\n      input: auth_credentials\n      field: password\n    output: secure_auth_credentials\n\n  - id: step_create_auth_account\n    op: call_webhook\n    params:\n      input: secure_auth_credentials\n      url: \"https://baas.example.com/auth/create\"\n      method: POST\n    output: raw_auth_response\n\n  - id: step_validate_auth_response\n    op: validate_schema\n    params:\n      input: raw_auth_response\n      schema: auth_response_schema\n    output: validated_auth_response\n\n  - id: step_extract_user_id\n    op: extract_field\n    params:\n      input: validated_auth_response\n      fields:\n        - user_id\n    output: auth_user_id\n\n  - id: step_check_auth_success\n    op: apply_rule\n    params:\n      rule: \"auth_account_created_successfully\"\n      input: validated_auth_response\n    output: auth_success_flag\n\n  - id: step_route_on_auth\n    op: route_to_step\n    params:\n      condition: \"auth_success_flag == true\"\n      on_true: step_merge_profile\n      on_false: step_handle_auth_error\n\n  - id: step_handle_auth_error\n    op: handle_error\n    params:\n      error_type: \"auth_creation_failed\"\n      route_to: step_terminate_failure\n\n  - id: step_merge_profile\n    op: merge_datasets\n    params:\n      input: profile_data\n      secondary_input: auth_user_id\n      key: user_id\n    output: complete_profile_record\n\n  - id: step_authenticate_service\n    op: authenticate_user\n    params:\n      role: \"registration_service\"\n    output: service_auth_result\n\n  - id: step_write_user_profile\n    op: write_database\n    params:\n      input: complete_profile_record\n      table: user_profiles\n    output: write_profile_result\n\n  - id: step_format_audit_entry\n    op: format_output\n    params:\n      input: complete_profile_record\n      format: json\n      template:\n        event: \"user_registration\"\n        user_id: \"{{user_id}}\"\n        timestamp: \"{{now}}\"\n    output: audit_entry\n\n  - id: step_log_registration_event\n    op: log_audit\n    params:\n      input: audit_entry\n      event_type: \"user_registration\"\n    output: audit_log_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"User registration and profile setup completed.\"\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"User registration failed during auth account creation.\"",
+      "dsl_type_errors": [
+        "Step 'step_create_auth_account' (op: call_webhook): no 'authenticate_user' step found before this operation. Security rule: authenticate_user must precede write_database and call_webhook. Add an authenticate_user step before step 'step_create_auth_account'."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1111,
+      "output_tokens": 944
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: user_registration_profile_setup\nsteps:\n  - id: step_receive_registration\n    op: fetch_api\n    params:\n      endpoint: \"/api/registration/form\"\n    output: raw_registration_data\n\n  - id: step_validate_registration\n    op: validate_schema\n    params:\n      input: raw_registration_data\n      schema: registration_form_schema\n    output: validated_registration_data\n\n  - id: step_extract_auth_fields\n    op: extract_field\n    params:\n      input: validated_registration_data\n      fields:\n        - email\n        - password\n    output: auth_credentials\n\n  - id: step_extract_profile_fields\n    op: extract_field\n    params:\n      input: validated_registration_data\n      fields:\n        - fitness_goals\n        - current_weight\n        - height\n        - dietary_preferences\n    output: profile_data\n\n  - id: step_encrypt_password\n    op: encrypt_field\n    params:\n      input: auth_credentials\n      field: password\n    output: secure_auth_credentials\n\n  - id: step_authenticate_service\n    op: authenticate_user\n    params:\n      role: \"registration_service\"\n    output: service_auth_result\n\n  - id: step_create_auth_account\n    op: call_webhook\n    params:\n      input: secure_auth_credentials\n      url: \"https://baas.example.com/auth/create\"\n      method: POST\n    output: raw_auth_response\n\n  - id: step_validate_auth_response\n    op: validate_schema\n    params:\n      input: raw_auth_response\n      schema: auth_response_schema\n    output: validated_auth_response\n\n  - id: step_extract_user_id\n    op: extract_field\n    params:\n      input: validated_auth_response\n      fields:\n        - user_id\n    output: auth_user_id\n\n  - id: step_check_auth_success\n    op: apply_rule\n    params:\n      rule: \"auth_account_created_successfully\"\n      input: validated_auth_response\n    output: auth_success_flag\n\n  - id: step_route_on_auth\n    op: route_to_step\n    params:\n      condition: \"auth_success_flag == true\"\n      on_true: step_merge_profile\n      on_false: step_handle_auth_error\n\n  - id: step_handle_auth_error\n    op: handle_error\n    params:\n      error_type: \"auth_creation_failed\"\n      route_to: step_terminate_failure\n\n  - id: step_merge_profile\n    op: merge_datasets\n    params:\n      input: profile_data\n      secondary_input: auth_user_id\n      key: user_id\n    output: complete_profile_record\n\n  - id: step_write_user_profile\n    op: write_database\n    params:\n      input: complete_profile_record\n      table: user_profiles\n    output: write_profile_result\n\n  - id: step_format_audit_entry\n    op: format_output\n    params:\n      input: complete_profile_record\n      format: json\n      template:\n        event: \"user_registration\"\n        user_id: \"{{user_id}}\"\n        timestamp: \"{{now}}\"\n    output: audit_entry\n\n  - id: step_log_registration_event\n    op: log_audit\n    params:\n      input: audit_entry\n      event_type: \"user_registration\"\n    output: audit_log_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"User registration and profile setup completed.\"\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"User registration failed during auth account creation.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_001.py::test_parses_and_type_checks": true,
+        "test_wf_ft_001.py::test_passes_taint_analysis": true,
+        "test_wf_ft_001.py::test_auth_before_profile": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 2189,
+      "output_tokens": 944
+    }
+  ],
+  "complexity": 2,
+  "domain": "health_fitness",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 3300,
+  "total_output_tokens": 1888
+}

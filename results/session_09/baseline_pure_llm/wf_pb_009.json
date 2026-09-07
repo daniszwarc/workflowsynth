@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_pb_009",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 4,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 8.099506791681051,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: ticket_close_and_archive\n\nsteps:\n  - id: receive_close_archive_request\n    op: receive_request\n    params:\n      trigger: click_close_and_archive\n      required_fields:\n        - ticket_id\n    output:\n      ticket_id: \"{{request.ticket_id}}\"\n      requested_by: \"{{request.user_id}}\"\n\n  - id: validate_request\n    op: validate\n    params:\n      ticket_id: \"{{receive_close_archive_request.output.ticket_id}}\"\n      checks:\n        - ticket_exists: true\n        - ticket_status_not: cerrado\n        - user_has_permission: close_and_archive\n    output:\n      is_valid: \"{{validation.result}}\"\n      error_message: \"{{validation.error_message}}\"\n\n  - id: update_ticket\n    op: database_update\n    params:\n      table: tickets\n      filter:\n        id: \"{{receive_close_archive_request.output.ticket_id}}\"\n      set:\n        status: cerrado\n        visible: false\n        closed_at: \"{{now()}}\"\n    depends_on:\n      - validate_request\n    output:\n      updated_ticket_id: \"{{receive_close_archive_request.output.ticket_id}}\"\n      closed_at: \"{{now()}}\"\n\n  - id: log_closure_in_history\n    op: database_insert\n    params:\n      table: ticket_history\n      record:\n        ticket_id: \"{{update_ticket.output.updated_ticket_id}}\"\n        action: close_and_archive\n        performed_by: \"{{receive_close_archive_request.output.requested_by}}\"\n        timestamp: \"{{update_ticket.output.closed_at}}\"\n        details:\n          status: cerrado\n          visible: false\n    depends_on:\n      - update_ticket\n    output:\n      history_entry_id: \"{{insert.id}}\"",
+      "dsl_type_errors": [
+        "Step at index 0 (id='receive_close_archive_request'): 'output' must be a string if present.",
+        "Step at index 1 (id='validate_request'): 'output' must be a string if present.",
+        "Step at index 2 (id='update_ticket'): 'output' must be a string if present.",
+        "Step at index 3 (id='log_closure_in_history'): 'output' must be a string if present."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 1,
+  "domain": "insurance_brokerage",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 243,
+  "total_output_tokens": 483
+}

@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_mvp_002",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 4,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 8.578472916036844,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: role-based-menu-rendering\n\nsteps:\n  - id: read_session_role\n    op: session/read\n    params:\n      fields:\n        - user_id\n        - role\n        - is_admin\n    output: session_data\n\n  - id: fetch_role_details\n    op: database/query\n    params:\n      table: roles\n      filter:\n        role_name: \"{{ session_data.role }}\"\n      fields:\n        - role_name\n        - permissions\n        - menu_sections\n        - tier\n    output: role_details\n\n  - id: apply_role_routing\n    op: rule/branch\n    params:\n      conditions:\n        - when: \"{{ session_data.is_admin == true and role_details.tier == 'admin' }}\"\n          result:\n            tier: admin\n            sections:\n              - dashboard\n              - users\n              - settings\n              - reports\n              - audit_logs\n              - admin_tools\n              - content_management\n            access_level: full_access\n        - when: \"{{ role_details.tier == 'manageAdmin' }}\"\n          result:\n            tier: manageAdmin\n            sections:\n              - dashboard\n              - users\n              - settings\n              - admin_tools\n            access_level: admin_tools\n        - when: \"{{ role_details.tier == 'readOnly' }}\"\n          result:\n            tier: readOnly\n            sections:\n              - dashboard\n              - reports\n              - content_management\n            access_level: view_only\n      default:\n        tier: readOnly\n        sections:\n          - dashboard\n        access_level: view_only\n    output: menu_routing\n\n  - id: format_navigation_menu\n    op: transform/format\n    params:\n      template: navigation_menu\n      data:\n        user_id: \"{{ session_data.user_id }}\"\n        role: \"{{ session_data.role }}\"\n        tier: \"{{ menu_routing.tier }}\"\n        access_level: \"{{ menu_routing.access_level }}\"\n        sections: \"{{ menu_routing.sections }}\"\n        permissions: \"{{ role_details.permissions }}\"\n      options:\n        mark_readonly: \"{{ menu_routing.access_level == 'view_only' }}\"\n        disable_edit_controls: \"{{ menu_routing.access_level == 'view_only' }}\"\n    output: navigation_menu",
+      "dsl_type_errors": [
+        "Step 'read_session_role': unknown op 'session/read'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'fetch_role_details': unknown op 'database/query'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'apply_role_routing': unknown op 'rule/branch'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'format_navigation_menu': unknown op 'transform/format'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "manufacturing",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 236,
+  "total_output_tokens": 584
+}

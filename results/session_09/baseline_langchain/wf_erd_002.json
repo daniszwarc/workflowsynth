@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_erd_002",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 26.79032012540847,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_erd_002\nsteps:\n  - id: receive_registration_form\n    op: fetch_api\n    params:\n      method: POST\n      endpoint: /api/patient/registration\n    output: registration_payload\n\n  - id: authenticate_staff_user\n    op: authenticate_user\n    params:\n      token: \"{{registration_payload.auth_token}}\"\n      role: office_staff\n    output: auth_result\n\n  - id: validate_patient_fields\n    op: validate_schema\n    params:\n      input: \"{{registration_payload.patient}}\"\n      schema:\n        required_fields:\n          - first_name\n          - last_name\n          - date_of_birth\n          - insurance_flag\n          - taxable\n          - language\n        field_rules:\n          language:\n            enum: [\"EN\", \"FR\"]\n          taxable:\n            type: boolean\n          insurance_flag:\n            type: boolean\n    output: validation_result\n\n  - id: check_duplicate_patient\n    op: read_database\n    params:\n      table: patients\n      filter:\n        first_name: \"{{registration_payload.patient.first_name}}\"\n        last_name: \"{{registration_payload.patient.last_name}}\"\n        date_of_birth: \"{{registration_payload.patient.date_of_birth}}\"\n    output: duplicate_results\n\n  - id: handle_duplicate_found\n    op: handle_error\n    params:\n      condition: \"{{duplicate_results.count > 0}}\"\n      message: \"Duplicate patient record detected\"\n      action: terminate\n\n  - id: apply_language_template_rule\n    op: apply_rule\n    params:\n      rules:\n        - condition: \"{{registration_payload.patient.language == 'EN'}}\"\n          set:\n            invoice_template: invoice_template_en\n        - condition: \"{{registration_payload.patient.language == 'FR'}}\"\n          set:\n            invoice_template: invoice_template_fr\n    output: language_rule_result\n\n  - id: apply_tax_rule\n    op: apply_rule\n    params:\n      rules:\n        - condition: \"{{registration_payload.patient.taxable == true}}\"\n          set:\n            apply_provincial_tax: true\n        - condition: \"{{registration_payload.patient.taxable == false}}\"\n          set:\n            apply_provincial_tax: false\n    output: tax_rule_result\n\n  - id: store_patient_record\n    op: write_database\n    params:\n      table: patients\n      operation: insert\n      data:\n        first_name: \"{{registration_payload.patient.first_name}}\"\n        last_name: \"{{registration_payload.patient.last_name}}\"\n        date_of_birth: \"{{registration_payload.patient.date_of_birth}}\"\n        insurance_flag: \"{{registration_payload.patient.insurance_flag}}\"\n        taxable: \"{{registration_payload.patient.taxable}}\"\n        language: \"{{registration_payload.patient.language}}\"\n        invoice_template: \"{{language_rule_result.invoice_template}}\"\n        apply_provincial_tax: \"{{tax_rule_result.apply_provincial_tax}}\"\n    output: stored_patient\n\n  - id: log_registration\n    op: log_audit\n    params:\n      action: patient_registered\n      user: \"{{auth_result.user_id}}\"\n      patient_id: \"{{stored_patient.id}}\"\n      timestamp: \"{{now}}\"\n    output: audit_log_entry",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_erd_002.py::test_parses_and_type_checks": false,
+        "test_wf_erd_002.py::test_passes_taint_analysis": true,
+        "test_wf_erd_002.py::test_validates_patient": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "healthcare_billing",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

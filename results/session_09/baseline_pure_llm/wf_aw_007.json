@@ -1,0 +1,42 @@
+{
+  "task_id": "wf_aw_007",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 7,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 10.480387542396784,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: sed_streaming_search_with_ai_synthesis\n\nsteps:\n  - id: receive_query\n    op: receive_request\n    params:\n      method: POST\n      endpoint: /api/sed/search\n      body_fields:\n        - query_text\n    output: search_request\n\n  - id: authenticate_user\n    op: authenticate\n    params:\n      token_source: search_request.headers.authorization\n      method: bearer_token\n    output: authenticated_user\n\n  - id: generate_embedding_and_search\n    op: vector_search\n    params:\n      input_text: search_request.query_text\n      embedding_model: text-embedding\n      table: seds\n      similarity_metric: cosine\n      top_k: 20\n    output: matching_seds\n\n  - id: stream_per_sed_summaries\n    op: stream_ndjson_chunks\n    params:\n      source: matching_seds\n      for_each: sed\n      chunk_builder:\n        type: sed_summary\n        sed_id: sed.id\n        title: sed.title\n        score: sed.similarity_score\n        summary: sed.summary_text\n      stream_immediately: true\n    output: streamed_sed_results\n\n  - id: generate_synthesis\n    op: llm_generate\n    params:\n      model: gpt-4\n      prompt_template: >\n        Given the following SED search results for the query \"{{search_request.query_text}}\",\n        produce a concise synthesis that highlights key themes, commonalities, and differences\n        across the results.\n      context: streamed_sed_results\n      depends_on: stream_per_sed_summaries\n    output: synthesis_text\n\n  - id: stream_synthesis_chunk\n    op: stream_ndjson_chunks\n    params:\n      chunk_builder:\n        type: synthesis\n        content: synthesis_text\n      final_chunk: true\n    output: stream_complete\n\n  - id: log_audit_trail\n    op: audit_log\n    params:\n      user_id: authenticated_user.user_id\n      action: sed_search\n      query: search_request.query_text\n      result_count: matching_seds.length\n      timestamp_utc: now\n      depends_on: stream_synthesis_chunk\n    output: audit_entry",
+      "dsl_type_errors": [
+        "Step 'receive_query': unknown op 'receive_request'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'authenticate_user': unknown op 'authenticate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'generate_embedding_and_search': unknown op 'vector_search'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'stream_per_sed_summaries': unknown op 'stream_ndjson_chunks'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'generate_synthesis': unknown op 'llm_generate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'stream_synthesis_chunk': unknown op 'stream_ndjson_chunks'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'log_audit_trail': unknown op 'audit_log'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 4,
+  "domain": "enterprise_knowledge",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 293,
+  "total_output_tokens": 559
+}

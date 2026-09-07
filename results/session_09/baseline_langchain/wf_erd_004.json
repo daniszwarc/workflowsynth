@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_erd_004",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 28.18313595931977,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_erd_004\nsteps:\n  - id: receive_cell_update\n    op: extract_field\n    params:\n      source: trigger.payload\n      fields:\n        - composite_key\n        - new_value\n    output: cell_update\n\n  - id: authenticate_worker\n    op: authenticate_user\n    params:\n      token: \"{{trigger.auth_token}}\"\n      method: session\n    output: auth_context\n\n  - id: parse_composite_key\n    op: transform_json\n    params:\n      input: \"{{cell_update.composite_key}}\"\n      delimiter: \"_\"\n      mapping:\n        worker_id: \"{{segments[0]}}\"\n        patient_id: \"{{segments[1]}}\"\n        date: \"{{segments[2]}}\"\n        entry_type: \"{{segments[3]}}\"\n    output: parsed_key\n\n  - id: authorize_own_entry\n    op: apply_rule\n    params:\n      rule: \"auth_context.worker_id == parsed_key.worker_id\"\n      on_fail: terminate\n      error_message: \"Workers can only edit their own timesheet entries.\"\n    output: authz_result\n\n  - id: check_timesheet_status\n    op: read_database\n    params:\n      table: timesheets\n      filters:\n        worker_id: \"{{parsed_key.worker_id}}\"\n        date: \"{{parsed_key.date}}\"\n      fields:\n        - status\n    output: timesheet_record\n\n  - id: enforce_draft_status\n    op: apply_rule\n    params:\n      rule: \"timesheet_record.status == 1\"\n      on_fail: terminate\n      error_message: \"Timesheet must be in draft status (1) to accept edits.\"\n    output: status_check\n\n  - id: validate_value\n    op: validate_schema\n    params:\n      input: \"{{cell_update.new_value}}\"\n      rules:\n        - field: new_value\n          type: numeric\n          min: 0\n      entry_type: \"{{parsed_key.entry_type}}\"\n    output: validation_result\n\n  - id: handle_validation_error\n    op: handle_error\n    params:\n      source_step: validate_value\n      on_error: terminate\n      message: \"Invalid value submitted for timesheet entry.\"\n\n  - id: update_timesheet_detail\n    op: write_database\n    params:\n      table: timesheet_details\n      operation: update\n      filters:\n        worker_id: \"{{parsed_key.worker_id}}\"\n        patient_id: \"{{parsed_key.patient_id}}\"\n        date: \"{{parsed_key.date}}\"\n        entry_type: \"{{parsed_key.entry_type}}\"\n      values:\n        value: \"{{cell_update.new_value}}\"\n    output: update_result\n\n  - id: log_entry_update\n    op: log_audit\n    params:\n      action: timesheet_cell_update\n      worker_id: \"{{parsed_key.worker_id}}\"\n      patient_id: \"{{parsed_key.patient_id}}\"\n      date: \"{{parsed_key.date}}\"\n      entry_type: \"{{parsed_key.entry_type}}\"\n      new_value: \"{{cell_update.new_value}}\"\n    output: audit_log",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_erd_004.py::test_parses_and_type_checks": false,
+        "test_wf_erd_004.py::test_passes_taint_analysis": true,
+        "test_wf_erd_004.py::test_parses_composite_key": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "healthcare_billing",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

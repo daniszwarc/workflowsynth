@@ -1,0 +1,42 @@
+{
+  "task_id": "wf_ft_007",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 7,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 12.237541417591274,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: weekly_workout_plan_generation\nsteps:\n  - id: authenticate_user\n    op: auth/verify_token\n    params:\n      source: request\n      method: bearer_token\n    output: user_session\n\n  - id: read_fitness_profile\n    op: database/read\n    params:\n      collection: user_profiles\n      user_id: \"{{ user_session.user_id }}\"\n      fields:\n        - fitness_goals\n        - fitness_level\n        - available_equipment\n        - age\n        - weight\n        - height\n        - injuries\n        - restrictions\n    output: fitness_profile\n\n  - id: read_workout_history\n    op: database/query\n    params:\n      collection: workout_history\n      user_id: \"{{ user_session.user_id }}\"\n      sort_by: date\n      sort_order: descending\n      limit: 30\n      fields:\n        - date\n        - exercises\n        - sets\n        - reps\n        - weights\n        - duration\n        - perceived_difficulty\n    output: recent_history\n\n  - id: generate_weekly_plan\n    op: ai/generate\n    params:\n      model: fitness-plan-generator\n      prompt_template: weekly_workout_plan\n      inputs:\n        fitness_profile: \"{{ fitness_profile }}\"\n        workout_history: \"{{ recent_history }}\"\n      constraints:\n        plan_duration_days: 7\n        respect_equipment: true\n        respect_injuries: true\n        progressive_overload: true\n    output: generated_plan\n\n  - id: validate_plan_safety\n    op: validation/check_workout_plan\n    params:\n      plan: \"{{ generated_plan }}\"\n      user_profile: \"{{ fitness_profile }}\"\n      recent_history: \"{{ recent_history }}\"\n      rules:\n        - max_volume_increase_percent: 10\n        - required_rest_days_min: 1\n        - no_exercises_conflicting_with_injuries: true\n        - heart_rate_zones_appropriate_for_level: true\n        - max_consecutive_training_days: 5\n    output: validation_result\n\n  - id: deactivate_previous_plan\n    op: database/update\n    params:\n      collection: training_plans\n      filter:\n        user_id: \"{{ user_session.user_id }}\"\n        status: active\n      update:\n        status: archived\n        archived_at: \"{{ now() }}\"\n    depends_on:\n      - validate_plan_safety\n    condition: \"{{ validation_result.is_valid == true }}\"\n\n  - id: store_and_activate_plan\n    op: database/write\n    params:\n      collection: training_plans\n      document:\n        user_id: \"{{ user_session.user_id }}\"\n        plan: \"{{ generated_plan }}\"\n        status: active\n        created_at: \"{{ now() }}\"\n        valid_from: \"{{ next_monday() }}\"\n        valid_to: \"{{ next_monday_plus_days(7) }}\"\n        validation_report: \"{{ validation_result }}\"\n    depends_on:\n      - deactivate_previous_plan\n    output: saved_plan",
+      "dsl_type_errors": [
+        "Step 'authenticate_user': unknown op 'auth/verify_token'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'read_fitness_profile': unknown op 'database/read'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'read_workout_history': unknown op 'database/query'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'generate_weekly_plan': unknown op 'ai/generate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_plan_safety': unknown op 'validation/check_workout_plan'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'deactivate_previous_plan': unknown op 'database/update'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'store_and_activate_plan': unknown op 'database/write'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 256,
+  "total_output_tokens": 773
+}

@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_btp_002",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 27.36321570817381,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow validates. Here is the final YAML:\n\nworkflow_id: wf_btp_002\nsteps:\n  - id: receive_document\n    op: fetch_api\n    params:\n      endpoint: \"/documents/upload/pending\"\n      method: GET\n    output: document_payload\n\n  - id: authenticate_indexing_service\n    op: authenticate_user\n    params:\n      service: indexing_service\n      method: service_account\n    output: auth_token\n\n  - id: validate_anonymization\n    op: validate_schema\n    params:\n      input: \"{{document_payload}}\"\n      rules:\n        - check: pii_anonymized\n          expected: true\n        - check: pii_fields_present\n          expected: false\n    output: anonymization_result\n\n  - id: terminate_if_not_anonymized\n    op: route_to_step\n    params:\n      condition: \"{{anonymization_result.valid}} == false\"\n      target: handle_pii_error\n\n  - id: chunk_document\n    op: transform_json\n    params:\n      input: \"{{document_payload.text}}\"\n      strategy: overlapping_chunks\n      chunk_size: 512\n      chunk_overlap: 64\n      source_document_id: \"{{document_payload.document_id}}\"\n    output: chunks\n\n  - id: generate_embeddings\n    op: loop_records\n    params:\n      collection: \"{{chunks}}\"\n      operation:\n        op: fetch_api\n        params:\n          endpoint: \"/embeddings/generate\"\n          method: POST\n          body:\n            text: \"{{item.text}}\"\n            model: embedding_model\n            source_document_id: \"{{document_payload.document_id}}\"\n            chunk_index: \"{{item.index}}\"\n    output: embedded_chunks\n\n  - id: store_embeddings\n    op: write_database\n    params:\n      target: vector_database\n      collection: document_embeddings\n      data: \"{{embedded_chunks}}\"\n      metadata:\n        source_document_id: \"{{document_payload.document_id}}\"\n        chunk_count: \"{{embedded_chunks.length}}\"\n    output: storage_result\n\n  - id: log_indexing_complete\n    op: log_audit\n    params:\n      action: document_indexed\n      document_id: \"{{document_payload.document_id}}\"\n      chunks_stored: \"{{embedded_chunks.length}}\"\n      status: success\n\n  - id: handle_pii_error\n    op: handle_error\n    params:\n      error_type: pii_not_anonymized\n      message: \"Document {{document_payload.document_id}} contains PII and cannot be indexed\"\n      severity: critical\n\n  - id: terminate_on_pii\n    op: terminate_workflow\n    params:\n      reason: \"Document not anonymized \u2014 PII must not reach the vector store\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_btp_002.py::test_parses_and_type_checks": false,
+        "test_wf_btp_002.py::test_passes_taint_analysis": true,
+        "test_wf_btp_002.py::test_validates_anonymization_before_indexing": false
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "clinical_ai",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

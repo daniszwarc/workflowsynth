@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_erd_001",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 28.77140183467418,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_erd_001\nsteps:\n  - id: check_session\n    op: apply_rule\n    params:\n      rule: check_session_authenticated\n      session_timeout_hours: 8\n    output: session_status\n\n  - id: redirect_to_login\n    op: route_to_step\n    params:\n      condition: \"session_status.authenticated == false AND request.path != '/login'\"\n      target_step: receive_login_form\n      redirect_url: \"/login\"\n    output: redirect_result\n\n  - id: terminate_if_redirected\n    op: terminate_workflow\n    params:\n      condition: \"redirect_result.redirected == true\"\n      reason: \"Unauthenticated request redirected to login\"\n\n  - id: receive_login_form\n    op: validate_schema\n    params:\n      schema:\n        type: object\n        required:\n          - username\n          - password\n        properties:\n          username:\n            type: string\n          password:\n            type: string\n      source: \"request.body\"\n    output: login_credentials\n\n  - id: encrypt_password\n    op: encrypt_field\n    params:\n      field: login_credentials.password\n      algorithm: bcrypt\n    output: encrypted_password\n\n  - id: lookup_user\n    op: read_database\n    params:\n      table: staff_users\n      query:\n        username: \"login_credentials.username\"\n      fields:\n        - user_id\n        - username\n        - password_hash\n        - role\n        - is_active\n    output: user_record\n\n  - id: verify_credentials\n    op: authenticate_user\n    params:\n      provided_password: encrypted_password.value\n      stored_hash: user_record.password_hash\n      account_active: user_record.is_active\n    output: auth_result\n\n  - id: handle_auth_failure\n    op: handle_error\n    params:\n      condition: \"auth_result.success == false\"\n      error_message: \"Invalid username or password\"\n      redirect_url: \"/login\"\n    output: auth_error\n\n  - id: log_login_attempt\n    op: log_audit\n    params:\n      event: \"login_attempt\"\n      username: \"login_credentials.username\"\n      success: \"auth_result.success\"\n      timestamp: \"now()\"\n      source: \"medical_rehab_billing\"\n    output: audit_log_entry\n\n  - id: establish_session\n    op: write_database\n    params:\n      table: active_sessions\n      record:\n        user_id: \"user_record.user_id\"\n        role: \"user_record.role\"\n        session_token: \"generate_secure_token()\"\n        created_at: \"now()\"\n        expires_at: \"now() + 8h\"\n        timeout_minutes: 480\n      condition: \"auth_result.success == true\"\n    output: session_record\n\n  - id: redirect_to_main_menu\n    op: route_to_step\n    params:\n      condition: \"auth_result.success == true\"\n      redirect_url: \"/main_menu\"\n      role: \"user_record.role\"\n      visible_menus: \"role_based_menu_config(user_record.role)\"\n    output: main_menu_redirect",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_erd_001.py::test_parses_and_type_checks": false,
+        "test_wf_erd_001.py::test_passes_taint_analysis": true,
+        "test_wf_erd_001.py::test_authenticates_user": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "healthcare_billing",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

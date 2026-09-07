@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_pb_006",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 6,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 11.358427915722132,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: ticket_producer_assignment\nsteps:\n  - id: receive_assignment_request\n    op: receive_event\n    params:\n      event_type: producer_assignment_requested\n      required_fields:\n        - ticket_id\n        - producer_id\n        - manager_id\n    output:\n      ticket_id: \"{{ event.ticket_id }}\"\n      producer_id: \"{{ event.producer_id }}\"\n      manager_id: \"{{ event.manager_id }}\"\n\n  - id: validate_ticket_unassigned\n    op: database_query\n    params:\n      query: \"SELECT id, assigned_to, status FROM tickets WHERE id = :ticket_id\"\n      bind:\n        ticket_id: \"{{ steps.receive_assignment_request.output.ticket_id }}\"\n      assertions:\n        - condition: \"{{ result.rows | length == 1 }}\"\n          error: \"Ticket not found\"\n        - condition: \"{{ result.rows[0].assigned_to is none }}\"\n          error: \"Ticket is already assigned. Only unassigned tickets (assigned_to IS NULL) can be assigned via this workflow.\"\n    output:\n      ticket: \"{{ result.rows[0] }}\"\n\n  - id: validate_producer_active\n    op: database_query\n    params:\n      query: \"SELECT id, name, email, status FROM producers WHERE id = :producer_id\"\n      bind:\n        producer_id: \"{{ steps.receive_assignment_request.output.producer_id }}\"\n      assertions:\n        - condition: \"{{ result.rows | length == 1 }}\"\n          error: \"Producer not found\"\n        - condition: \"{{ result.rows[0].status == 'active' }}\"\n          error: \"Producer is not active and cannot be assigned tickets\"\n    output:\n      producer: \"{{ result.rows[0] }}\"\n\n  - id: update_ticket_assignment\n    op: database_update\n    params:\n      table: tickets\n      where:\n        id: \"{{ steps.receive_assignment_request.output.ticket_id }}\"\n        assigned_to: null\n      set:\n        assigned_to: \"{{ steps.receive_assignment_request.output.producer_id }}\"\n        status: \"pendiente\"\n        updated_at: \"{{ now() }}\"\n      expected_affected_rows: 1\n    output:\n      updated: true\n\n  - id: log_status_change\n    op: database_insert\n    params:\n      table: ticket_history\n      record:\n        ticket_id: \"{{ steps.receive_assignment_request.output.ticket_id }}\"\n        previous_status: \"{{ steps.validate_ticket_unassigned.output.ticket.status }}\"\n        new_status: \"pendiente\"\n        previous_assigned_to: null\n        new_assigned_to: \"{{ steps.receive_assignment_request.output.producer_id }}\"\n        changed_by: \"{{ steps.receive_assignment_request.output.manager_id }}\"\n        change_type: \"producer_assignment\"\n        created_at: \"{{ now() }}\"\n    output:\n      history_entry_id: \"{{ result.inserted_id }}\"\n\n  - id: notify_assigned_producer\n    op: send_notification\n    params:\n      channel: email\n      recipient: \"{{ steps.validate_producer_active.output.producer.email }}\"\n      template: ticket_assigned\n      template_data:\n        producer_name: \"{{ steps.validate_producer_active.output.producer.name }}\"\n        ticket_id: \"{{ steps.receive_assignment_request.output.ticket_id }}\"\n        status: \"pendiente\"\n    output:\n      notification_sent: true",
+      "dsl_type_errors": [
+        "Step at index 0 (id='receive_assignment_request'): 'output' must be a string if present.",
+        "Step at index 1 (id='validate_ticket_unassigned'): 'output' must be a string if present.",
+        "Step at index 2 (id='validate_producer_active'): 'output' must be a string if present.",
+        "Step at index 3 (id='update_ticket_assignment'): 'output' must be a string if present.",
+        "Step at index 4 (id='log_status_change'): 'output' must be a string if present.",
+        "Step at index 5 (id='notify_assigned_producer'): 'output' must be a string if present."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "insurance_brokerage",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 295,
+  "total_output_tokens": 889
+}

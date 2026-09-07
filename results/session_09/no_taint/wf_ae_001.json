@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_ae_001",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.5642073340713978,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: pdf_article_extraction_via_ai_vision\nsteps:\n  - id: authenticate_drive_user\n    op: authenticate_user\n    params:\n      role: \"drive_service_account\"\n    output: auth_result\n\n  - id: search_pending_pdfs\n    op: fetch_api\n    params:\n      endpoint: \"/api/google-drive/search\"\n      query:\n        folder: \"pending_articles\"\n        mime_type: \"application/pdf\"\n    output: raw_pdf_list\n\n  - id: validate_pdf_list\n    op: validate_schema\n    params:\n      input: raw_pdf_list\n      schema: pdf_file_list_schema\n    output: validated_pdf_list\n\n  - id: loop_pdf_files\n    op: loop_records\n    params:\n      input: validated_pdf_list\n      step: download_pdf_binary\n    output: loop_context\n\n  - id: download_pdf_binary\n    op: fetch_api\n    params:\n      endpoint: \"/api/google-drive/download\"\n      file_id_from: validated_pdf_list\n    output: raw_pdf_binary\n\n  - id: filter_valid_pdfs\n    op: filter_records\n    params:\n      input: raw_pdf_binary\n      condition: \"binary_content IS NOT NULL AND size > 0\"\n    output: valid_pdf_binary\n\n  - id: send_to_ai_vision\n    op: call_webhook\n    params:\n      input: valid_pdf_binary\n      url: \"/api/ai-vision/extract\"\n      method: \"POST\"\n      body:\n        prompt: \"Extract structured article content from this PDF. Return JSON with fields: title, author, section, lead, body, highlighted_quotes, sidebars. If the document contains multiple book reviews, set es_multiple to true and return an array of articles.\"\n        pdf_binary_ref: valid_pdf_binary\n    output: raw_ai_response\n\n  - id: transform_ai_response\n    op: transform_json\n    params:\n      input: raw_ai_response\n      mapping:\n        strip_markdown_fences: true\n        replace_double_quotes_in_content: \"replace('\\\"', \\\"'\\\")\"\n        ensure_lead_not_empty: \"coalesce(lead, first_sentence_of_body)\"\n    output: parsed_article_data\n\n  - id: validate_required_fields\n    op: validate_schema\n    params:\n      input: parsed_article_data\n      schema:\n        required_fields:\n          - title\n          - section\n          - content\n        conditional:\n          - when: \"es_multiple == true\"\n            required_fields:\n              - articles\n              - articles[].title\n              - articles[].section\n              - articles[].content\n        rules:\n          - field: lead\n            condition: \"NOT_EMPTY\"\n    output: validated_article_data\n\n  - id: check_multiple_format\n    op: apply_rule\n    params:\n      rule: \"es_multiple == true\"\n      input_ref: validated_article_data\n    output: format_decision\n\n  - id: route_by_format\n    op: route_to_step\n    params:\n      condition: \"format_decision == true\"\n      true_step: handle_multiple_reviews\n      false_step: handle_single_article\n\n  - id: handle_multiple_reviews\n    op: loop_records\n    params:\n      input: validated_article_data\n      collection_field: \"articles\"\n      step: write_article_record\n    output: multiple_write_results\n\n  - id: handle_single_article\n    op: format_output\n    params:\n      input: validated_article_data\n      format: \"json\"\n      template:\n        title: \"$.title\"\n        author: \"$.author\"\n        section: \"$.section\"\n        lead: \"$.lead\"\n        body: \"$.body\"\n        highlighted_quotes: \"$.highlighted_quotes\"\n        sidebars: \"$.sidebars\"\n    output: formatted_single_article\n\n  - id: write_article_record\n    op: write_database\n    params:\n      input: validated_article_data\n      table: \"extracted_articles\"\n    output: write_result\n\n  - id: log_extraction_audit\n    op: log_audit\n    params:\n      input: validated_article_data\n      action: \"pdf_article_extracted\"\n      details:\n        source: \"google_drive_pending_articles\"\n        ai_model: \"vision_extraction\"\n    output: audit_log_entry\n\n  - id: notify_editor\n    op: notify_user\n    params:\n      input: validated_article_data\n      recipient: \"editor@economicsmagazine.com\"\n      message: \"New article(s) extracted from PDF and stored in database.\"\n      channel: \"email\"\n    output: notification_result\n\n  - id: handle_extraction_error\n    op: handle_error\n    params:\n      on_error_in:\n        - send_to_ai_vision\n        - transform_ai_response\n        - validate_required_fields\n      route_to: retry_ai_extraction\n\n  - id: retry_ai_extraction\n    op: retry_step\n    params:\n      step: send_to_ai_vision\n      max_retries: 3\n      backoff_seconds: 10\n    output: retry_result\n\n  - id: terminate_on_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"PDF article extraction workflow finished successfully.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ae_001.py::test_parses_and_type_checks": true,
+        "test_wf_ae_001.py::test_passes_taint_analysis": true,
+        "test_wf_ae_001.py::test_has_ai_extraction": true,
+        "test_wf_ae_001.py::test_has_validation": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1158,
+      "output_tokens": 1338
+    }
+  ],
+  "complexity": 2,
+  "domain": "publishing",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1158,
+  "total_output_tokens": 1338
+}

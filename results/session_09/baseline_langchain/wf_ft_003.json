@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_ft_003",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 41.18162649963051,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_ft_003\nsteps:\n  - id: receive_image\n    op: call_webhook\n    params:\n      method: POST\n      endpoint: /api/camera/capture\n      accept: image/*\n    output: raw_image\n\n  - id: validate_image\n    op: validate_schema\n    params:\n      input: \"{{raw_image}}\"\n      rules:\n        format:\n          - image/jpeg\n          - image/png\n          - image/heic\n        max_size_mb: 10\n    output: validated_image\n\n  - id: handle_invalid_image\n    op: handle_error\n    params:\n      on_failure: validate_image\n      action: notify_and_terminate\n      message: \"Invalid image format or size. Please retake the photo.\"\n\n  - id: call_vision_api\n    op: fetch_api\n    params:\n      method: POST\n      url: \"{{env.AI_VISION_API_URL}}/extract-nutrition\"\n      headers:\n        Authorization: \"Bearer {{env.AI_VISION_API_KEY}}\"\n        Content-Type: application/octet-stream\n      body: \"{{validated_image}}\"\n      timeout_seconds: 30\n    output: vision_response\n\n  - id: retry_vision_api\n    op: retry_step\n    params:\n      step_id: call_vision_api\n      max_retries: 2\n      backoff_seconds: 3\n\n  - id: parse_nutrition_data\n    op: extract_field\n    params:\n      source: \"{{vision_response}}\"\n      fields:\n        - calories\n        - fat_g\n        - carbohydrates_g\n        - protein_g\n        - fiber_g\n        - sugar_g\n        - sodium_mg\n        - serving_size\n        - serving_unit\n        - product_name\n    output: nutrition_data\n\n  - id: transform_nutrition\n    op: transform_json\n    params:\n      input: \"{{nutrition_data}}\"\n      mapping:\n        calories: \"{{nutrition_data.calories}}\"\n        fat: \"{{nutrition_data.fat_g}}\"\n        carbs: \"{{nutrition_data.carbohydrates_g}}\"\n        protein: \"{{nutrition_data.protein_g}}\"\n        fiber: \"{{nutrition_data.fiber_g}}\"\n        sugar: \"{{nutrition_data.sugar_g}}\"\n        sodium: \"{{nutrition_data.sodium_mg}}\"\n        serving_size: \"{{nutrition_data.serving_size}}\"\n        serving_unit: \"{{nutrition_data.serving_unit}}\"\n        product_name: \"{{nutrition_data.product_name}}\"\n    output: structured_nutrition\n\n  - id: validate_plausible_ranges\n    op: apply_rule\n    params:\n      input: \"{{structured_nutrition}}\"\n      rules:\n        - field: calories\n          condition: \"between\"\n          min: 0\n          max: 2000\n        - field: fat\n          condition: \"between\"\n          min: 0\n          max: 200\n        - field: carbs\n          condition: \"between\"\n          min: 0\n          max: 500\n        - field: protein\n          condition: \"between\"\n          min: 0\n          max: 300\n        - field: serving_size\n          condition: \"greater_than\"\n          value: 0\n    output: validation_result\n\n  - id: flag_implausible_values\n    op: route_to_step\n    params:\n      condition: \"{{validation_result.has_violations}}\"\n      on_true: notify_implausible\n      on_false: format_food_entry\n\n  - id: notify_implausible\n    op: notify_user\n    params:\n      channel: in_app\n      title: \"Nutrition Data Review Needed\"\n      message: \"Some extracted values seem implausible and have been flagged. Please review carefully before confirming.\"\n      data:\n        flagged_fields: \"{{validation_result.violations}}\"\n\n  - id: format_food_entry\n    op: format_output\n    params:\n      template: food_entry_form\n      data:\n        product_name: \"{{structured_nutrition.product_name}}\"\n        calories: \"{{structured_nutrition.calories}}\"\n        fat: \"{{structured_nutrition.fat}}\"\n        carbs: \"{{structured_nutrition.carbs}}\"\n        protein: \"{{structured_nutrition.protein}}\"\n        fiber: \"{{structured_nutrition.fiber}}\"\n        sugar: \"{{structured_nutrition.sugar}}\"\n        sodium: \"{{structured_nutrition.sodium}}\"\n        serving_size: \"{{structured_nutrition.serving_size}}\"\n        serving_unit: \"{{structured_nutrition.serving_unit}}\"\n        flagged: \"{{validation_result.has_violations}}\"\n        flagged_fields: \"{{validation_result.violations}}\"\n        requires_confirmation: true\n    output: food_entry_form\n\n  - id: await_user_confirmation\n    op: wait_for_condition\n    params:\n      condition: \"{{food_entry_form.user_confirmed}}\"\n      timeout_seconds: 300\n      on_timeout: terminate\n    output: user_decision\n\n  - id: log_scan_event\n    op: log_audit\n    params:\n      action: food_label_scanned\n      details:\n        product_name: \"{{structured_nutrition.product_name}}\"\n        confirmed: \"{{user_decision.confirmed}}\"\n        flagged: \"{{validation_result.has_violations}}\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_003.py::test_parses_and_type_checks": false,
+        "test_wf_ft_003.py::test_passes_taint_analysis": true,
+        "test_wf_ft_003.py::test_validates_plausibility": true,
+        "test_wf_ft_003.py::test_uses_ai_vision": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

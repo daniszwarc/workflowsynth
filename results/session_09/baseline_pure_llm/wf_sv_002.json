@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_sv_002",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 5,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 7.664605624973774,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: sent-email-history-ingestion\n\nsteps:\n  - id: retrieve_sent_emails\n    op: gmail/list_messages\n    params:\n      account: club-gmail\n      folder: sent\n      date_range:\n        from: \"-1 month\"\n        to: \"-2 weeks\"\n      include_fields:\n        - messageId\n        - subject\n        - date\n        - recipient\n        - body\n    output: raw_sent_emails\n\n  - id: filter_short_emails\n    op: collection/filter\n    params:\n      input: \"{{raw_sent_emails}}\"\n      condition: \"item.body != null AND length(item.body) >= 20\"\n    output: filtered_emails\n\n  - id: build_and_chunk\n    op: text/chunk\n    params:\n      input: \"{{filtered_emails}}\"\n      template: |\n        Subject: {{item.subject}}\n        Date: {{item.date}}\n        Recipient: {{item.recipient}}\n        Body: {{item.body}}\n      chunk_size: 500\n      chunk_overlap: 50\n      chunk_id_pattern: \"sent-{{item.messageId}}-chunk-{{chunk_index}}\"\n    output: text_chunks\n\n  - id: embed_chunks\n    op: embedding/generate\n    params:\n      input: \"{{text_chunks}}\"\n      model: embedding-model\n      text_field: chunk_text\n    output: embedded_chunks\n\n  - id: insert_into_vector_store\n    op: vectorstore/upsert\n    params:\n      input: \"{{embedded_chunks}}\"\n      namespace: email-history\n      id_field: chunk_id\n      vector_field: embedding\n      metadata_fields:\n        - messageId\n        - subject\n        - date\n        - recipient\n        - chunk_index\n        - chunk_text",
+      "dsl_type_errors": [
+        "Step 'retrieve_sent_emails': unknown op 'gmail/list_messages'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'filter_short_emails': unknown op 'collection/filter'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'build_and_chunk': unknown op 'text/chunk'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'embed_chunks': unknown op 'embedding/generate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'insert_into_vector_store': unknown op 'vectorstore/upsert'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "community_sports",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 329,
+  "total_output_tokens": 446
+}

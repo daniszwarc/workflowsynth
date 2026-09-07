@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_lf_003",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 6,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 15.186176374554634,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: tts_playback_with_sentence_highlighting\n\nsteps:\n  - id: receive_cleaned_text\n    op: receive_input\n    params:\n      input_type: cleaned_text_sections\n      description: Receive the cleaned text sections ready for TTS playback\n    output: text_sections\n\n  - id: split_into_sentences\n    op: tokenize_sentences\n    params:\n      source: \"{{text_sections}}\"\n      strategy: sentence_boundary_detection\n      locale: fr-FR\n      description: Split each section into individual sentences for the utterance queue\n    output: sectioned_sentences\n\n  - id: create_utterances\n    op: create_speech_synthesis_utterances\n    params:\n      source: \"{{sectioned_sentences}}\"\n      engine: browser_native_web_speech_api\n      lang: fr-FR\n      rate: \"{{user_config.rate | default(1.0)}}\"\n      pitch: \"{{user_config.pitch | default(1.0)}}\"\n      description: Create a SpeechSynthesisUtterance for each sentence with user-configured rate and pitch\n    output: utterance_list\n\n  - id: apply_inter_section_pauses\n    op: insert_pauses_between_sections\n    params:\n      utterances: \"{{utterance_list}}\"\n      sections: \"{{sectioned_sentences}}\"\n      pause_duration_ms: \"{{user_config.inter_section_pause_ms | default(800)}}\"\n      description: Insert a configurable silence pause between the last utterance of one section and the first utterance of the next\n    output: utterance_queue\n\n  - id: queue_utterances\n    op: enqueue_to_speech_api\n    params:\n      utterances: \"{{utterance_queue}}\"\n      api: window.speechSynthesis\n      method: speak\n      description: Queue all utterances (including pause placeholders) to the browser Web Speech API\n    output: playback_handle\n\n  - id: highlight_and_scroll_on_utterance_start\n    op: bind_utterance_events\n    params:\n      utterances: \"{{utterance_queue}}\"\n      event: onstart\n      actions:\n        - action: highlight_sentence\n          params:\n            css_class: tts-active-sentence\n            clear_previous: true\n            target: \"{{current_utterance.sentence_element_id}}\"\n        - action: scroll_into_view\n          params:\n            target: \"{{current_utterance.sentence_element_id}}\"\n            behavior: smooth\n            block: center\n      description: As each utterance begins, highlight the corresponding sentence in the UI and scroll it into the viewport\n    output: event_bindings",
+      "dsl_type_errors": [
+        "Step 'receive_cleaned_text': unknown op 'receive_input'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'split_into_sentences': unknown op 'tokenize_sentences'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'create_utterances': unknown op 'create_speech_synthesis_utterances'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'apply_inter_section_pauses': unknown op 'insert_pauses_between_sections'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'queue_utterances': unknown op 'enqueue_to_speech_api'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'highlight_and_scroll_on_utterance_start': unknown op 'bind_utterance_events'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "personal_tool",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 314,
+  "total_output_tokens": 649
+}

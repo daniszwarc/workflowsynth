@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_cpl_009",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.4467160003259778,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: attachment_upload_workflow\nsteps:\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      role: \"request_user\"\n    output: auth_result\n\n  - id: step_receive_upload\n    op: fetch_api\n    params:\n      endpoint: \"/api/attachments/upload\"\n    output: raw_upload\n\n  - id: step_validate_upload_schema\n    op: validate_schema\n    params:\n      input: raw_upload\n      schema: attachment_upload_schema\n    output: validated_upload\n\n  - id: step_extract_request_id\n    op: extract_field\n    params:\n      input: validated_upload\n      field: \"parent_request_id\"\n    output: parent_request_id\n\n  - id: step_verify_parent_request\n    op: read_database\n    params:\n      table: requests\n      filter:\n        id: parent_request_id\n    output: raw_parent_request\n\n  - id: step_validate_parent_request\n    op: validate_schema\n    params:\n      input: raw_parent_request\n      schema: existing_request_schema\n    output: validated_parent_request\n\n  - id: step_check_parent_exists\n    op: apply_rule\n    params:\n      rule: \"parent_request_exists\"\n      input_value: validated_parent_request\n    output: parent_exists_result\n\n  - id: step_route_no_parent\n    op: route_to_step\n    params:\n      condition: \"parent_exists_result == false\"\n      target: step_terminate_no_parent\n\n  - id: step_extract_file_metadata\n    op: extract_field\n    params:\n      input: validated_upload\n      field: \"file_metadata\"\n    output: file_metadata\n\n  - id: step_validate_file_type_size\n    op: apply_rule\n    params:\n      rule: \"validate_file_type_and_size\"\n      input_value: file_metadata\n    output: file_validation_result\n\n  - id: step_route_invalid_file\n    op: route_to_step\n    params:\n      condition: \"file_validation_result.valid == false\"\n      target: step_terminate_invalid_file\n\n  - id: step_extract_file_content\n    op: extract_field\n    params:\n      input: validated_upload\n      field: \"file_content\"\n    output: file_content\n\n  - id: step_encrypt_file\n    op: encrypt_field\n    params:\n      input: file_content\n      field: \"data\"\n    output: encrypted_file\n\n  - id: step_store_attachment\n    op: call_webhook\n    params:\n      input: encrypted_file\n      url: \"/storage/attachments/store\"\n      method: \"POST\"\n    output: raw_storage_result\n\n  - id: step_validate_storage_result\n    op: validate_schema\n    params:\n      input: raw_storage_result\n      schema: storage_result_schema\n    output: validated_storage_result\n\n  - id: step_build_attachment_record\n    op: transform_json\n    params:\n      input: validated_storage_result\n      mapping:\n        parent_request_id: parent_request_id\n        storage_path: \"validated_storage_result.path\"\n        file_name: \"file_metadata.name\"\n        file_type: \"file_metadata.type\"\n        file_size: \"file_metadata.size\"\n    output: attachment_record\n\n  - id: step_write_attachment_record\n    op: write_database\n    params:\n      input: attachment_record\n      table: attachments\n    output: write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: attachment_record\n      action: \"attachment_uploaded\"\n      details: \"File attachment linked to parent request\"\n    output: audit_log_result\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: attachment_record\n      message: \"Your file attachment has been uploaded successfully.\"\n      channel: \"in_app\"\n    output: notification_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"Attachment uploaded and linked to request.\"\n\n  - id: step_terminate_no_parent\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"Parent request does not exist. Attachment rejected.\"\n\n  - id: step_terminate_invalid_file\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"File type or size validation failed. Attachment rejected.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_cpl_009.py::test_parses_and_type_checks": true,
+        "test_wf_cpl_009.py::test_passes_taint_analysis": true,
+        "test_wf_cpl_009.py::test_validates_before_storing": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1070,
+      "output_tokens": 1140
+    }
+  ],
+  "complexity": 2,
+  "domain": "sports_media",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1070,
+  "total_output_tokens": 1140
+}

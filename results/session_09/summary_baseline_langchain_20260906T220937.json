@@ -1,0 +1,2291 @@
+{
+  "condition": "baseline_langchain",
+  "total_tasks": 60,
+  "pass_at_1": 0.0,
+  "pass_at_3": 0.0,
+  "pass_at_5": 0.0,
+  "pass_at_10": 0.0,
+  "mean_attempts": 0.0,
+  "security_pass_rate": 0.0,
+  "by_complexity": {
+    "1": 0.0,
+    "2": 0.0,
+    "3": 0.0,
+    "4": 0.0,
+    "5": 0.0
+  },
+  "by_domain": {
+    "clinical_ai": 0.0,
+    "community_sports": 0.0,
+    "enterprise_knowledge": 0.0,
+    "health_fitness": 0.0,
+    "healthcare_billing": 0.0,
+    "insurance_brokerage": 0.0,
+    "manufacturing": 0.0,
+    "personal_tool": 0.0,
+    "publishing": 0.0,
+    "sports_media": 0.0,
+    "workers_compensation": 0.0
+  },
+  "results": [
+    {
+      "task_id": "wf_ae_001",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 39.258443707600236,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_ae_001\nsteps:\n  - id: search_pending_pdfs\n    op: fetch_api\n    params:\n      endpoint: \"https://www.googleapis.com/drive/v3/files\"\n      method: GET\n      query:\n        q: \"'pending_articles_folder_id' in parents and mimeType='application/pdf'\"\n        fields: \"files(id,name)\"\n      auth: google_oauth\n    output: pdf_file_list\n\n  - id: loop_pdf_files\n    op: loop_records\n    params:\n      collection: \"{{pdf_file_list.files}}\"\n      iterator: pdf_file\n    output: processed_articles\n\n  - id: download_pdf_binary\n    op: fetch_api\n    params:\n      endpoint: \"https://www.googleapis.com/drive/v3/files/{{pdf_file.id}}?alt=media\"\n      method: GET\n      response_type: binary\n      auth: google_oauth\n    output: pdf_binary\n\n  - id: send_to_ai_vision\n    op: fetch_api\n    params:\n      endpoint: \"https://api.openai.com/v1/chat/completions\"\n      method: POST\n      headers:\n        Content-Type: application/json\n        Authorization: \"Bearer {{secrets.openai_api_key}}\"\n      body:\n        model: \"gpt-4o\"\n        messages:\n          - role: system\n            content: >\n              You are a structured data extractor for an economics magazine.\n              Extract article content from the provided PDF image(s).\n              Return valid JSON with these fields: titulo (title), autor (author),\n              seccion (section), bajada (lead), cuerpo (body text),\n              destacados (highlighted quotes as array), recuadros (sidebars as array).\n              If the PDF contains multiple book reviews, set es_multiple to true\n              and return an array of articles under \"articulos\".\n              For single articles, set es_multiple to false.\n              Replace any double quotes inside text content with single quotes.\n              The bajada (lead) field must never be empty; if not found,\n              use the first sentence of the body.\n          - role: user\n            content:\n              - type: image_url\n                image_url:\n                  url: \"data:application/pdf;base64,{{pdf_binary.base64}}\"\n        max_tokens: 4096\n    output: ai_raw_response\n\n  - id: extract_ai_content\n    op: extract_field\n    params:\n      source: \"{{ai_raw_response}}\"\n      field: \"choices[0].message.content\"\n    output: raw_content_string\n\n  - id: strip_markdown_fences\n    op: transform_json\n    params:\n      input: \"{{raw_content_string}}\"\n      operations:\n        - type: regex_replace\n          pattern: \"^```(?:json)?\\\\n?\"\n          replacement: \"\"\n        - type: regex_replace\n          pattern: \"\\\\n?```$\"\n          replacement: \"\"\n    output: clean_json_string\n\n  - id: replace_double_quotes_in_content\n    op: transform_json\n    params:\n      input: \"{{clean_json_string}}\"\n      operations:\n        - type: string_replace\n          target: '\\\\\"'\n          replacement: \"'\"\n    output: sanitized_json_string\n\n  - id: parse_extracted_json\n    op: transform_json\n    params:\n      input: \"{{sanitized_json_string}}\"\n      operations:\n        - type: parse_json\n    output: extracted_article\n\n  - id: validate_required_fields\n    op: validate_schema\n    params:\n      data: \"{{extracted_article}}\"\n      required_fields:\n        - titulo\n        - seccion\n        - cuerpo\n      rules:\n        - field: bajada\n          condition: not_empty\n          fallback: \"{{extracted_article.cuerpo | first_sentence}}\"\n    output: validated_article\n\n  - id: handle_validation_error\n    op: handle_error\n    params:\n      on_step: validate_required_fields\n      action: log_and_continue\n      message: \"Validation failed for PDF {{pdf_file.name}}: missing required fields\"\n\n  - id: log_extraction\n    op: log_audit\n    params:\n      action: article_extracted\n      details:\n        file_name: \"{{pdf_file.name}}\"\n        file_id: \"{{pdf_file.id}}\"\n        es_multiple: \"{{validated_article.es_multiple}}\"\n        title: \"{{validated_article.titulo}}\"\n    output: audit_record",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_ae_001.py::test_parses_and_type_checks": false,
+            "test_wf_ae_001.py::test_passes_taint_analysis": true,
+            "test_wf_ae_001.py::test_has_ai_extraction": false,
+            "test_wf_ae_001.py::test_has_validation": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "publishing",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ae_002",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 24.78628020826727,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates. Here is the final YAML:\n\nworkflow_id: wf_ae_002\nsteps:\n  - id: read_category_spreadsheet\n    op: fetch_api\n    params:\n      source: google_drive\n      file_type: spreadsheet\n      file_id: \"{{config.category_spreadsheet_id}}\"\n    output: category_spreadsheet\n\n  - id: extract_article_title\n    op: extract_field\n    params:\n      source: \"{{trigger.extracted_article}}\"\n      field: title\n    output: article_title\n\n  - id: normalise_article_title\n    op: transform_json\n    params:\n      input: \"{{extract_article_title.article_title}}\"\n      operations:\n        - strip_accents: true\n        - lowercase: true\n        - strip_non_alphanumeric: true\n    output: normalised_article_title\n\n  - id: normalise_spreadsheet_titles\n    op: loop_records\n    params:\n      collection: \"{{read_category_spreadsheet.category_spreadsheet}}\"\n      apply:\n        op: transform_json\n        params:\n          input: \"{{item.title}}\"\n          operations:\n            - strip_accents: true\n            - lowercase: true\n            - strip_non_alphanumeric: true\n    output: normalised_spreadsheet_rows\n\n  - id: match_category\n    op: filter_records\n    params:\n      source: \"{{normalise_spreadsheet_titles.normalised_spreadsheet_rows}}\"\n      condition:\n        field: normalised_title\n        operator: equals\n        value: \"{{normalise_article_title.normalised_article_title}}\"\n      accent_insensitive: true\n      punctuation_insensitive: true\n    output: matched_row\n\n  - id: check_match_found\n    op: apply_rule\n    params:\n      condition: \"{{matched_row != null and matched_row | length > 0}}\"\n      on_true:\n        category: \"{{match_category.matched_row[0].category}}\"\n        section: \"{{match_category.matched_row[0].section}}\"\n        needs_review: false\n      on_false:\n        category: \"Ciencia economica\"\n        section: \"Dossier\"\n        needs_review: true\n    output: category_assignment\n\n  - id: format_result\n    op: format_output\n    params:\n      template:\n        article_title: \"{{extract_article_title.article_title}}\"\n        category: \"{{check_match_found.category_assignment.category}}\"\n        section: \"{{check_match_found.category_assignment.section}}\"\n        needs_review: \"{{check_match_found.category_assignment.needs_review}}\"\n    output: final_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_ae_002.py::test_parses_and_type_checks": false,
+            "test_wf_ae_002.py::test_passes_taint_analysis": true,
+            "test_wf_ae_002.py::test_reads_spreadsheet": false,
+            "test_wf_ae_002.py::test_applies_matching_rule": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "publishing",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ae_003",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 29.494153583422303,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates. Here is the final YAML:\n\nworkflow_id: wf_ae_003\nsteps:\n  - id: parallel_lookups\n    op: parallel_execute\n    params:\n      branches:\n        - id: lookup_author\n          op: fetch_api\n          params:\n            endpoint: \"/jsonapi/node/author\"\n            method: GET\n            query_params:\n              filter[field_author_name]: \"{{ article.author_name }}\"\n          output: author_result\n        - id: lookup_category\n          op: fetch_api\n          params:\n            endpoint: \"/jsonapi/taxonomy_term/category\"\n            method: GET\n            query_params:\n              filter[name]: \"{{ article.category_name }}\"\n          output: category_result\n        - id: lookup_issue\n          op: fetch_api\n          params:\n            endpoint: \"/jsonapi/node/magazine_issue\"\n            method: GET\n            query_params:\n              filter[field_issue_number]: \"{{ article.issue_number }}\"\n          output: issue_result\n    output: parallel_results\n\n  - id: extract_author_id\n    op: extract_field\n    params:\n      source: \"{{ author_result }}\"\n      field: \"data[0].id\"\n    output: author_entity_id\n\n  - id: handle_author_not_found\n    op: handle_error\n    params:\n      step_ref: extract_author_id\n      on_error:\n        - id: flag_manual_assignment\n          op: notify_user\n          params:\n            recipient: \"cms_editorial_team\"\n            subject: \"Author not found \u2013 manual assignment required\"\n            message: \"Author '{{ article.author_name }}' was not found in the CMS. Article '{{ article.title }}' has been flagged for manual author assignment.\"\n        - id: terminate_on_author_missing\n          op: terminate_workflow\n          params:\n            reason: \"Author not found; article flagged for manual assignment.\"\n\n  - id: extract_category_uuid\n    op: extract_field\n    params:\n      source: \"{{ category_result }}\"\n      field: \"data[0].id\"\n    output: category_term_uuid\n\n  - id: extract_issue_uuid\n    op: extract_field\n    params:\n      source: \"{{ issue_result }}\"\n      field: \"data[0].id\"\n    output: issue_uuid\n\n  - id: validate_lookups\n    op: validate_schema\n    params:\n      inputs:\n        author_entity_id: \"{{ author_entity_id }}\"\n        category_term_uuid: \"{{ category_term_uuid }}\"\n        issue_uuid: \"{{ issue_uuid }}\"\n      rules:\n        - field: author_entity_id\n          condition: not_empty\n        - field: category_term_uuid\n          condition: not_empty\n        - field: issue_uuid\n          condition: not_empty\n    output: validation_result\n\n  - id: merge_metadata\n    op: merge_datasets\n    params:\n      sources:\n        - key: author_entity_id\n          value: \"{{ author_entity_id }}\"\n        - key: category_term_uuid\n          value: \"{{ category_term_uuid }}\"\n        - key: issue_uuid\n          value: \"{{ issue_uuid }}\"\n      strategy: combine\n    output: article_metadata\n\n  - id: log_metadata_resolution\n    op: log_audit\n    params:\n      action: \"metadata_resolved\"\n      details: \"Author: {{ author_entity_id }}, Category: {{ category_term_uuid }}, Issue: {{ issue_uuid }}\"\n    output: audit_log_entry",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_ae_003.py::test_parses_and_type_checks": false,
+            "test_wf_ae_003.py::test_passes_taint_analysis": true,
+            "test_wf_ae_003.py::test_has_three_lookups": false,
+            "test_wf_ae_003.py::test_merges_metadata": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "publishing",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ae_004",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 31.166453958489,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_ae_004\nsteps:\n  - id: retrieve_csrf_token\n    op: fetch_api\n    params:\n      method: GET\n      url: \"{{cms_base_url}}/session/token\"\n      headers:\n        Accept: text/plain\n    output: csrf_token\n\n  - id: authenticate_publisher\n    op: authenticate_user\n    params:\n      method: session\n      credentials:\n        username: \"{{publishing_user}}\"\n        password: \"{{publishing_password}}\"\n      csrf_token: \"{{csrf_token}}\"\n    output: auth_session\n\n  - id: validate_article_payload\n    op: validate_schema\n    params:\n      schema: cms_article_schema\n      data: \"{{article_payload}}\"\n    output: validation_result\n\n  - id: create_paragraph_blocks\n    op: loop_records\n    params:\n      collection: \"{{article_payload.content_sections}}\"\n      step:\n        id: create_block\n        op: call_webhook\n        params:\n          method: POST\n          url: \"{{cms_base_url}}/jsonapi/paragraph/content_block\"\n          headers:\n            Content-Type: application/vnd.api+json\n            X-CSRF-Token: \"{{csrf_token}}\"\n            Cookie: \"{{auth_session.session_cookie}}\"\n          body:\n            data:\n              type: paragraph--content_block\n              attributes:\n                field_body:\n                  value: \"{{item.html}}\"\n                  format: full_html\n    output: paragraph_blocks\n\n  - id: extract_block_uuids\n    op: extract_field\n    params:\n      source: \"{{paragraph_blocks}}\"\n      field: data.id\n    output: block_uuids\n\n  - id: create_article_node\n    op: call_webhook\n    params:\n      method: POST\n      url: \"{{cms_base_url}}/jsonapi/node/article\"\n      headers:\n        Content-Type: application/vnd.api+json\n        X-CSRF-Token: \"{{csrf_token}}\"\n        Cookie: \"{{auth_session.session_cookie}}\"\n      body:\n        data:\n          type: node--article\n          attributes:\n            title: \"{{article_payload.title}}\"\n            field_summary: \"{{article_payload.summary}}\"\n            field_category: \"{{article_payload.category}}\"\n            field_tags: \"{{article_payload.tags}}\"\n          relationships:\n            field_content_blocks:\n              data: \"{{block_uuids}}\"\n    output: article_node\n\n  - id: validate_article_creation\n    op: validate_schema\n    params:\n      schema: cms_article_response_schema\n      data: \"{{article_node}}\"\n      rules:\n        - field: data.id\n          condition: exists\n        - field: data.attributes.status\n          condition: equals\n          value: true\n    output: creation_validation\n\n  - id: audit_log_entry\n    op: log_audit\n    params:\n      action: article_published\n      details:\n        article_title: \"{{article_payload.title}}\"\n        node_id: \"{{article_node.data.id}}\"\n        timestamp: \"{{now}}\"\n        published_by: \"{{publishing_user}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_ae_004.py::test_parses_and_type_checks": false,
+            "test_wf_ae_004.py::test_passes_taint_analysis": true,
+            "test_wf_ae_004.py::test_csrf_before_post": true,
+            "test_wf_ae_004.py::test_auth_before_publish": true,
+            "test_wf_ae_004.py::test_has_audit_log": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "publishing",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ae_005",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 21.871467042714357,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: wf_ae_005\nsteps:\n  - id: move_pdf_to_completados\n    op: call_webhook\n    params:\n      service: google_drive\n      action: move_file\n      source_folder: pending\n      destination_folder: completados\n      file_type: pdf\n      file_id: \"{{trigger.article.source_pdf_id}}\"\n    output: move_result\n\n  - id: read_category_spreadsheet\n    op: read_database\n    params:\n      source: google_sheets\n      spreadsheet_id: \"{{config.category_spreadsheet_id}}\"\n      sheet_name: \"{{trigger.article.category}}\"\n    output: spreadsheet_data\n\n  - id: update_article_row\n    op: write_database\n    params:\n      target: google_sheets\n      spreadsheet_id: \"{{config.category_spreadsheet_id}}\"\n      sheet_name: \"{{trigger.article.category}}\"\n      row_id: \"{{trigger.article.row_id}}\"\n      updates:\n        status: published\n        published_date: \"{{trigger.article.published_date}}\"\n        file_location: completados\n    output: update_result\n\n  - id: write_audit_log\n    op: log_audit\n    params:\n      action: post_publication_file_management\n      article_id: \"{{trigger.article.id}}\"\n      details:\n        file_moved: true\n        source_folder: pending\n        destination_folder: completados\n        spreadsheet_updated: true\n        status_set: published\n      timestamp: \"{{system.current_timestamp}}\"\n    output: audit_entry",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_ae_005.py::test_parses_and_type_checks": false,
+            "test_wf_ae_005.py::test_passes_taint_analysis": true,
+            "test_wf_ae_005.py::test_moves_file": true,
+            "test_wf_ae_005.py::test_updates_registry": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "publishing",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ae_006",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 2913.2224020836875,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The YAML validates successfully. Here is the final workflow:\n\nworkflow_id: wf_ae_006\nsteps:\n  - id: search_drive_pdfs\n    op: fetch_api\n    params:\n      endpoint: google_drive_api\n      method: GET\n      query: \"mimeType='application/pdf' and '{{pending_folder_id}}' in parents\"\n    output: pdf_file_list\n\n  - id: loop_pdf_files\n    op: loop_records\n    params:\n      collection: \"{{pdf_file_list}}\"\n      sub_steps:\n        - id: download_pdf\n          op: fetch_api\n          params:\n            endpoint: google_drive_api\n            method: GET\n            resource: \"files/{{current_file.id}}\"\n            alt: media\n          output: pdf_binary\n\n        - id: ai_vision_extract\n          op: call_webhook\n          params:\n            url: \"{{ai_vision_api_url}}\"\n            method: POST\n            content_type: application/pdf\n            body: \"{{pdf_binary}}\"\n          output: ai_raw_response\n\n        - id: parse_ai_response\n          op: validate_schema\n          params:\n            input: \"{{ai_raw_response}}\"\n            schema: article_extraction_schema\n          output: parsed_extraction\n\n        - id: extract_articles\n          op: extract_field\n          params:\n            source: \"{{parsed_extraction}}\"\n            field: articles\n            check_multiple: \"{{parsed_extraction.es_multiple}}\"\n          output: article_list\n\n        - id: handle_error_extraction\n          op: handle_error\n          params:\n            on_step: parse_ai_response\n            action: flag_and_continue\n            notify: admin\n\n        - id: loop_articles\n          op: loop_records\n          params:\n            collection: \"{{article_list}}\"\n            sub_steps:\n              - id: normalise_title\n                op: transform_json\n                params:\n                  input: \"{{current_article.title}}\"\n                  operations:\n                    - trim\n                    - lowercase\n                    - normalize_unicode\n                output: normalised_title\n\n              - id: match_excel_category\n                op: read_database\n                params:\n                  source: excel_category_spreadsheet\n                  lookup_field: title\n                  lookup_value: \"{{normalised_title}}\"\n                output: excel_match\n\n              - id: apply_default_category\n                op: apply_rule\n                params:\n                  condition: \"{{excel_match}} == null\"\n                  true_action: set_default_category\n                  default_category_uuid: \"{{default_category_uuid}}\"\n                  flag_for_review: true\n                output: resolved_category\n\n              - id: flag_no_match\n                op: notify_user\n                params:\n                  condition: \"{{excel_match}} == null\"\n                  recipient: editorial_team\n                  message: \"No Excel match for article: {{current_article.title}}\"\n\n              - id: convert_to_html\n                op: format_output\n                params:\n                  input: \"{{current_article.content}}\"\n                  format: html\n                  handle_interview: true\n                  detect_format: interview\n                output: html_content\n\n              - id: lookup_cms_metadata\n                op: fetch_api\n                params:\n                  endpoint: cms_api\n                  method: GET\n                  lookups:\n                    - type: author\n                      name: \"{{current_article.author}}\"\n                    - type: category\n                      uuid_source: \"{{resolved_category}}\"\n                    - type: magazine\n                      identifier: \"{{current_article.magazine}}\"\n                output: cms_metadata\n\n              - id: get_csrf_token\n                op: fetch_api\n                params:\n                  endpoint: cms_api\n                  method: GET\n                  path: /session/token\n                output: csrf_token\n\n              - id: authenticate_cms_user\n                op: authenticate_user\n                params:\n                  system: cms\n                  method: session\n                  csrf_token: \"{{csrf_token}}\"\n                  credentials_ref: cms_publisher_credentials\n                output: auth_session\n\n              - id: create_paragraph_blocks\n                op: loop_records\n                params:\n                  collection: \"{{html_content.sections}}\"\n                  sub_steps:\n                    - id: create_paragraph\n                      op: call_webhook\n                      params:\n                        url: \"{{cms_api_url}}/entity/paragraph\"\n                        method: POST\n                        headers:\n                          X-CSRF-Token: \"{{csrf_token}}\"\n                          Cookie: \"{{auth_session.cookie}}\"\n                        body:\n                          type: text\n                          field_body: \"{{current_section}}\"\n                      output: paragraph_entity\n                output: paragraph_references\n\n              - id: create_article_node\n                op: call_webhook\n                params:\n                  url: \"{{cms_api_url}}/node\"\n                  method: POST\n                  headers:\n                    X-CSRF-Token: \"{{csrf_token}}\"\n                    Cookie: \"{{auth_session.cookie}}\"\n                  body:\n                    type: article\n                    title: \"{{current_article.title}}\"\n                    field_author: \"{{cms_metadata.author_id}}\"\n                    field_category: \"{{cms_metadata.category_uuid}}\"\n                    field_magazine: \"{{cms_metadata.magazine_uuid}}\"\n                    field_paragraphs: \"{{paragraph_references}}\"\n                output: published_article\n\n              - id: log_article_published\n                op: log_audit\n                params:\n                  action: article_published\n                  article_title: \"{{current_article.title}}\"\n                  node_id: \"{{published_article.nid}}\"\n                  source_file: \"{{current_file.name}}\"\n                  category_matched: \"{{excel_match != null}}\"\n                  timestamp: \"{{now}}\"\n\n        - id: move_pdf_to_completados\n          op: fetch_api\n          params:\n            endpoint: google_drive_api\n            method: PATCH\n            resource: \"files/{{current_file.id}}\"\n            body:\n              addParents: \"{{completados_folder_id}}\"\n              removeParents: \"{{pending_folder_id}}\"\n\n        - id: update_excel_registry\n          op: write_database\n          params:\n            target: excel_registry_spreadsheet\n            operation: append\n            data:\n              file_name: \"{{current_file.name}}\"\n              processed_date: \"{{now}}\"\n              articles_count: \"{{article_list.length}}\"\n              status: completed\n\n        - id: log_file_processed\n          op: log_audit\n          params:\n            action: pdf_file_processed\n            file_name: \"{{current_file.name}}\"\n            file_id: \"{{current_file.id}}\"\n            articles_published: \"{{article_list.length}}\"\n            timestamp: \"{{now}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_ae_006.py::test_parses_and_type_checks": true,
+            "test_wf_ae_006.py::test_passes_taint_analysis": true,
+            "test_wf_ae_006.py::test_sanitises_before_publish": true,
+            "test_wf_ae_006.py::test_auth_before_write": false,
+            "test_wf_ae_006.py::test_has_audit_log": false
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 4,
+      "domain": "publishing",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_aw_001",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 38.20625074952841,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_aw_001\nsteps:\n  - id: receive_login_form\n    op: validate_schema\n    params:\n      schema:\n        required_fields:\n          - email\n          - password\n      source: login_form_submission\n    output: login_payload\n\n  - id: rate_limit_login\n    op: apply_rule\n    params:\n      rule: rate_limit\n      key: \"{{login_payload.client_ip}}\"\n      max_attempts: 10\n      window_seconds: 60\n      on_exceed: reject\n    output: login_rate_check\n\n  - id: handle_login_rate_exceeded\n    op: handle_error\n    params:\n      condition: \"{{login_rate_check.exceeded}}\"\n      error_message: \"Too many login attempts. Try again later.\"\n      action: terminate\n\n  - id: authenticate_credentials\n    op: authenticate_user\n    params:\n      table: users\n      email: \"{{login_payload.email}}\"\n      password: \"{{login_payload.password}}\"\n      method: credential_check\n    output: auth_result\n\n  - id: handle_auth_failure\n    op: handle_error\n    params:\n      condition: \"{{auth_result.authenticated == false}}\"\n      error_message: \"Invalid email or password.\"\n      action: terminate\n\n  - id: determine_2fa_method\n    op: read_database\n    params:\n      table: users\n      query:\n        user_id: \"{{auth_result.user_id}}\"\n      fields:\n        - two_factor_method\n    output: user_2fa_config\n\n  - id: route_2fa_method\n    op: route_to_step\n    params:\n      conditions:\n        - when: \"{{user_2fa_config.two_factor_method == 'email'}}\"\n          goto: generate_email_code\n        - when: \"{{user_2fa_config.two_factor_method == 'totp'}}\"\n          goto: validate_2fa_code\n\n  - id: generate_email_code\n    op: call_subworkflow\n    params:\n      action: generate_verification_code\n      length: 6\n      expiry_seconds: 300\n      user_id: \"{{auth_result.user_id}}\"\n    output: email_code_result\n\n  - id: send_email_code\n    op: notify_user\n    params:\n      channel: email\n      recipient: \"{{login_payload.email}}\"\n      subject: \"Your verification code\"\n      body: \"Your login verification code is: {{email_code_result.code}}. It expires in 5 minutes.\"\n    output: email_send_result\n\n  - id: validate_2fa_code\n    op: authenticate_user\n    params:\n      method: two_factor\n      two_factor_method: \"{{user_2fa_config.two_factor_method}}\"\n      user_id: \"{{auth_result.user_id}}\"\n      code: \"{{login_payload.two_factor_code}}\"\n    output: tfa_result\n\n  - id: rate_limit_2fa\n    op: apply_rule\n    params:\n      rule: rate_limit\n      key: \"{{auth_result.session_token}}\"\n      max_attempts: 5\n      window_seconds: 300\n      on_exceed: reject\n    output: tfa_rate_check\n\n  - id: handle_2fa_rate_exceeded\n    op: handle_error\n    params:\n      condition: \"{{tfa_rate_check.exceeded}}\"\n      error_message: \"Too many 2FA attempts. Try again in 5 minutes.\"\n      action: terminate\n\n  - id: handle_2fa_failure\n    op: handle_error\n    params:\n      condition: \"{{tfa_result.verified == false}}\"\n      error_message: \"Invalid verification code.\"\n      action: terminate\n\n  - id: create_session\n    op: write_database\n    params:\n      table: sessions\n      record:\n        user_id: \"{{auth_result.user_id}}\"\n        created_at: \"{{now}}\"\n        expires_at: \"{{now + 28800}}\"\n        ip_address: \"{{login_payload.client_ip}}\"\n      cookie:\n        httpOnly: true\n        secure: true\n        max_age: 28800\n    output: session_record\n\n  - id: log_login_event\n    op: log_audit\n    params:\n      event: user_login\n      user_id: \"{{auth_result.user_id}}\"\n      ip_address: \"{{login_payload.client_ip}}\"\n      two_factor_method: \"{{user_2fa_config.two_factor_method}}\"\n      session_id: \"{{session_record.session_id}}\"\n      timestamp: \"{{now}}\"\n      compliance: SOX\n    output: audit_entry\n\n  - id: return_session\n    op: format_output\n    params:\n      status: success\n      message: \"Login successful.\"\n      session_id: \"{{session_record.session_id}}\"\n      expires_in: 28800\n    output: login_response",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_aw_001.py::test_parses_and_type_checks": false,
+            "test_wf_aw_001.py::test_passes_taint_analysis": true,
+            "test_wf_aw_001.py::test_applies_rate_limiting": true,
+            "test_wf_aw_001.py::test_validates_2fa": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "enterprise_knowledge",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_aw_002",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 26.01009437534958,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_aw_002\nsteps:\n  - id: receive_upload\n    op: fetch_api\n    params:\n      method: POST\n      endpoint: /api/knowledge-base/upload\n      headers:\n        Cache-Control: \"private, no-store\"\n      accept_formats:\n        - PDF\n        - DOCX\n        - TXT\n    output: upload_payload\n\n  - id: authenticate_user\n    op: authenticate_user\n    params:\n      token: \"{{upload_payload.auth_token}}\"\n      allowed_roles:\n        - Editor\n        - Admin\n        - Developer\n    output: auth_result\n\n  - id: validate_file_format\n    op: validate_schema\n    params:\n      input: \"{{upload_payload}}\"\n      rules:\n        - field: file_format\n          must_match: \"{{upload_payload.document_type}}\"\n        - condition: \"{{upload_payload.document_type == 'SED'}}\"\n          required_format: DOCX\n    output: validation_result\n\n  - id: handle_validation_error\n    op: handle_error\n    params:\n      condition: \"{{validation_result.valid == false}}\"\n      message: \"File format does not match the selected document type\"\n      action: terminate\n\n  - id: store_file\n    op: write_database\n    params:\n      destination: uploads_volume\n      file: \"{{upload_payload.file}}\"\n      metadata:\n        document_type: \"{{upload_payload.document_type}}\"\n        uploaded_by: \"{{auth_result.user_id}}\"\n        uploaded_at: \"{{now()}}\"\n    output: stored_file\n\n  - id: trigger_extraction_pipeline\n    op: call_webhook\n    params:\n      url: \"{{pipeline_service_url}}/extract\"\n      method: POST\n      payload:\n        file_path: \"{{stored_file.path}}\"\n        document_type: \"{{upload_payload.document_type}}\"\n        file_format: \"{{upload_payload.file_format}}\"\n        user_id: \"{{auth_result.user_id}}\"\n    output: pipeline_response\n\n  - id: log_upload_event\n    op: log_audit\n    params:\n      action: document_upload_and_pipeline_trigger\n      user_id: \"{{auth_result.user_id}}\"\n      role: \"{{auth_result.role}}\"\n      document_type: \"{{upload_payload.document_type}}\"\n      file_path: \"{{stored_file.path}}\"\n      pipeline_status: \"{{pipeline_response.status}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_aw_002.py::test_parses_and_type_checks": false,
+            "test_wf_aw_002.py::test_passes_taint_analysis": true,
+            "test_wf_aw_002.py::test_validates_format": true,
+            "test_wf_aw_002.py::test_triggers_pipeline": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "enterprise_knowledge",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_aw_003",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 26.38742637448013,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_aw_003\nsteps:\n  - id: receive_document\n    op: fetch_api\n    params:\n      source: upload_pipeline\n      resource: process_document\n      timeout_seconds: 300\n    output: raw_document\n\n  - id: authenticate_pipeline\n    op: authenticate_user\n    params:\n      service: pipeline_service\n      method: service_account\n    output: auth_context\n\n  - id: extract_text\n    op: extract_field\n    params:\n      input: \"{{raw_document}}\"\n      field: document_content\n      format: plain_text\n    output: document_text\n\n  - id: extract_business_rules\n    op: call_webhook\n    params:\n      url: langgraph/extract_business_rules\n      method: POST\n      body:\n        document_text: \"{{document_text}}\"\n        instruction: \"Identify and extract individual business rules from the process document\"\n      timeout_seconds: 300\n      auth: \"{{auth_context}}\"\n    output: extracted_rules\n\n  - id: validate_rules_structure\n    op: validate_schema\n    params:\n      input: \"{{extracted_rules}}\"\n      schema: business_rule_schema\n      require_fields:\n        - rule_id\n        - rule_text\n        - rule_category\n    output: validated_rules\n\n  - id: store_rules\n    op: loop_records\n    params:\n      collection: \"{{validated_rules}}\"\n      steps:\n        - id: write_rule\n          op: write_database\n          params:\n            table: rules\n            data:\n              rule_id: \"{{item.rule_id}}\"\n              rule_text: \"{{item.rule_text}}\"\n              rule_category: \"{{item.rule_category}}\"\n              status: pending_review\n              source_document: \"{{raw_document.document_id}}\"\n    output: stored_rules\n\n  - id: generate_embeddings\n    op: loop_records\n    params:\n      collection: \"{{stored_rules}}\"\n      steps:\n        - id: call_embedding_api\n          op: call_webhook\n          params:\n            url: embeddings/generate\n            method: POST\n            body:\n              text: \"{{item.rule_text}}\"\n              dimensions: 4096\n            timeout_seconds: 300\n          output: rule_embedding\n        - id: store_embedding\n          op: write_database\n          params:\n            table: rule_embeddings\n            engine: pgvector\n            data:\n              rule_id: \"{{item.rule_id}}\"\n              embedding: \"{{rule_embedding}}\"\n              dimensions: 4096\n              searchable: false\n    output: stored_embeddings\n\n  - id: log_extraction\n    op: log_audit\n    params:\n      action: business_rule_extraction\n      document_id: \"{{raw_document.document_id}}\"\n      rules_count: \"{{validated_rules.length}}\"\n      status: completed",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_aw_003.py::test_parses_and_type_checks": false,
+            "test_wf_aw_003.py::test_passes_taint_analysis": true,
+            "test_wf_aw_003.py::test_stores_pending_review": false,
+            "test_wf_aw_003.py::test_generates_embeddings": false
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 4,
+      "domain": "enterprise_knowledge",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_aw_007",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 22.340917624533176,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_aw_007\nsteps:\n  - id: receive_query\n    op: extract_field\n    params:\n      source: request.body\n      field: query\n    output: sed_query\n\n  - id: authenticate\n    op: authenticate_user\n    params:\n      token: request.headers.authorization\n    output: auth_context\n\n  - id: generate_embedding\n    op: fetch_api\n    params:\n      method: POST\n      url: /api/embeddings\n      body:\n        text: \"{{sed_query}}\"\n    output: query_embedding\n\n  - id: search_seds\n    op: read_database\n    params:\n      table: seds\n      match_column: embedding\n      match_value: \"{{query_embedding.vector}}\"\n      method: vector_similarity\n      limit: 20\n    output: matching_seds\n\n  - id: stream_per_sed_summaries\n    op: loop_records\n    params:\n      collection: \"{{matching_seds}}\"\n      steps:\n        - id: build_sed_summary\n          op: transform_json\n          params:\n            template:\n              type: sed_result\n              sed_id: \"{{item.id}}\"\n              title: \"{{item.title}}\"\n              summary: \"{{item.summary}}\"\n              score: \"{{item.similarity_score}}\"\n          output: sed_chunk\n        - id: stream_sed_chunk\n          op: format_output\n          params:\n            format: ndjson\n            stream: true\n            data: \"{{sed_chunk}}\"\n\n  - id: generate_synthesis\n    op: fetch_api\n    params:\n      method: POST\n      url: /api/llm/synthesize\n      body:\n        query: \"{{sed_query}}\"\n        results: \"{{matching_seds}}\"\n      stream: true\n    output: synthesis_result\n\n  - id: stream_synthesis\n    op: format_output\n    params:\n      format: ndjson\n      stream: true\n      data:\n        type: synthesis\n        content: \"{{synthesis_result.text}}\"\n\n  - id: log_search\n    op: log_audit\n    params:\n      action: sed_search\n      user: \"{{auth_context.user_id}}\"\n      query: \"{{sed_query}}\"\n      result_count: \"{{matching_seds.length}}\"\n      timestamp: \"{{now}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_aw_007.py::test_parses_and_type_checks": false,
+            "test_wf_aw_007.py::test_passes_taint_analysis": true,
+            "test_wf_aw_007.py::test_generates_synthesis": false
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 4,
+      "domain": "enterprise_knowledge",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_aw_009",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 31.82760462537408,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_aw_009\nsteps:\n  - id: cron_trigger\n    op: wait_for_condition\n    params:\n      condition: cron_schedule\n      interval: \"*/15 * * * *\"\n      description: \"Trigger every 15 minutes inside the wiki container\"\n    output: trigger_event\n\n  - id: log_start\n    op: log_audit\n    params:\n      message: \"Embeddings backfill cron job started\"\n      log_file: \"/var/log/backfill.log\"\n      level: info\n\n  - id: read_rules_missing\n    op: read_database\n    params:\n      source: rules\n      query: \"SELECT r.* FROM rules r LEFT JOIN embeddings e ON e.record_id = r.id AND e.record_type = 'rule' WHERE e.id IS NULL\"\n    output: rules_without_embeddings\n\n  - id: read_articles_missing\n    op: read_database\n    params:\n      source: articles\n      query: \"SELECT a.* FROM articles a LEFT JOIN embeddings e ON e.record_id = a.id AND e.record_type = 'article' WHERE e.id IS NULL\"\n    output: articles_without_embeddings\n\n  - id: read_seds_missing\n    op: read_database\n    params:\n      source: seds\n      query: \"SELECT s.* FROM seds s LEFT JOIN embeddings e ON e.record_id = s.id AND e.record_type = 'sed' WHERE e.id IS NULL\"\n    output: seds_without_embeddings\n\n  - id: merge_missing_records\n    op: merge_datasets\n    params:\n      sources:\n        - rules_without_embeddings\n        - articles_without_embeddings\n        - seds_without_embeddings\n    output: all_missing_records\n\n  - id: filter_missing_embeddings\n    op: filter_records\n    params:\n      input: all_missing_records\n      condition: \"record.embedding IS NULL OR record.embedding = ''\"\n    output: records_to_backfill\n\n  - id: log_records_found\n    op: log_audit\n    params:\n      message: \"Found records missing embeddings\"\n      log_file: \"/var/log/backfill.log\"\n      level: info\n      details:\n        count: \"{{ records_to_backfill | length }}\"\n\n  - id: handle_ai_cold_start\n    op: retry_step\n    params:\n      target_step: generate_and_store_embeddings\n      max_retries: 3\n      backoff_seconds: 60\n      description: \"Handle AI cold start (2-3 min) with retries and backoff\"\n\n  - id: generate_and_store_embeddings\n    op: loop_records\n    params:\n      input: records_to_backfill\n      steps:\n        - id: generate_embedding\n          op: fetch_api\n          params:\n            endpoint: \"/api/ai/embeddings\"\n            method: POST\n            body:\n              record_id: \"{{ item.id }}\"\n              record_type: \"{{ item.record_type }}\"\n              content: \"{{ item.content }}\"\n            timeout_seconds: 180\n          output: embedding_result\n\n        - id: store_embedding\n          op: write_database\n          params:\n            target: embeddings\n            data:\n              record_id: \"{{ item.id }}\"\n              record_type: \"{{ item.record_type }}\"\n              embedding: \"{{ embedding_result.vector }}\"\n              created_at: \"{{ now() }}\"\n\n        - id: log_record_backfilled\n          op: log_audit\n          params:\n            message: \"Embedding backfilled for {{ item.record_type }} {{ item.id }}\"\n            log_file: \"/var/log/backfill.log\"\n            level: info\n\n  - id: handle_errors\n    op: handle_error\n    params:\n      on_error: log_and_continue\n      log_file: \"/var/log/backfill.log\"\n      message: \"Error during embeddings backfill\"\n\n  - id: log_completion\n    op: log_audit\n    params:\n      message: \"Embeddings backfill cron job completed\"\n      log_file: \"/var/log/backfill.log\"\n      level: info",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_aw_009.py::test_parses_and_type_checks": false,
+            "test_wf_aw_009.py::test_passes_taint_analysis": true,
+            "test_wf_aw_009.py::test_reads_missing_records": true,
+            "test_wf_aw_009.py::test_generates_embeddings": false
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "enterprise_knowledge",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_btp_001",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 33.95046508312225,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_btp_001\nsteps:\n  - id: receive_upload\n    op: call_webhook\n    params:\n      method: POST\n      endpoint: /api/v1/medical-docs/upload\n      accept: application/pdf\n    output: upload_payload\n\n  - id: authenticate_admin\n    op: authenticate_user\n    params:\n      token: \"{{upload_payload.auth_token}}\"\n      required_role: admin\n    output: auth_result\n\n  - id: validate_pdf\n    op: validate_schema\n    params:\n      input: \"{{upload_payload.file}}\"\n      rules:\n        mime_type: application/pdf\n        max_size_mb: 50\n    output: validation_result\n\n  - id: generate_filename\n    op: fetch_api\n    params:\n      url: \"{{config.ai_vision_api_url}}/analyze\"\n      method: POST\n      headers:\n        Content-Type: application/pdf\n        Authorization: \"Bearer {{config.ai_vision_api_key}}\"\n      body: \"{{upload_payload.file.binary}}\"\n      response_format: json\n    output: ai_response\n\n  - id: format_filename\n    op: format_output\n    params:\n      template: \"{{ai_response.standardized_filename}}.pdf\"\n    output: final_filename\n\n  - id: encrypt_document\n    op: encrypt_field\n    params:\n      field: \"{{upload_payload.file.binary}}\"\n      algorithm: AES-256-GCM\n    output: encrypted_content\n\n  - id: store_document\n    op: write_database\n    params:\n      collection: medical_documents\n      document:\n        filename: \"{{final_filename}}\"\n        content: \"{{encrypted_content}}\"\n        uploaded_by: \"{{auth_result.user_id}}\"\n        uploaded_at: \"{{now}}\"\n        content_type: application/pdf\n        size_bytes: \"{{upload_payload.file.size}}\"\n    output: stored_record\n\n  - id: audit_log_entry\n    op: log_audit\n    params:\n      action: medical_document_upload\n      actor: \"{{auth_result.user_id}}\"\n      role: admin\n      resource: \"{{stored_record.document_id}}\"\n      filename: \"{{final_filename}}\"\n      timestamp: \"{{now}}\"\n      status: success",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_btp_001.py::test_parses_and_type_checks": false,
+            "test_wf_btp_001.py::test_passes_taint_analysis": true,
+            "test_wf_btp_001.py::test_auth_before_upload": true,
+            "test_wf_btp_001.py::test_encrypts_before_storage": true,
+            "test_wf_btp_001.py::test_has_audit_log": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "clinical_ai",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_btp_002",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 27.36321570817381,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates. Here is the final YAML:\n\nworkflow_id: wf_btp_002\nsteps:\n  - id: receive_document\n    op: fetch_api\n    params:\n      endpoint: \"/documents/upload/pending\"\n      method: GET\n    output: document_payload\n\n  - id: authenticate_indexing_service\n    op: authenticate_user\n    params:\n      service: indexing_service\n      method: service_account\n    output: auth_token\n\n  - id: validate_anonymization\n    op: validate_schema\n    params:\n      input: \"{{document_payload}}\"\n      rules:\n        - check: pii_anonymized\n          expected: true\n        - check: pii_fields_present\n          expected: false\n    output: anonymization_result\n\n  - id: terminate_if_not_anonymized\n    op: route_to_step\n    params:\n      condition: \"{{anonymization_result.valid}} == false\"\n      target: handle_pii_error\n\n  - id: chunk_document\n    op: transform_json\n    params:\n      input: \"{{document_payload.text}}\"\n      strategy: overlapping_chunks\n      chunk_size: 512\n      chunk_overlap: 64\n      source_document_id: \"{{document_payload.document_id}}\"\n    output: chunks\n\n  - id: generate_embeddings\n    op: loop_records\n    params:\n      collection: \"{{chunks}}\"\n      operation:\n        op: fetch_api\n        params:\n          endpoint: \"/embeddings/generate\"\n          method: POST\n          body:\n            text: \"{{item.text}}\"\n            model: embedding_model\n            source_document_id: \"{{document_payload.document_id}}\"\n            chunk_index: \"{{item.index}}\"\n    output: embedded_chunks\n\n  - id: store_embeddings\n    op: write_database\n    params:\n      target: vector_database\n      collection: document_embeddings\n      data: \"{{embedded_chunks}}\"\n      metadata:\n        source_document_id: \"{{document_payload.document_id}}\"\n        chunk_count: \"{{embedded_chunks.length}}\"\n    output: storage_result\n\n  - id: log_indexing_complete\n    op: log_audit\n    params:\n      action: document_indexed\n      document_id: \"{{document_payload.document_id}}\"\n      chunks_stored: \"{{embedded_chunks.length}}\"\n      status: success\n\n  - id: handle_pii_error\n    op: handle_error\n    params:\n      error_type: pii_not_anonymized\n      message: \"Document {{document_payload.document_id}} contains PII and cannot be indexed\"\n      severity: critical\n\n  - id: terminate_on_pii\n    op: terminate_workflow\n    params:\n      reason: \"Document not anonymized \u2014 PII must not reach the vector store\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_btp_002.py::test_parses_and_type_checks": false,
+            "test_wf_btp_002.py::test_passes_taint_analysis": true,
+            "test_wf_btp_002.py::test_validates_anonymization_before_indexing": false
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "clinical_ai",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_cpl_001",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 24.955766124650836,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates successfully. Here is the final answer:\n\nworkflow_id: wf_cpl_001\nsteps:\n  - id: receive_registration_form\n    op: extract_field\n    params:\n      source: trigger.body\n      fields:\n        - name\n        - logo\n        - league\n        - season\n    output: team_data\n\n  - id: authenticate_admin\n    op: authenticate_user\n    params:\n      token: trigger.headers.auth_token\n      role: admin\n    output: auth_result\n\n  - id: validate_team_data\n    op: validate_schema\n    params:\n      input: team_data\n      schema:\n        required:\n          - name\n          - logo\n          - league\n          - season\n        properties:\n          name:\n            type: string\n          logo:\n            type: string\n          league:\n            type: string\n          season:\n            type: string\n    output: validation_result\n\n  - id: insert_team_record\n    op: write_database\n    params:\n      table: teams\n      operation: insert\n      data:\n        name: team_data.name\n        logo: team_data.logo\n        league: team_data.league\n        season: team_data.season\n        is_hidden: false\n    output: team_record\n\n  - id: initialize_standings_row\n    op: apply_rule\n    params:\n      rule: standings_initialization\n      input:\n        team_id: team_record.id\n        league: team_data.league\n        season: team_data.season\n        played: 0\n        wins: 0\n        draws: 0\n        losses: 0\n        goals_for: 0\n        goals_against: 0\n        goal_difference: 0\n        points: 0\n    output: standings_row\n\n  - id: write_standings_row\n    op: write_database\n    params:\n      table: standings\n      operation: insert\n      data:\n        team_id: team_record.id\n        league: team_data.league\n        season: team_data.season\n        played: 0\n        wins: 0\n        draws: 0\n        losses: 0\n        goals_for: 0\n        goals_against: 0\n        goal_difference: 0\n        points: 0\n    output: standings_record\n\n  - id: log_team_creation\n    op: log_audit\n    params:\n      action: team_created\n      actor: auth_result.user_id\n      resource_type: team\n      resource_id: team_record.id\n      details:\n        team_name: team_data.name\n        league: team_data.league\n        season: team_data.season\n        standings_id: standings_record.id\n    output: audit_log_entry",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_cpl_001.py::test_parses_and_type_checks": false,
+            "test_wf_cpl_001.py::test_passes_taint_analysis": false,
+            "test_wf_cpl_001.py::test_initializes_standings": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "sports_media",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_cpl_002",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 26.463226167485118,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: wf_cpl_002\nsteps:\n  - id: receive_league_form\n    op: validate_schema\n    params:\n      schema:\n        type: object\n        required:\n          - league_name\n          - display_properties\n          - admin_user_id\n          - action\n        properties:\n          league_name:\n            type: string\n          display_properties:\n            type: object\n          admin_user_id:\n            type: string\n          action:\n            type: string\n            enum:\n              - create\n              - update\n          league_id:\n            type: string\n    output: validated_form\n\n  - id: authenticate_admin\n    op: authenticate_user\n    params:\n      user_id: \"{{validated_form.admin_user_id}}\"\n      role: admin\n    output: auth_result\n\n  - id: check_auth_failure\n    op: handle_error\n    params:\n      condition: \"{{auth_result.authenticated == false}}\"\n      message: \"Admin authentication failed.\"\n\n  - id: check_unique_name\n    op: read_database\n    params:\n      table: leagues\n      filters:\n        league_name: \"{{validated_form.league_name}}\"\n    output: existing_leagues\n\n  - id: enforce_unique_name\n    op: apply_rule\n    params:\n      rule: \"{{validated_form.action == 'create' && existing_leagues.count == 0 || validated_form.action == 'update' && (existing_leagues.count == 0 || existing_leagues.records[0].league_id == validated_form.league_id)}}\"\n      on_fail: \"League name must be unique.\"\n    output: uniqueness_check\n\n  - id: check_active_references\n    op: read_database\n    params:\n      table: teams_and_games\n      filters:\n        league_id: \"{{validated_form.league_id}}\"\n        status: active\n    output: active_references\n\n  - id: prevent_delete_with_references\n    op: apply_rule\n    params:\n      rule: \"{{validated_form.action != 'delete' || active_references.count == 0}}\"\n      on_fail: \"Cannot delete league with active teams or games.\"\n    output: delete_check\n\n  - id: upsert_league\n    op: write_database\n    params:\n      table: leagues\n      action: \"{{validated_form.action}}\"\n      data:\n        league_name: \"{{validated_form.league_name}}\"\n        display_properties: \"{{validated_form.display_properties}}\"\n      key:\n        league_id: \"{{validated_form.league_id}}\"\n    output: league_record\n\n  - id: log_league_action\n    op: log_audit\n    params:\n      action: \"{{validated_form.action}}\"\n      entity: league\n      entity_id: \"{{league_record.league_id}}\"\n      performed_by: \"{{validated_form.admin_user_id}}\"\n    output: audit_entry",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_cpl_002.py::test_parses_and_type_checks": false,
+            "test_wf_cpl_002.py::test_passes_taint_analysis": true,
+            "test_wf_cpl_002.py::test_writes_league": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "sports_media",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_cpl_003",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 31.57379345782101,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_cpl_003\nsteps:\n  - id: receive_game_form\n    op: validate_schema\n    params:\n      schema:\n        required_fields:\n          - home_team\n          - away_team\n          - league\n          - date\n          - time\n          - venue\n    output: game_form_data\n\n  - id: authenticate_admin\n    op: authenticate_user\n    params:\n      role: admin\n    output: admin_auth\n\n  - id: validate_home_team_league\n    op: read_database\n    params:\n      table: teams\n      filter:\n        team_id: \"{{game_form_data.home_team}}\"\n        league_id: \"{{game_form_data.league}}\"\n    output: home_team_record\n\n  - id: validate_away_team_league\n    op: read_database\n    params:\n      table: teams\n      filter:\n        team_id: \"{{game_form_data.away_team}}\"\n        league_id: \"{{game_form_data.league}}\"\n    output: away_team_record\n\n  - id: validate_teams_in_league\n    op: apply_rule\n    params:\n      rule: \"home_team_record != null AND away_team_record != null\"\n      on_fail: terminate\n      message: \"Both teams must belong to the specified league\"\n    output: league_validation\n\n  - id: check_home_team_conflict\n    op: read_database\n    params:\n      table: games\n      filter:\n        team_id: \"{{game_form_data.home_team}}\"\n        date: \"{{game_form_data.date}}\"\n    output: home_conflict_records\n\n  - id: check_away_team_conflict\n    op: read_database\n    params:\n      table: games\n      filter:\n        team_id: \"{{game_form_data.away_team}}\"\n        date: \"{{game_form_data.date}}\"\n    output: away_conflict_records\n\n  - id: apply_conflict_rule\n    op: apply_rule\n    params:\n      rule: \"home_conflict_records.count == 0 AND away_conflict_records.count == 0\"\n      on_fail: terminate\n      message: \"A team cannot play two games on the same date\"\n    output: conflict_check\n\n  - id: insert_game_record\n    op: write_database\n    params:\n      table: games\n      operation: insert\n      data:\n        home_team: \"{{game_form_data.home_team}}\"\n        away_team: \"{{game_form_data.away_team}}\"\n        league: \"{{game_form_data.league}}\"\n        date: \"{{game_form_data.date}}\"\n        time: \"{{game_form_data.time}}\"\n        venue: \"{{game_form_data.venue}}\"\n        status: scheduled\n    output: game_record",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_cpl_003.py::test_parses_and_type_checks": false,
+            "test_wf_cpl_003.py::test_passes_taint_analysis": true,
+            "test_wf_cpl_003.py::test_checks_scheduling_conflict": true,
+            "test_wf_cpl_003.py::test_applies_conflict_rule": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "sports_media",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_cpl_009",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 24.882433833554387,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_cpl_009\nsteps:\n  - id: receive_upload\n    op: extract_field\n    params:\n      source: trigger.payload\n      fields:\n        - file\n        - request_id\n    output: upload_data\n\n  - id: verify_parent_request\n    op: read_database\n    params:\n      table: requests\n      filter:\n        id: \"{{upload_data.request_id}}\"\n    output: parent_request\n\n  - id: check_request_exists\n    op: apply_rule\n    params:\n      condition: \"{{parent_request}} != null\"\n      on_false: terminate\n    output: request_valid\n\n  - id: terminate_if_no_request\n    op: terminate_workflow\n    params:\n      condition: \"{{request_valid}} == false\"\n      reason: \"Parent request not found\"\n\n  - id: validate_file\n    op: validate_schema\n    params:\n      input: \"{{upload_data.file}}\"\n      rules:\n        allowed_types:\n          - \"application/pdf\"\n          - \"image/png\"\n          - \"image/jpeg\"\n          - \"application/msword\"\n          - \"application/vnd.openxmlformats-officedocument.wordprocessingml.document\"\n        max_size_mb: 25\n    output: validation_result\n\n  - id: handle_validation_failure\n    op: handle_error\n    params:\n      condition: \"{{validation_result.valid}} == false\"\n      error_message: \"File validation failed: invalid type or size exceeded\"\n      action: terminate\n\n  - id: store_attachment\n    op: call_webhook\n    params:\n      method: POST\n      url: \"{{config.file_storage_endpoint}}\"\n      body:\n        file: \"{{upload_data.file}}\"\n        request_id: \"{{upload_data.request_id}}\"\n    output: storage_result\n\n  - id: insert_attachment_record\n    op: write_database\n    params:\n      table: attachments\n      operation: insert\n      data:\n        request_id: \"{{upload_data.request_id}}\"\n        file_name: \"{{upload_data.file.name}}\"\n        file_type: \"{{upload_data.file.type}}\"\n        file_size: \"{{upload_data.file.size}}\"\n        storage_path: \"{{storage_result.path}}\"\n        uploaded_at: \"{{now}}\"\n    output: attachment_record\n\n  - id: log_upload\n    op: log_audit\n    params:\n      action: attachment_uploaded\n      details:\n        request_id: \"{{upload_data.request_id}}\"\n        attachment_id: \"{{attachment_record.id}}\"\n        file_name: \"{{upload_data.file.name}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_cpl_009.py::test_parses_and_type_checks": false,
+            "test_wf_cpl_009.py::test_passes_taint_analysis": true,
+            "test_wf_cpl_009.py::test_validates_before_storing": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "sports_media",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_erd_001",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 28.77140183467418,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_erd_001\nsteps:\n  - id: check_session\n    op: apply_rule\n    params:\n      rule: check_session_authenticated\n      session_timeout_hours: 8\n    output: session_status\n\n  - id: redirect_to_login\n    op: route_to_step\n    params:\n      condition: \"session_status.authenticated == false AND request.path != '/login'\"\n      target_step: receive_login_form\n      redirect_url: \"/login\"\n    output: redirect_result\n\n  - id: terminate_if_redirected\n    op: terminate_workflow\n    params:\n      condition: \"redirect_result.redirected == true\"\n      reason: \"Unauthenticated request redirected to login\"\n\n  - id: receive_login_form\n    op: validate_schema\n    params:\n      schema:\n        type: object\n        required:\n          - username\n          - password\n        properties:\n          username:\n            type: string\n          password:\n            type: string\n      source: \"request.body\"\n    output: login_credentials\n\n  - id: encrypt_password\n    op: encrypt_field\n    params:\n      field: login_credentials.password\n      algorithm: bcrypt\n    output: encrypted_password\n\n  - id: lookup_user\n    op: read_database\n    params:\n      table: staff_users\n      query:\n        username: \"login_credentials.username\"\n      fields:\n        - user_id\n        - username\n        - password_hash\n        - role\n        - is_active\n    output: user_record\n\n  - id: verify_credentials\n    op: authenticate_user\n    params:\n      provided_password: encrypted_password.value\n      stored_hash: user_record.password_hash\n      account_active: user_record.is_active\n    output: auth_result\n\n  - id: handle_auth_failure\n    op: handle_error\n    params:\n      condition: \"auth_result.success == false\"\n      error_message: \"Invalid username or password\"\n      redirect_url: \"/login\"\n    output: auth_error\n\n  - id: log_login_attempt\n    op: log_audit\n    params:\n      event: \"login_attempt\"\n      username: \"login_credentials.username\"\n      success: \"auth_result.success\"\n      timestamp: \"now()\"\n      source: \"medical_rehab_billing\"\n    output: audit_log_entry\n\n  - id: establish_session\n    op: write_database\n    params:\n      table: active_sessions\n      record:\n        user_id: \"user_record.user_id\"\n        role: \"user_record.role\"\n        session_token: \"generate_secure_token()\"\n        created_at: \"now()\"\n        expires_at: \"now() + 8h\"\n        timeout_minutes: 480\n      condition: \"auth_result.success == true\"\n    output: session_record\n\n  - id: redirect_to_main_menu\n    op: route_to_step\n    params:\n      condition: \"auth_result.success == true\"\n      redirect_url: \"/main_menu\"\n      role: \"user_record.role\"\n      visible_menus: \"role_based_menu_config(user_record.role)\"\n    output: main_menu_redirect",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_erd_001.py::test_parses_and_type_checks": false,
+            "test_wf_erd_001.py::test_passes_taint_analysis": true,
+            "test_wf_erd_001.py::test_authenticates_user": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "healthcare_billing",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_erd_002",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 26.79032012540847,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_erd_002\nsteps:\n  - id: receive_registration_form\n    op: fetch_api\n    params:\n      method: POST\n      endpoint: /api/patient/registration\n    output: registration_payload\n\n  - id: authenticate_staff_user\n    op: authenticate_user\n    params:\n      token: \"{{registration_payload.auth_token}}\"\n      role: office_staff\n    output: auth_result\n\n  - id: validate_patient_fields\n    op: validate_schema\n    params:\n      input: \"{{registration_payload.patient}}\"\n      schema:\n        required_fields:\n          - first_name\n          - last_name\n          - date_of_birth\n          - insurance_flag\n          - taxable\n          - language\n        field_rules:\n          language:\n            enum: [\"EN\", \"FR\"]\n          taxable:\n            type: boolean\n          insurance_flag:\n            type: boolean\n    output: validation_result\n\n  - id: check_duplicate_patient\n    op: read_database\n    params:\n      table: patients\n      filter:\n        first_name: \"{{registration_payload.patient.first_name}}\"\n        last_name: \"{{registration_payload.patient.last_name}}\"\n        date_of_birth: \"{{registration_payload.patient.date_of_birth}}\"\n    output: duplicate_results\n\n  - id: handle_duplicate_found\n    op: handle_error\n    params:\n      condition: \"{{duplicate_results.count > 0}}\"\n      message: \"Duplicate patient record detected\"\n      action: terminate\n\n  - id: apply_language_template_rule\n    op: apply_rule\n    params:\n      rules:\n        - condition: \"{{registration_payload.patient.language == 'EN'}}\"\n          set:\n            invoice_template: invoice_template_en\n        - condition: \"{{registration_payload.patient.language == 'FR'}}\"\n          set:\n            invoice_template: invoice_template_fr\n    output: language_rule_result\n\n  - id: apply_tax_rule\n    op: apply_rule\n    params:\n      rules:\n        - condition: \"{{registration_payload.patient.taxable == true}}\"\n          set:\n            apply_provincial_tax: true\n        - condition: \"{{registration_payload.patient.taxable == false}}\"\n          set:\n            apply_provincial_tax: false\n    output: tax_rule_result\n\n  - id: store_patient_record\n    op: write_database\n    params:\n      table: patients\n      operation: insert\n      data:\n        first_name: \"{{registration_payload.patient.first_name}}\"\n        last_name: \"{{registration_payload.patient.last_name}}\"\n        date_of_birth: \"{{registration_payload.patient.date_of_birth}}\"\n        insurance_flag: \"{{registration_payload.patient.insurance_flag}}\"\n        taxable: \"{{registration_payload.patient.taxable}}\"\n        language: \"{{registration_payload.patient.language}}\"\n        invoice_template: \"{{language_rule_result.invoice_template}}\"\n        apply_provincial_tax: \"{{tax_rule_result.apply_provincial_tax}}\"\n    output: stored_patient\n\n  - id: log_registration\n    op: log_audit\n    params:\n      action: patient_registered\n      user: \"{{auth_result.user_id}}\"\n      patient_id: \"{{stored_patient.id}}\"\n      timestamp: \"{{now}}\"\n    output: audit_log_entry",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_erd_002.py::test_parses_and_type_checks": false,
+            "test_wf_erd_002.py::test_passes_taint_analysis": true,
+            "test_wf_erd_002.py::test_validates_patient": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "healthcare_billing",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_erd_003",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 19.259733167476952,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: wf_erd_003\nsteps:\n  - id: receive_assignment_request\n    op: validate_schema\n    params:\n      schema: assignment_request\n      required_fields:\n        - patient_id\n        - worker_id\n        - submitted_by\n    output: assignment_request\n\n  - id: authenticate_submitter\n    op: authenticate_user\n    params:\n      user_id: \"{{assignment_request.submitted_by}}\"\n      role: office_staff\n    output: auth_result\n\n  - id: verify_patient_active\n    op: read_database\n    params:\n      table: patients\n      filters:\n        patient_id: \"{{assignment_request.patient_id}}\"\n        status: active\n    output: patient_record\n\n  - id: verify_worker_active\n    op: read_database\n    params:\n      table: workers\n      filters:\n        worker_id: \"{{assignment_request.worker_id}}\"\n        status: active\n    output: worker_record\n\n  - id: check_records_exist\n    op: apply_rule\n    params:\n      rule: \"patient_record != null AND worker_record != null\"\n      on_fail: terminate\n      error_message: \"Patient or worker record not found or inactive.\"\n    output: validation_result\n\n  - id: create_assignment_record\n    op: write_database\n    params:\n      table: worker_patient_assignments\n      data:\n        patient_id: \"{{assignment_request.patient_id}}\"\n        worker_id: \"{{assignment_request.worker_id}}\"\n        assigned_by: \"{{auth_result.user_id}}\"\n        status: active\n        linked_to:\n          - timesheets\n          - invoices\n    output: assignment_record\n\n  - id: log_assignment\n    op: log_audit\n    params:\n      action: worker_patient_assignment_created\n      details:\n        assignment_id: \"{{assignment_record.id}}\"\n        patient_id: \"{{assignment_request.patient_id}}\"\n        worker_id: \"{{assignment_request.worker_id}}\"\n        assigned_by: \"{{auth_result.user_id}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_erd_003.py::test_parses_and_type_checks": false,
+            "test_wf_erd_003.py::test_passes_taint_analysis": true,
+            "test_wf_erd_003.py::test_creates_assignment": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "healthcare_billing",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_erd_004",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 28.18313595931977,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_erd_004\nsteps:\n  - id: receive_cell_update\n    op: extract_field\n    params:\n      source: trigger.payload\n      fields:\n        - composite_key\n        - new_value\n    output: cell_update\n\n  - id: authenticate_worker\n    op: authenticate_user\n    params:\n      token: \"{{trigger.auth_token}}\"\n      method: session\n    output: auth_context\n\n  - id: parse_composite_key\n    op: transform_json\n    params:\n      input: \"{{cell_update.composite_key}}\"\n      delimiter: \"_\"\n      mapping:\n        worker_id: \"{{segments[0]}}\"\n        patient_id: \"{{segments[1]}}\"\n        date: \"{{segments[2]}}\"\n        entry_type: \"{{segments[3]}}\"\n    output: parsed_key\n\n  - id: authorize_own_entry\n    op: apply_rule\n    params:\n      rule: \"auth_context.worker_id == parsed_key.worker_id\"\n      on_fail: terminate\n      error_message: \"Workers can only edit their own timesheet entries.\"\n    output: authz_result\n\n  - id: check_timesheet_status\n    op: read_database\n    params:\n      table: timesheets\n      filters:\n        worker_id: \"{{parsed_key.worker_id}}\"\n        date: \"{{parsed_key.date}}\"\n      fields:\n        - status\n    output: timesheet_record\n\n  - id: enforce_draft_status\n    op: apply_rule\n    params:\n      rule: \"timesheet_record.status == 1\"\n      on_fail: terminate\n      error_message: \"Timesheet must be in draft status (1) to accept edits.\"\n    output: status_check\n\n  - id: validate_value\n    op: validate_schema\n    params:\n      input: \"{{cell_update.new_value}}\"\n      rules:\n        - field: new_value\n          type: numeric\n          min: 0\n      entry_type: \"{{parsed_key.entry_type}}\"\n    output: validation_result\n\n  - id: handle_validation_error\n    op: handle_error\n    params:\n      source_step: validate_value\n      on_error: terminate\n      message: \"Invalid value submitted for timesheet entry.\"\n\n  - id: update_timesheet_detail\n    op: write_database\n    params:\n      table: timesheet_details\n      operation: update\n      filters:\n        worker_id: \"{{parsed_key.worker_id}}\"\n        patient_id: \"{{parsed_key.patient_id}}\"\n        date: \"{{parsed_key.date}}\"\n        entry_type: \"{{parsed_key.entry_type}}\"\n      values:\n        value: \"{{cell_update.new_value}}\"\n    output: update_result\n\n  - id: log_entry_update\n    op: log_audit\n    params:\n      action: timesheet_cell_update\n      worker_id: \"{{parsed_key.worker_id}}\"\n      patient_id: \"{{parsed_key.patient_id}}\"\n      date: \"{{parsed_key.date}}\"\n      entry_type: \"{{parsed_key.entry_type}}\"\n      new_value: \"{{cell_update.new_value}}\"\n    output: audit_log",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_erd_004.py::test_parses_and_type_checks": false,
+            "test_wf_erd_004.py::test_passes_taint_analysis": true,
+            "test_wf_erd_004.py::test_parses_composite_key": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "healthcare_billing",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ft_001",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 26.977400000207126,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_ft_001\nsteps:\n  - id: receive_registration\n    op: fetch_api\n    params:\n      method: POST\n      endpoint: /api/register\n      body:\n        email: \"{{input.email}}\"\n        password: \"{{input.password}}\"\n        fitness_goals: \"{{input.fitness_goals}}\"\n        current_weight: \"{{input.current_weight}}\"\n        height: \"{{input.height}}\"\n        dietary_preferences: \"{{input.dietary_preferences}}\"\n    output: registration_data\n\n  - id: create_auth_account\n    op: authenticate_user\n    params:\n      action: create\n      email: \"{{registration_data.email}}\"\n      password: \"{{registration_data.password}}\"\n    output: auth_account\n\n  - id: validate_profile_data\n    op: validate_schema\n    params:\n      input_data:\n        fitness_goals: \"{{registration_data.fitness_goals}}\"\n        current_weight: \"{{registration_data.current_weight}}\"\n        height: \"{{registration_data.height}}\"\n        dietary_preferences: \"{{registration_data.dietary_preferences}}\"\n      schema:\n        required:\n          - fitness_goals\n          - current_weight\n          - height\n          - dietary_preferences\n        properties:\n          fitness_goals:\n            type: string\n          current_weight:\n            type: number\n          height:\n            type: number\n          dietary_preferences:\n            type: string\n    output: validation_result\n\n  - id: create_user_profile\n    op: write_database\n    params:\n      table: user_profiles\n      operation: insert\n      record:\n        auth_uid: \"{{auth_account.uid}}\"\n        email: \"{{registration_data.email}}\"\n        fitness_goals: \"{{registration_data.fitness_goals}}\"\n        current_weight: \"{{registration_data.current_weight}}\"\n        height: \"{{registration_data.height}}\"\n        dietary_preferences: \"{{registration_data.dietary_preferences}}\"\n    output: user_profile\n\n  - id: log_registration_event\n    op: log_audit\n    params:\n      event: user_registration\n      user_id: \"{{auth_account.uid}}\"\n      details:\n        email: \"{{registration_data.email}}\"\n        profile_id: \"{{user_profile.id}}\"\n        timestamp: \"{{now}}\"\n    output: audit_log_entry",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_ft_001.py::test_parses_and_type_checks": false,
+            "test_wf_ft_001.py::test_passes_taint_analysis": true,
+            "test_wf_ft_001.py::test_auth_before_profile": false
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "health_fitness",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ft_002",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 28.93768858257681,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_ft_002\nsteps:\n  - id: receive_food_entry\n    op: extract_field\n    params:\n      source: trigger.payload\n      fields:\n        - item_name\n        - meal_type\n        - calories\n        - protein_g\n        - carbs_g\n        - fat_g\n        - user_id\n        - timestamp\n    output: food_entry\n\n  - id: validate_entry\n    op: validate_schema\n    params:\n      input: food_entry\n      schema:\n        required:\n          - item_name\n          - meal_type\n          - calories\n          - protein_g\n          - carbs_g\n          - fat_g\n          - user_id\n          - timestamp\n        properties:\n          item_name:\n            type: string\n          meal_type:\n            type: string\n            enum:\n              - breakfast\n              - lunch\n              - dinner\n              - snack\n          calories:\n            type: number\n            minimum: 0\n          protein_g:\n            type: number\n            minimum: 0\n          carbs_g:\n            type: number\n            minimum: 0\n          fat_g:\n            type: number\n            minimum: 0\n          user_id:\n            type: string\n          timestamp:\n            type: string\n            format: date-time\n    output: validation_result\n\n  - id: lookup_food_item\n    op: read_database\n    params:\n      collection: nutrition_database\n      query:\n        item_name: food_entry.item_name\n    output: nutrition_record\n\n  - id: enrich_entry\n    op: transform_json\n    params:\n      input: food_entry\n      mapping:\n        item_name: food_entry.item_name\n        meal_type: food_entry.meal_type\n        calories: nutrition_record.calories || food_entry.calories\n        protein_g: nutrition_record.protein_g || food_entry.protein_g\n        carbs_g: nutrition_record.carbs_g || food_entry.carbs_g\n        fat_g: nutrition_record.fat_g || food_entry.fat_g\n        user_id: food_entry.user_id\n        timestamp: food_entry.timestamp\n    output: enriched_entry\n\n  - id: store_log_entry\n    op: write_database\n    params:\n      collection: nutrition_logs\n      document:\n        user_id: enriched_entry.user_id\n        date: enriched_entry.timestamp\n        item_name: enriched_entry.item_name\n        meal_type: enriched_entry.meal_type\n        calories: enriched_entry.calories\n        protein_g: enriched_entry.protein_g\n        carbs_g: enriched_entry.carbs_g\n        fat_g: enriched_entry.fat_g\n        timestamp: enriched_entry.timestamp\n    output: stored_entry\n\n  - id: fetch_daily_entries\n    op: read_database\n    params:\n      collection: nutrition_logs\n      query:\n        user_id: enriched_entry.user_id\n        date: enriched_entry.timestamp\n    output: daily_entries\n\n  - id: compute_daily_totals\n    op: aggregate_data\n    params:\n      input: daily_entries\n      operations:\n        - field: calories\n          function: sum\n        - field: protein_g\n          function: sum\n        - field: carbs_g\n          function: sum\n        - field: fat_g\n          function: sum\n    output: daily_totals\n\n  - id: store_daily_totals\n    op: write_database\n    params:\n      collection: daily_nutrition_totals\n      document:\n        user_id: enriched_entry.user_id\n        date: enriched_entry.timestamp\n        total_calories: daily_totals.calories\n        total_protein_g: daily_totals.protein_g\n        total_carbs_g: daily_totals.carbs_g\n        total_fat_g: daily_totals.fat_g\n      upsert: true\n    output: stored_totals",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_ft_002.py::test_parses_and_type_checks": false,
+            "test_wf_ft_002.py::test_passes_taint_analysis": true,
+            "test_wf_ft_002.py::test_computes_daily_totals": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "health_fitness",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ft_003",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 41.18162649963051,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_ft_003\nsteps:\n  - id: receive_image\n    op: call_webhook\n    params:\n      method: POST\n      endpoint: /api/camera/capture\n      accept: image/*\n    output: raw_image\n\n  - id: validate_image\n    op: validate_schema\n    params:\n      input: \"{{raw_image}}\"\n      rules:\n        format:\n          - image/jpeg\n          - image/png\n          - image/heic\n        max_size_mb: 10\n    output: validated_image\n\n  - id: handle_invalid_image\n    op: handle_error\n    params:\n      on_failure: validate_image\n      action: notify_and_terminate\n      message: \"Invalid image format or size. Please retake the photo.\"\n\n  - id: call_vision_api\n    op: fetch_api\n    params:\n      method: POST\n      url: \"{{env.AI_VISION_API_URL}}/extract-nutrition\"\n      headers:\n        Authorization: \"Bearer {{env.AI_VISION_API_KEY}}\"\n        Content-Type: application/octet-stream\n      body: \"{{validated_image}}\"\n      timeout_seconds: 30\n    output: vision_response\n\n  - id: retry_vision_api\n    op: retry_step\n    params:\n      step_id: call_vision_api\n      max_retries: 2\n      backoff_seconds: 3\n\n  - id: parse_nutrition_data\n    op: extract_field\n    params:\n      source: \"{{vision_response}}\"\n      fields:\n        - calories\n        - fat_g\n        - carbohydrates_g\n        - protein_g\n        - fiber_g\n        - sugar_g\n        - sodium_mg\n        - serving_size\n        - serving_unit\n        - product_name\n    output: nutrition_data\n\n  - id: transform_nutrition\n    op: transform_json\n    params:\n      input: \"{{nutrition_data}}\"\n      mapping:\n        calories: \"{{nutrition_data.calories}}\"\n        fat: \"{{nutrition_data.fat_g}}\"\n        carbs: \"{{nutrition_data.carbohydrates_g}}\"\n        protein: \"{{nutrition_data.protein_g}}\"\n        fiber: \"{{nutrition_data.fiber_g}}\"\n        sugar: \"{{nutrition_data.sugar_g}}\"\n        sodium: \"{{nutrition_data.sodium_mg}}\"\n        serving_size: \"{{nutrition_data.serving_size}}\"\n        serving_unit: \"{{nutrition_data.serving_unit}}\"\n        product_name: \"{{nutrition_data.product_name}}\"\n    output: structured_nutrition\n\n  - id: validate_plausible_ranges\n    op: apply_rule\n    params:\n      input: \"{{structured_nutrition}}\"\n      rules:\n        - field: calories\n          condition: \"between\"\n          min: 0\n          max: 2000\n        - field: fat\n          condition: \"between\"\n          min: 0\n          max: 200\n        - field: carbs\n          condition: \"between\"\n          min: 0\n          max: 500\n        - field: protein\n          condition: \"between\"\n          min: 0\n          max: 300\n        - field: serving_size\n          condition: \"greater_than\"\n          value: 0\n    output: validation_result\n\n  - id: flag_implausible_values\n    op: route_to_step\n    params:\n      condition: \"{{validation_result.has_violations}}\"\n      on_true: notify_implausible\n      on_false: format_food_entry\n\n  - id: notify_implausible\n    op: notify_user\n    params:\n      channel: in_app\n      title: \"Nutrition Data Review Needed\"\n      message: \"Some extracted values seem implausible and have been flagged. Please review carefully before confirming.\"\n      data:\n        flagged_fields: \"{{validation_result.violations}}\"\n\n  - id: format_food_entry\n    op: format_output\n    params:\n      template: food_entry_form\n      data:\n        product_name: \"{{structured_nutrition.product_name}}\"\n        calories: \"{{structured_nutrition.calories}}\"\n        fat: \"{{structured_nutrition.fat}}\"\n        carbs: \"{{structured_nutrition.carbs}}\"\n        protein: \"{{structured_nutrition.protein}}\"\n        fiber: \"{{structured_nutrition.fiber}}\"\n        sugar: \"{{structured_nutrition.sugar}}\"\n        sodium: \"{{structured_nutrition.sodium}}\"\n        serving_size: \"{{structured_nutrition.serving_size}}\"\n        serving_unit: \"{{structured_nutrition.serving_unit}}\"\n        flagged: \"{{validation_result.has_violations}}\"\n        flagged_fields: \"{{validation_result.violations}}\"\n        requires_confirmation: true\n    output: food_entry_form\n\n  - id: await_user_confirmation\n    op: wait_for_condition\n    params:\n      condition: \"{{food_entry_form.user_confirmed}}\"\n      timeout_seconds: 300\n      on_timeout: terminate\n    output: user_decision\n\n  - id: log_scan_event\n    op: log_audit\n    params:\n      action: food_label_scanned\n      details:\n        product_name: \"{{structured_nutrition.product_name}}\"\n        confirmed: \"{{user_decision.confirmed}}\"\n        flagged: \"{{validation_result.has_violations}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_ft_003.py::test_parses_and_type_checks": false,
+            "test_wf_ft_003.py::test_passes_taint_analysis": true,
+            "test_wf_ft_003.py::test_validates_plausibility": true,
+            "test_wf_ft_003.py::test_uses_ai_vision": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "health_fitness",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ft_004",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 28.759391833096743,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_ft_004\nsteps:\n  - id: receive_session_data\n    op: extract_field\n    params:\n      source: trigger.payload\n      fields:\n        - user_id\n        - exercises\n        - session_date\n    output: session_data\n\n  - id: validate_session\n    op: validate_schema\n    params:\n      input: \"{{session_data}}\"\n      schema:\n        required:\n          - user_id\n          - exercises\n          - session_date\n        exercise_fields:\n          - name\n          - sets\n          - reps\n          - weight\n    output: validation_result\n\n  - id: handle_validation_error\n    op: handle_error\n    params:\n      condition: \"{{validation_result.valid}} == false\"\n      message: \"Invalid workout session data\"\n      action: terminate\n\n  - id: lookup_training_plan\n    op: read_database\n    params:\n      table: training_plans\n      filters:\n        user_id: \"{{session_data.user_id}}\"\n        status: active\n    output: training_plan\n\n  - id: check_active_plan\n    op: apply_rule\n    params:\n      condition: \"{{training_plan}} == null\"\n      on_true: terminate\n      message: \"No active training plan found for user\"\n    output: plan_check\n\n  - id: compute_volume_per_exercise\n    op: loop_records\n    params:\n      collection: \"{{session_data.exercises}}\"\n      operation:\n        op: transform_json\n        params:\n          mapping:\n            exercise_name: \"{{item.name}}\"\n            sets: \"{{item.sets}}\"\n            reps: \"{{item.reps}}\"\n            weight: \"{{item.weight}}\"\n            volume: \"{{item.sets * item.reps * item.weight}}\"\n    output: exercises_with_volume\n\n  - id: store_workout_session\n    op: write_database\n    params:\n      table: workout_sessions\n      record:\n        user_id: \"{{session_data.user_id}}\"\n        session_date: \"{{session_data.session_date}}\"\n        training_plan_id: \"{{training_plan.id}}\"\n        exercises: \"{{exercises_with_volume}}\"\n    output: stored_session\n\n  - id: compute_total_volume\n    op: aggregate_data\n    params:\n      input: \"{{exercises_with_volume}}\"\n      operation: sum\n      field: volume\n    output: total_session_volume\n\n  - id: update_training_plan_progress\n    op: write_database\n    params:\n      table: training_plans\n      filters:\n        id: \"{{training_plan.id}}\"\n      update:\n        completed_sessions: \"{{training_plan.completed_sessions + 1}}\"\n        last_session_date: \"{{session_data.session_date}}\"\n        total_volume_logged: \"{{training_plan.total_volume_logged + total_session_volume}}\"\n    output: updated_plan\n\n  - id: log_session_audit\n    op: log_audit\n    params:\n      action: workout_session_logged\n      user_id: \"{{session_data.user_id}}\"\n      details:\n        session_id: \"{{stored_session.id}}\"\n        training_plan_id: \"{{training_plan.id}}\"\n        total_volume: \"{{total_session_volume}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_ft_004.py::test_parses_and_type_checks": false,
+            "test_wf_ft_004.py::test_passes_taint_analysis": true,
+            "test_wf_ft_004.py::test_links_to_training_plan": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "health_fitness",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ft_005",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 42.14206949993968,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_ft_005\nsteps:\n  - id: receive_question\n    op: extract_field\n    params:\n      source: chat_interface\n      field: user_question\n    output: user_question\n\n  - id: authenticate_user\n    op: authenticate_user\n    params:\n      token: \"{{event.auth_token}}\"\n    output: user_context\n\n  - id: fetch_nutrition_log\n    op: read_database\n    params:\n      table: nutrition_logs\n      filter:\n        user_id: \"{{user_context.user_id}}\"\n        date_range: last_7_days\n    output: nutrition_log\n\n  - id: fetch_fitness_profile\n    op: read_database\n    params:\n      table: fitness_profiles\n      filter:\n        user_id: \"{{user_context.user_id}}\"\n    output: fitness_profile\n\n  - id: merge_nutrition_context\n    op: merge_datasets\n    params:\n      sources:\n        - \"{{nutrition_log}}\"\n        - \"{{fitness_profile}}\"\n    output: nutrition_context\n\n  - id: apply_medical_disclaimer\n    op: apply_rule\n    params:\n      rule: no_medical_advice\n      system_prompt: \"You are a nutrition coach. Ground all responses in the user's actual nutrition data. Never provide medical advice or diagnose conditions. If the user asks for medical guidance, advise them to consult a healthcare professional.\"\n    output: system_instructions\n\n  - id: call_ai_coach\n    op: fetch_api\n    params:\n      endpoint: ai_chat_model\n      method: POST\n      body:\n        system_prompt: \"{{system_instructions}}\"\n        user_message: \"{{user_question}}\"\n        context: \"{{nutrition_context}}\"\n      timeout: 30\n    output: ai_response\n\n  - id: format_response\n    op: format_output\n    params:\n      template: \"{{ai_response.message}}\"\n      include_disclaimer: true\n      disclaimer_text: \"This is nutritional guidance only, not medical advice.\"\n    output: formatted_response\n\n  - id: return_response\n    op: notify_user\n    params:\n      channel: chat_interface\n      user_id: \"{{user_context.user_id}}\"\n      message: \"{{formatted_response}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_ft_005.py::test_parses_and_type_checks": false,
+            "test_wf_ft_005.py::test_passes_taint_analysis": true,
+            "test_wf_ft_005.py::test_reads_user_context": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "health_fitness",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ft_006",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 16.708044291473925,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_ft_006\nsteps:\n  - id: authenticate\n    op: authenticate_user\n    params:\n      source: session_token\n    output: user_context\n\n  - id: read_nutrition_log\n    op: read_database\n    params:\n      collection: nutrition_logs\n      filters:\n        user_id: \"{{user_context.user_id}}\"\n        date: \"{{today}}\"\n    output: nutrition_entries\n\n  - id: aggregate_nutrition\n    op: aggregate_data\n    params:\n      input: \"{{nutrition_entries}}\"\n      fields:\n        - name: total_calories\n          function: sum\n          field: calories\n        - name: total_protein\n          function: sum\n          field: protein\n        - name: total_carbs\n          function: sum\n          field: carbs\n        - name: total_fat\n          function: sum\n          field: fat\n    output: nutrition_totals\n\n  - id: format_progress_summary\n    op: format_output\n    params:\n      template: daily_progress_summary\n      data:\n        consumed: \"{{nutrition_totals}}\"\n        daily_targets: \"{{user_context.profile.daily_targets}}\"\n      comparisons:\n        - metric: calories\n          actual: \"{{nutrition_totals.total_calories}}\"\n          target: \"{{user_context.profile.daily_targets.calories}}\"\n        - metric: protein\n          actual: \"{{nutrition_totals.total_protein}}\"\n          target: \"{{user_context.profile.daily_targets.protein}}\"\n        - metric: carbs\n          actual: \"{{nutrition_totals.total_carbs}}\"\n          target: \"{{user_context.profile.daily_targets.carbs}}\"\n        - metric: fat\n          actual: \"{{nutrition_totals.total_fat}}\"\n          target: \"{{user_context.profile.daily_targets.fat}}\"\n    output: progress_summary",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_ft_006.py::test_parses_and_type_checks": false,
+            "test_wf_ft_006.py::test_passes_taint_analysis": true,
+            "test_wf_ft_006.py::test_aggregates_daily": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "health_fitness",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ft_007",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 40.73566525056958,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_ft_007\nsteps:\n  - id: authenticate\n    op: authenticate_user\n    params:\n      token: \"{{request.auth_token}}\"\n    output: user_context\n\n  - id: read_fitness_profile\n    op: read_database\n    params:\n      table: user_fitness_profiles\n      filter:\n        user_id: \"{{user_context.user_id}}\"\n      fields:\n        - fitness_goals\n        - fitness_level\n        - available_equipment\n        - health_restrictions\n    output: fitness_profile\n\n  - id: read_workout_history\n    op: read_database\n    params:\n      table: workout_history\n      filter:\n        user_id: \"{{user_context.user_id}}\"\n      sort_by: completed_at\n      sort_order: desc\n      limit: 30\n    output: recent_workouts\n\n  - id: merge_user_data\n    op: merge_datasets\n    params:\n      sources:\n        - \"{{fitness_profile}}\"\n        - \"{{recent_workouts}}\"\n    output: merged_user_data\n\n  - id: generate_weekly_plan\n    op: fetch_api\n    params:\n      url: \"{{env.AI_MODEL_ENDPOINT}}/generate-workout-plan\"\n      method: POST\n      body:\n        fitness_goals: \"{{merged_user_data.fitness_goals}}\"\n        fitness_level: \"{{merged_user_data.fitness_level}}\"\n        available_equipment: \"{{merged_user_data.available_equipment}}\"\n        health_restrictions: \"{{merged_user_data.health_restrictions}}\"\n        recent_workouts: \"{{merged_user_data.recent_workouts}}\"\n        plan_duration: weekly\n      headers:\n        Authorization: \"Bearer {{env.AI_SERVICE_API_KEY}}\"\n    output: generated_plan\n\n  - id: validate_plan_schema\n    op: validate_schema\n    params:\n      data: \"{{generated_plan}}\"\n      schema: weekly_workout_plan_schema\n    output: schema_validation_result\n\n  - id: validate_safety\n    op: apply_rule\n    params:\n      rule: workout_safety_check\n      conditions:\n        - field: \"{{generated_plan.max_intensity}}\"\n          operator: lte\n          value: \"{{fitness_profile.fitness_level}}\"\n        - field: \"{{generated_plan.total_weekly_volume}}\"\n          operator: lte\n          value: \"{{fitness_profile.max_weekly_volume}}\"\n        - field: \"{{generated_plan.exercises}}\"\n          operator: not_in\n          value: \"{{fitness_profile.health_restrictions}}\"\n    output: safety_validation_result\n\n  - id: handle_validation_failure\n    op: handle_error\n    params:\n      condition: \"{{safety_validation_result.passed == false}}\"\n      message: \"Generated plan exceeds user capability range or violates safety constraints.\"\n      action: terminate\n\n  - id: deactivate_previous_plan\n    op: write_database\n    params:\n      table: training_plans\n      operation: update\n      filter:\n        user_id: \"{{user_context.user_id}}\"\n        status: active\n      values:\n        status: inactive\n        deactivated_at: \"{{now}}\"\n    output: deactivation_result\n\n  - id: store_new_plan\n    op: write_database\n    params:\n      table: training_plans\n      operation: insert\n      values:\n        user_id: \"{{user_context.user_id}}\"\n        plan_data: \"{{generated_plan}}\"\n        status: active\n        created_at: \"{{now}}\"\n        valid_from: \"{{now}}\"\n        valid_until: \"{{now + 7d}}\"\n    output: stored_plan\n\n  - id: log_plan_creation\n    op: log_audit\n    params:\n      action: weekly_plan_generated\n      user_id: \"{{user_context.user_id}}\"\n      details:\n        plan_id: \"{{stored_plan.id}}\"\n        replaced_plan: \"{{deactivation_result.updated_ids}}\"\n\n  - id: notify_user_plan_ready\n    op: notify_user\n    params:\n      user_id: \"{{user_context.user_id}}\"\n      channel: push\n      title: \"Your New Weekly Workout Plan is Ready!\"\n      message: \"Your personalized weekly workout plan has been generated and is now active. Open the app to view your schedule.\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_ft_007.py::test_parses_and_type_checks": false,
+            "test_wf_ft_007.py::test_passes_taint_analysis": true,
+            "test_wf_ft_007.py::test_validates_plan_safety": true,
+            "test_wf_ft_007.py::test_reads_history": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "health_fitness",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ft_008",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 24.708366750739515,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_ft_008\nsteps:\n  - id: receive_measurement\n    op: extract_field\n    params:\n      source: trigger.payload\n      fields:\n        - user_id\n        - weight_kg\n        - measured_date\n        - measured_time\n    output: measurement_data\n\n  - id: validate_schema\n    op: validate_schema\n    params:\n      input: \"{{measurement_data}}\"\n      schema:\n        required:\n          - user_id\n          - weight_kg\n          - measured_date\n        properties:\n          user_id:\n            type: string\n          weight_kg:\n            type: number\n          measured_date:\n            type: string\n            format: date\n          measured_time:\n            type: string\n    output: schema_result\n\n  - id: handle_schema_error\n    op: handle_error\n    params:\n      condition: \"{{schema_result.valid}} == false\"\n      action: terminate\n      message: \"Invalid measurement payload: missing or malformed fields.\"\n\n  - id: validate_plausible_range\n    op: apply_rule\n    params:\n      input: \"{{measurement_data.weight_kg}}\"\n      rule: \"value >= 30 AND value <= 300\"\n    output: range_check\n\n  - id: reject_implausible\n    op: terminate_workflow\n    params:\n      condition: \"{{range_check.passed}} == false\"\n      reason: \"Weight measurement {{measurement_data.weight_kg}} kg is outside plausible range (30-300 kg).\"\n\n  - id: check_existing_today\n    op: read_database\n    params:\n      collection: weight_measurements\n      filter:\n        user_id: \"{{measurement_data.user_id}}\"\n        measured_date: \"{{measurement_data.measured_date}}\"\n    output: existing_records\n\n  - id: warn_duplicate_day\n    op: notify_user\n    params:\n      condition: \"{{existing_records.count}} > 0\"\n      user_id: \"{{measurement_data.user_id}}\"\n      channel: in_app\n      message: \"You already have a weight entry for today. This new measurement will be stored alongside it. Only one measurement per day is recommended.\"\n\n  - id: store_measurement\n    op: write_database\n    params:\n      collection: weight_measurements\n      document:\n        user_id: \"{{measurement_data.user_id}}\"\n        weight_kg: \"{{measurement_data.weight_kg}}\"\n        measured_date: \"{{measurement_data.measured_date}}\"\n        measured_time: \"{{measurement_data.measured_time}}\"\n        created_at: \"{{now()}}\"\n    output: stored_record\n\n  - id: log_audit\n    op: log_audit\n    params:\n      action: weight_measurement_logged\n      user_id: \"{{measurement_data.user_id}}\"\n      details:\n        weight_kg: \"{{measurement_data.weight_kg}}\"\n        measured_date: \"{{measurement_data.measured_date}}\"\n        record_id: \"{{stored_record.id}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_ft_008.py::test_parses_and_type_checks": false,
+            "test_wf_ft_008.py::test_passes_taint_analysis": true,
+            "test_wf_ft_008.py::test_validates_measurement": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "health_fitness",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ft_011",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 23.8355062501505,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final YAML:\n\nworkflow_id: wf_ft_011\nsteps:\n  - id: receive_photo_upload\n    op: extract_field\n    params:\n      source: trigger.payload\n      fields:\n        - photo_data\n        - upload_date\n        - notes\n    output: upload_info\n\n  - id: authenticate_user\n    op: authenticate_user\n    params:\n      token: \"{{trigger.auth_token}}\"\n    output: auth_result\n\n  - id: validate_image_format\n    op: validate_schema\n    params:\n      input: \"{{upload_info.photo_data}}\"\n      rules:\n        format:\n          allowed:\n            - \"image/jpeg\"\n            - \"image/png\"\n            - \"image/webp\"\n        max_size_mb: 10\n    output: validation_result\n\n  - id: handle_validation_failure\n    op: handle_error\n    params:\n      condition: \"{{validation_result.valid == false}}\"\n      error_message: \"Invalid image format or size exceeds 10MB limit.\"\n      action: terminate\n\n  - id: encrypt_photo\n    op: encrypt_field\n    params:\n      input: \"{{upload_info.photo_data}}\"\n      algorithm: \"AES-256\"\n    output: encrypted_photo\n\n  - id: store_photo\n    op: write_database\n    params:\n      table: progress_photos\n      record:\n        user_id: \"{{auth_result.user_id}}\"\n        photo_blob: \"{{encrypted_photo}}\"\n        upload_date: \"{{upload_info.upload_date}}\"\n        notes: \"{{upload_info.notes}}\"\n        visibility: private\n      access_control:\n        owner_only: true\n    output: stored_record\n\n  - id: log_upload_event\n    op: log_audit\n    params:\n      action: \"progress_photo_uploaded\"\n      user_id: \"{{auth_result.user_id}}\"\n      resource_id: \"{{stored_record.record_id}}\"\n      details:\n        visibility: private\n        timestamp: \"{{upload_info.upload_date}}\"\n\n  - id: notify_user_success\n    op: notify_user\n    params:\n      user_id: \"{{auth_result.user_id}}\"\n      channel: in_app\n      message: \"Your progress photo has been uploaded successfully and stored privately.\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_ft_011.py::test_parses_and_type_checks": false,
+            "test_wf_ft_011.py::test_passes_taint_analysis": true,
+            "test_wf_ft_011.py::test_validates_image": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "health_fitness",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ktg_001",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 53.351150415837765,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates. Here is the final YAML:\n\nworkflow_id: wf_ktg_001\nsteps:\n  - id: receive_intake_form\n    op: extract_field\n    params:\n      source: trigger.intake_form\n      fields:\n        - claimant_first_name\n        - claimant_last_name\n        - date_of_injury\n        - employer\n        - ssn\n        - client_database\n        - submitted_by\n    output: intake_data\n\n  - id: authenticate_staff_user\n    op: authenticate_user\n    params:\n      token: \"{{trigger.auth_token}}\"\n      role_required: case_staff\n    output: auth_result\n\n  - id: validate_claimant_fields\n    op: validate_schema\n    params:\n      input: \"{{intake_data}}\"\n      required_fields:\n        - claimant_first_name\n        - claimant_last_name\n        - date_of_injury\n        - employer\n        - ssn\n        - client_database\n    on_failure: error_handler\n\n  - id: tenant_branch_rule\n    op: apply_rule\n    params:\n      rule: tenant_field_selection\n      condition: \"{{intake_data.client_database}}\"\n      branches:\n        tenant_a:\n          field_list: tenant_a_fields\n        tenant_b:\n          field_list: tenant_b_fields\n        default:\n          field_list: default_fields\n    output: tenant_config\n\n  - id: compute_next_claimant_id\n    op: read_database\n    params:\n      query: \"SELECT COALESCE(MAX(claimant_id), 0) + 1 AS next_id FROM claimants\"\n      connection: \"{{intake_data.client_database}}\"\n    output: next_claimant_id\n\n  - id: insert_claimant_record\n    op: write_database\n    params:\n      table: claimants\n      connection: \"{{intake_data.client_database}}\"\n      operation: insert\n      record:\n        claimant_id: \"{{next_claimant_id.next_id}}\"\n        first_name: \"{{intake_data.claimant_first_name}}\"\n        last_name: \"{{intake_data.claimant_last_name}}\"\n        date_of_injury: \"{{intake_data.date_of_injury}}\"\n        employer: \"{{intake_data.employer}}\"\n        ssn: \"{{intake_data.ssn}}\"\n        field_list: \"{{tenant_config.field_list}}\"\n    output: claimant_record\n\n  - id: insert_wc_case_stub\n    op: write_database\n    params:\n      table: workers_comp_cases\n      connection: \"{{intake_data.client_database}}\"\n      operation: insert\n      record:\n        claimant_id: \"{{next_claimant_id.next_id}}\"\n        case_status: new\n        date_opened: \"{{now()}}\"\n    output: wc_case_record\n\n  - id: insert_icd_placeholders\n    op: write_database\n    params:\n      table: icd_codes\n      connection: \"{{intake_data.client_database}}\"\n      operation: insert\n      record:\n        claimant_id: \"{{next_claimant_id.next_id}}\"\n        case_id: \"{{wc_case_record.case_id}}\"\n        icd_code: PENDING\n        status: placeholder\n    output: icd_record\n\n  - id: insert_rtw_placeholders\n    op: write_database\n    params:\n      table: return_to_work\n      connection: \"{{intake_data.client_database}}\"\n      operation: insert\n      record:\n        claimant_id: \"{{next_claimant_id.next_id}}\"\n        case_id: \"{{wc_case_record.case_id}}\"\n        rtw_status: pending\n        status: placeholder\n    output: rtw_record\n\n  - id: log_activity_and_tickler\n    op: log_audit\n    params:\n      action: New Patient Set Up\n      claimant_id: \"{{next_claimant_id.next_id}}\"\n      case_id: \"{{wc_case_record.case_id}}\"\n      performed_by: \"{{auth_result.user_id}}\"\n    output: audit_log\n\n  - id: insert_default_tickler\n    op: write_database\n    params:\n      table: ticklers\n      connection: \"{{intake_data.client_database}}\"\n      operation: insert\n      record:\n        claimant_id: \"{{next_claimant_id.next_id}}\"\n        case_id: \"{{wc_case_record.case_id}}\"\n        tickler_type: default_followup\n        due_date: \"{{date_add(now(), 30, 'days')}}\"\n        assigned_to: \"{{auth_result.user_id}}\"\n        status: open\n    output: tickler_record\n\n  - id: error_handler\n    op: handle_error\n    params:\n      strategy: notify_and_terminate\n      on_error_steps:\n        - id: format_error_dump\n          op: format_output\n          params:\n            template: full_form_dump\n            data: \"{{intake_data}}\"\n            error: \"{{error}}\"\n          output: error_dump\n        - id: email_error_to_staff\n          op: notify_user\n          params:\n            method: email\n            to: internal_staff_distribution\n            subject: \"Claimant Intake Failure - {{intake_data.claimant_last_name}}\"\n            body: \"{{error_dump}}\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_ktg_001.py::test_parses_and_type_checks": false,
+            "test_wf_ktg_001.py::test_passes_taint_analysis": true,
+            "test_wf_ktg_001.py::test_applies_tenant_branching": true,
+            "test_wf_ktg_001.py::test_writes_multiple_tables": true,
+            "test_wf_ktg_001.py::test_logs_activity": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 4,
+      "domain": "workers_compensation",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ktg_002",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 34.04367720801383,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates. Here is the final YAML:\n\nworkflow_id: wf_ktg_002\nsteps:\n  - id: receive_tickler_request\n    op: extract_field\n    params:\n      source: trigger_payload\n      fields:\n        - action\n        - tickler_id\n        - claim_id\n        - case_manager_id\n        - due_date\n        - priority\n        - notes\n    output: tickler_request\n\n  - id: authenticate_case_manager\n    op: authenticate_user\n    params:\n      token: \"{{tickler_request.auth_token}}\"\n      role: case_manager\n    output: auth_result\n\n  - id: validate_tickler_fields\n    op: validate_schema\n    params:\n      input: \"{{tickler_request}}\"\n      schema:\n        required:\n          - action\n          - claim_id\n          - case_manager_id\n        properties:\n          action:\n            type: string\n            enum:\n              - create\n              - update\n              - complete\n          claim_id:\n            type: string\n          case_manager_id:\n            type: string\n          due_date:\n            type: string\n            format: date\n          priority:\n            type: string\n            enum:\n              - low\n              - medium\n              - high\n          notes:\n            type: string\n    output: validation_result\n\n  - id: generate_tickler_uuid\n    op: apply_rule\n    params:\n      condition: \"{{tickler_request.action}} == 'create'\"\n      action: generate_uuid\n    output: tickler_uuid\n\n  - id: resolve_tickler_id\n    op: apply_rule\n    params:\n      rule: >\n        if action is 'create' then use generated UUID,\n        otherwise use tickler_id from request\n      input:\n        action: \"{{tickler_request.action}}\"\n        generated_uuid: \"{{tickler_uuid}}\"\n        existing_id: \"{{tickler_request.tickler_id}}\"\n    output: resolved_tickler_id\n\n  - id: upsert_tickler_record\n    op: write_database\n    params:\n      table: ticklers\n      operation: upsert\n      primary_key: tickler_id\n      transaction: true\n      rollback_on_failure: true\n      record:\n        tickler_id: \"{{resolved_tickler_id}}\"\n        claim_id: \"{{tickler_request.claim_id}}\"\n        case_manager_id: \"{{tickler_request.case_manager_id}}\"\n        action: \"{{tickler_request.action}}\"\n        due_date: \"{{tickler_request.due_date}}\"\n        priority: \"{{tickler_request.priority}}\"\n        notes: \"{{tickler_request.notes}}\"\n        status: \"{{tickler_request.action}}\"\n        updated_at: \"{{now}}\"\n    output: db_write_result\n\n  - id: log_tickler_action\n    op: log_audit\n    params:\n      event: tickler_action\n      actor: \"{{tickler_request.case_manager_id}}\"\n      action: \"{{tickler_request.action}}\"\n      resource_type: tickler\n      resource_id: \"{{resolved_tickler_id}}\"\n      claim_id: \"{{tickler_request.claim_id}}\"\n      details:\n        priority: \"{{tickler_request.priority}}\"\n        due_date: \"{{tickler_request.due_date}}\"\n        status: \"{{tickler_request.action}}\"\n    output: audit_log_result\n\n  - id: handle_workflow_error\n    op: handle_error\n    params:\n      on_error: rollback\n      notify: \"{{tickler_request.case_manager_id}}\"\n      message: \"Tickler operation failed. Transaction rolled back.\"\n    output: error_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_ktg_002.py::test_parses_and_type_checks": false,
+            "test_wf_ktg_002.py::test_passes_taint_analysis": false,
+            "test_wf_ktg_002.py::test_writes_tickler": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "workers_compensation",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ktg_006",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 45.390037124976516,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_ktg_006\nsteps:\n  - id: receive_request\n    op: validate_schema\n    params:\n      schema: claim_status_report_request\n      required_fields:\n        - date_range_start\n        - date_range_end\n        - audience\n        - filters\n    output: report_request\n\n  - id: authenticate_user\n    op: authenticate_user\n    params:\n      token: \"{{report_request.auth_token}}\"\n    output: auth_context\n\n  - id: log_report_request\n    op: log_audit\n    params:\n      action: claim_status_report_requested\n      user: \"{{auth_context.user_id}}\"\n      details:\n        audience: \"{{report_request.audience}}\"\n        date_range_start: \"{{report_request.date_range_start}}\"\n        date_range_end: \"{{report_request.date_range_end}}\"\n\n  - id: parallel_data_reads\n    op: parallel_execute\n    params:\n      branches:\n        - step_ref: read_employer_summary\n        - step_ref: read_activity_data\n        - step_ref: read_medical_data\n        - step_ref: read_litigation_data\n        - step_ref: read_lost_time_data\n        - step_ref: read_incident_data\n\n  - id: read_employer_summary\n    op: read_database\n    params:\n      tenant: \"{{auth_context.tenant_id}}\"\n      table: employer_summary\n      filters:\n        date_range_start: \"{{report_request.date_range_start}}\"\n        date_range_end: \"{{report_request.date_range_end}}\"\n        custom_filters: \"{{report_request.filters}}\"\n    output: employer_data\n\n  - id: read_activity_data\n    op: read_database\n    params:\n      tenant: \"{{auth_context.tenant_id}}\"\n      table: activity_data\n      filters:\n        date_range_start: \"{{report_request.date_range_start}}\"\n        date_range_end: \"{{report_request.date_range_end}}\"\n        categories:\n          - FCM\n          - IME\n        custom_filters: \"{{report_request.filters}}\"\n    output: activity_data\n\n  - id: read_medical_data\n    op: read_database\n    params:\n      tenant: \"{{auth_context.tenant_id}}\"\n      table: medical_data\n      filters:\n        date_range_start: \"{{report_request.date_range_start}}\"\n        date_range_end: \"{{report_request.date_range_end}}\"\n        custom_filters: \"{{report_request.filters}}\"\n    output: medical_data\n\n  - id: read_litigation_data\n    op: read_database\n    params:\n      tenant: \"{{auth_context.tenant_id}}\"\n      table: litigation_data\n      filters:\n        date_range_start: \"{{report_request.date_range_start}}\"\n        date_range_end: \"{{report_request.date_range_end}}\"\n        custom_filters: \"{{report_request.filters}}\"\n    output: litigation_data\n\n  - id: read_lost_time_data\n    op: read_database\n    params:\n      tenant: \"{{auth_context.tenant_id}}\"\n      table: lost_time_data\n      filters:\n        date_range_start: \"{{report_request.date_range_start}}\"\n        date_range_end: \"{{report_request.date_range_end}}\"\n        custom_filters: \"{{report_request.filters}}\"\n    output: lost_time_data\n\n  - id: read_incident_data\n    op: read_database\n    params:\n      tenant: \"{{auth_context.tenant_id}}\"\n      table: incident_data\n      filters:\n        date_range_start: \"{{report_request.date_range_start}}\"\n        date_range_end: \"{{report_request.date_range_end}}\"\n        custom_filters: \"{{report_request.filters}}\"\n    output: incident_data\n\n  - id: merge_all_categories\n    op: merge_datasets\n    params:\n      sources:\n        - \"{{employer_data}}\"\n        - \"{{activity_data}}\"\n        - \"{{medical_data}}\"\n        - \"{{litigation_data}}\"\n        - \"{{lost_time_data}}\"\n        - \"{{incident_data}}\"\n      labels:\n        - employer\n        - activity\n        - medical\n        - litigation\n        - lost_time\n        - incident\n    output: merged_data\n\n  - id: aggregate_report\n    op: aggregate_data\n    params:\n      source: \"{{merged_data}}\"\n      group_by:\n        - category\n        - audience\n      metrics:\n        - count\n        - totals\n        - averages\n      audience: \"{{report_request.audience}}\"\n    output: aggregated_report\n\n  - id: apply_audience_rules\n    op: apply_rule\n    params:\n      rule: audience_report_variant\n      audience: \"{{report_request.audience}}\"\n      date_range_start: \"{{report_request.date_range_start}}\"\n      date_range_end: \"{{report_request.date_range_end}}\"\n      data: \"{{aggregated_report}}\"\n    output: variant_report\n\n  - id: format_html_report\n    op: format_output\n    params:\n      format: html\n      template: claim_status_report\n      data: \"{{variant_report}}\"\n      print_optimized: true\n    output: html_report\n\n  - id: log_report_generated\n    op: log_audit\n    params:\n      action: claim_status_report_generated\n      user: \"{{auth_context.user_id}}\"\n      details:\n        audience: \"{{report_request.audience}}\"\n        variant: \"{{variant_report.variant_id}}\"\n        record_count: \"{{variant_report.record_count}}\"\n\n  - id: handle_errors\n    op: handle_error\n    params:\n      on_error: terminate\n      notify: \"{{auth_context.user_id}}\"\n      message: \"Claim status report generation failed.\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_ktg_006.py::test_parses_and_type_checks": false,
+            "test_wf_ktg_006.py::test_passes_taint_analysis": true,
+            "test_wf_ktg_006.py::test_reads_multiple_data_sources": true,
+            "test_wf_ktg_006.py::test_aggregates_report": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 5,
+      "domain": "workers_compensation",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_lf_001",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 22.470632375217974,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_lf_001\nsteps:\n  - id: receive_pdf_file\n    op: extract_field\n    params:\n      source: browser_file_input\n      field: pdf_file\n      client_side: true\n    output: pdf_binary\n\n  - id: load_and_iterate_pages\n    op: loop_records\n    params:\n      collection: \"{{pdf_binary}}\"\n      iterator: page\n      method: pdf_page_loader\n    output: pages_list\n\n  - id: extract_text_items\n    op: extract_field\n    params:\n      source: \"{{pages_list}}\"\n      fields:\n        - text_content\n        - font_size\n      extract_mode: all_text_items_with_metadata\n    output: text_items\n\n  - id: compute_median_font_size\n    op: aggregate_data\n    params:\n      collection: \"{{text_items}}\"\n      field: font_size\n      function: median\n    output: median_font_size\n\n  - id: classify_headings\n    op: apply_rule\n    params:\n      collection: \"{{text_items}}\"\n      rule: \"item.font_size > {{median_font_size}} * 1.2\"\n      classification:\n        match: heading\n        no_match: body\n      method: font_size_ratio_comparison\n    output: classified_items\n\n  - id: format_structured_output\n    op: format_output\n    params:\n      source: \"{{classified_items}}\"\n      format: structured_document\n      language: fr\n      sections_by: heading\n    output: structured_document",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_lf_001.py::test_parses_and_type_checks": false,
+            "test_wf_lf_001.py::test_passes_taint_analysis": true,
+            "test_wf_lf_001.py::test_applies_heading_rule": true,
+            "test_wf_lf_001.py::test_aggregates_font_sizes": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "personal_tool",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_lf_002",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 25.970202833414078,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow is valid. Here is the final answer:\n\nworkflow_id: wf_lf_002\nsteps:\n  - id: receive_text\n    op: extract_field\n    params:\n      source: request.body\n      field: text_section\n    output: extracted_text\n\n  - id: validate_cors_origin\n    op: apply_rule\n    params:\n      rule: \"request.headers.origin == 'https://<username>.github.io'\"\n      on_fail: reject\n      allowed_origin: \"https://<username>.github.io\"\n    output: origin_valid\n\n  - id: reject_invalid_origin\n    op: handle_error\n    params:\n      condition: \"origin_valid == false\"\n      error_code: 403\n      message: \"CORS origin not allowed\"\n\n  - id: forward_to_llm\n    op: fetch_api\n    params:\n      method: POST\n      url: \"https://llm-api.example.com/v1/chat/completions\"\n      headers:\n        Content-Type: application/json\n        Authorization: \"Bearer ${LLM_API_KEY}\"\n      body:\n        model: \"gpt-4o-mini\"\n        messages:\n          - role: system\n            content: >\n              Tu es un assistant de nettoyage de texte fran\u00e7ais.\n              Supprime les num\u00e9ros de page, les en-t\u00eates courants,\n              les notes de bas de page et les artefacts de c\u00e9sure.\n              Retourne uniquement le texte nettoy\u00e9, sans commentaire.\n          - role: user\n            content: \"${extracted_text}\"\n      timeout_seconds: 30\n    output: llm_raw_response\n\n  - id: extract_cleaned_text\n    op: extract_field\n    params:\n      source: llm_raw_response\n      field: \"choices[0].message.content\"\n    output: cleaned_text\n\n  - id: format_response\n    op: format_output\n    params:\n      content_type: application/json\n      template:\n        cleaned_text: \"${cleaned_text}\"\n    output: api_response\n\n  - id: log_request\n    op: log_audit\n    params:\n      action: llm_text_cleanup\n      detail: \"Proxied text cleanup request; no user data retained\"\n      retain_data: false\n\n  - id: return_cleaned_text\n    op: call_webhook\n    params:\n      direction: response\n      status: 200\n      body: \"${api_response}\"\n      headers:\n        Access-Control-Allow-Origin: \"https://<username>.github.io\"\n        Content-Type: application/json\n    output: final_response",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_lf_002.py::test_parses_and_type_checks": false,
+            "test_wf_lf_002.py::test_passes_taint_analysis": true,
+            "test_wf_lf_002.py::test_validates_cors_origin": false
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "personal_tool",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_lf_003",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 29.068966166116297,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates. Here is the final YAML:\n\nworkflow_id: wf_lf_003\nsteps:\n  - id: receive_cleaned_text\n    op: extract_field\n    params:\n      source: trigger.payload\n      fields:\n        - sections\n        - tts_rate\n        - tts_pitch\n        - inter_section_pause_ms\n    output: cleaned_input\n\n  - id: split_sentences\n    op: loop_records\n    params:\n      collection: \"{{cleaned_input.sections}}\"\n      sub_step:\n        id: split_section\n        op: transform_json\n        params:\n          input: \"{{item}}\"\n          strategy: sentence_tokenize\n          locale: fr-FR\n    output: sections_with_sentences\n\n  - id: create_utterances\n    op: loop_records\n    params:\n      collection: \"{{sections_with_sentences}}\"\n      sub_step:\n        id: build_utterance_per_sentence\n        op: loop_records\n        params:\n          collection: \"{{item.sentences}}\"\n          sub_step:\n            id: build_single_utterance\n            op: transform_json\n            params:\n              input: \"{{item}}\"\n              template:\n                type: SpeechSynthesisUtterance\n                text: \"{{item}}\"\n                lang: fr-FR\n                rate: \"{{cleaned_input.tts_rate}}\"\n                pitch: \"{{cleaned_input.tts_pitch}}\"\n                section_index: \"{{parent.index}}\"\n                sentence_index: \"{{index}}\"\n    output: utterance_groups\n\n  - id: insert_inter_section_pauses\n    op: apply_rule\n    params:\n      rule: insert_pause_between_groups\n      collection: \"{{utterance_groups}}\"\n      pause_ms: \"{{cleaned_input.inter_section_pause_ms}}\"\n      pause_type: silent_utterance\n    output: utterance_queue\n\n  - id: queue_to_speech_api\n    op: send_to_queue\n    params:\n      queue_name: web_speech_api\n      items: \"{{utterance_queue}}\"\n      api: SpeechSynthesis.speak\n      native_browser: true\n    output: playback_handle\n\n  - id: highlight_on_utterance_start\n    op: wait_for_condition\n    params:\n      event: utterance.onstart\n      source: \"{{playback_handle}}\"\n      action:\n        highlight:\n          target_selector: \"[data-section='{{event.section_index}}'][data-sentence='{{event.sentence_index}}']\"\n          css_class: tts-active-sentence\n        scroll_into_view:\n          target_selector: \"[data-section='{{event.section_index}}'][data-sentence='{{event.sentence_index}}']\"\n          behavior: smooth\n          block: center\n      repeat: true\n    output: highlight_sync_status",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_lf_003.py::test_parses_and_type_checks": false,
+            "test_wf_lf_003.py::test_passes_taint_analysis": true,
+            "test_wf_lf_003.py::test_splits_into_sentences": false,
+            "test_wf_lf_003.py::test_applies_pause_rule": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "personal_tool",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_lf_004",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 31.835585583001375,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "The workflow validates. Here is the final YAML:\n\nworkflow_id: wf_lf_004\nsteps:\n  - id: precache_critical_assets\n    op: write_database\n    params:\n      target: service_worker_cache\n      assets:\n        - \"/index.html\"\n        - \"/app.js\"\n        - \"/styles.css\"\n        - \"/manifest.json\"\n        - \"/offline.html\"\n        - \"/icons/*\"\n      strategy: precache_on_install\n    output: precache_result\n\n  - id: intercept_fetch_request\n    op: wait_for_condition\n    params:\n      condition: \"event.type == 'fetch'\"\n      source: service_worker\n    output: intercepted_request\n\n  - id: check_llm_cleanup_bypass\n    op: filter_records\n    params:\n      input: intercepted_request\n      condition: \"request.url matches '/api/llm-cleanup'\"\n    output: llm_cleanup_requests\n\n  - id: route_request_strategy\n    op: route_to_step\n    params:\n      conditions:\n        - when: \"llm_cleanup_requests is not empty\"\n          goto: network_only_fetch\n        - default: cache_first_lookup\n    output: routing_decision\n\n  - id: network_only_fetch\n    op: fetch_api\n    params:\n      url: \"{{intercepted_request.url}}\"\n      method: \"{{intercepted_request.method}}\"\n      headers: \"{{intercepted_request.headers}}\"\n      cache_policy: network_only\n    output: network_only_response\n\n  - id: cache_first_lookup\n    op: read_database\n    params:\n      source: service_worker_cache\n      key: \"{{intercepted_request.url}}\"\n    output: cache_lookup_result\n\n  - id: evaluate_cache_hit\n    op: apply_rule\n    params:\n      rule: \"cache_lookup_result.found == true\"\n      on_true: serve_cached_response\n      on_false: fallback_network_fetch\n    output: cache_hit_decision\n\n  - id: serve_cached_response\n    op: format_output\n    params:\n      source: cache_lookup_result.data\n      content_type: \"{{cache_lookup_result.content_type}}\"\n      status: 200\n    output: cached_response\n\n  - id: fallback_network_fetch\n    op: fetch_api\n    params:\n      url: \"{{intercepted_request.url}}\"\n      method: \"{{intercepted_request.method}}\"\n      headers: \"{{intercepted_request.headers}}\"\n    output: network_response\n\n  - id: update_cache_on_fetch\n    op: write_database\n    params:\n      target: service_worker_cache\n      key: \"{{intercepted_request.url}}\"\n      value: \"{{network_response}}\"\n      condition: \"network_response.status == 200\"\n    output: cache_update_result\n\n  - id: handle_offline_error\n    op: handle_error\n    params:\n      watch_steps:\n        - fallback_network_fetch\n      on_error:\n        action: serve_offline_fallback\n        fallback_asset: \"/offline.html\"\n    output: error_handling_result\n\n  - id: log_cache_event\n    op: log_audit\n    params:\n      event_type: pwa_cache_event\n      details:\n        request_url: \"{{intercepted_request.url}}\"\n        served_from: \"{{cache_hit_decision}}\"\n        precache_status: \"{{precache_result.status}}\"\n    output: audit_log_entry",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_lf_004.py::test_parses_and_type_checks": false,
+            "test_wf_lf_004.py::test_passes_taint_analysis": true,
+            "test_wf_lf_004.py::test_applies_cache_rule": true
+          },
+          "failure_category": "test_failure",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "personal_tool",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_mm_008",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 2338.576000291854,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGLzCkgWkdopnYTAxNL'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 5,
+      "domain": "clinical_ai",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ms_009",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.17883391678333282,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMEaSn52yuZqMbKAKx'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 5,
+      "domain": "clinical_ai",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_mvp_001",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.1276430832222104,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMFGd6EBBCaXvQ3ZNP'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "manufacturing",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_mvp_002",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.14353829249739647,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMFqrG6cRJRj3M3jan'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "manufacturing",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_mvp_003",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.12202245928347111,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMGRL4WdQsznT57kJD'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 5,
+      "domain": "manufacturing",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_mvp_010",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.1325257085263729,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMGw5sSMbbeto675wT'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 4,
+      "domain": "manufacturing",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_pb_001",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.12809545826166868,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMHYJAHGqbVpSxTe5B'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "insurance_brokerage",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_pb_002",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.13876429107040167,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMJ9Wb4CKSoVapjwbb'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "insurance_brokerage",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_pb_004",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.16099191643297672,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMJpwGSoE1iAc4q6kJ'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "insurance_brokerage",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_pb_005",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.20625845808535814,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMKS9LzXSLHUJ2J4kD'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "insurance_brokerage",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_pb_006",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.11972275003790855,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMLEWwBTfSPwUeCuPa'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "insurance_brokerage",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_pb_007",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.1613402906805277,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMLn1YE9pvzaLXjRVn'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "insurance_brokerage",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_pb_008",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.24065524991601706,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMMXA8JybJiWbtHCyw'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "insurance_brokerage",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_pb_009",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.12009383272379637,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMNUDESiQJPpkc1D8F'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "insurance_brokerage",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_pb_010",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.1338482080027461,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMP2h895WiJUfAsdYJ'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "insurance_brokerage",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_sv_001",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.1622535828500986,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMPavvJkeSYKKMLfub'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "community_sports",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_sv_002",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.14350341726094484,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMQMZq1xSw2PBTcXFK'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "community_sports",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_sv_003",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.11858362518250942,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMQtKTcDUsT9LpQQ1Q'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 2,
+      "domain": "community_sports",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_sv_004",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.1950468746945262,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMRQpJugBRdLWT7v4T'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 4,
+      "domain": "community_sports",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_sv_005",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.16957358364015818,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMSGAYf3p4iTxCQvkk'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 1,
+      "domain": "community_sports",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_sv_006",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.12375145871192217,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMSyaAX5H2VQFqsoCE'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 4,
+      "domain": "community_sports",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ts_001",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.2019628332927823,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMTXZt9uabxdBxZFWx'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "community_sports",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    },
+    {
+      "task_id": "wf_ts_002",
+      "condition": "baseline_langchain",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "agent_error",
+      "synthesis_time_seconds": 0.2003841670230031,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "",
+          "dsl_type_errors": [
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeoGMUNAkSt9K77XiEzr6'}"
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "agent_error",
+          "success": false
+        }
+      ],
+      "complexity": 3,
+      "domain": "community_sports",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 0,
+      "total_output_tokens": 0
+    }
+  ],
+  "total_input_tokens": 0,
+  "total_output_tokens": 0,
+  "estimated_cost_usd": 0.0
+}

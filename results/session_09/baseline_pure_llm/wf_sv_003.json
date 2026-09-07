@@ -1,0 +1,42 @@
+{
+  "task_id": "wf_sv_003",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 7,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 12.823897208087146,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: incoming_email_classification\n\nsteps:\n  - id: poll_inbox\n    op: gmail/poll\n    params:\n      account: club_inbox\n      interval_minutes: 5\n      filter: \"is:unread\"\n    output: new_emails\n\n  - id: extract_email_fields\n    op: transform/extract\n    params:\n      source: \"{{ new_emails }}\"\n      fields:\n        - email_body\n        - thread_id\n        - sender_address\n    output: email_metadata\n\n  - id: retrieve_full_thread\n    op: gmail/get_thread\n    params:\n      account: club_inbox\n      thread_id: \"{{ email_metadata.thread_id }}\"\n    output: thread_messages\n\n  - id: build_thread_history\n    op: transform/map\n    params:\n      source: \"{{ thread_messages }}\"\n      mapping:\n        role: |\n          {% if message.sender_address ends_with '@club.example.com' %}\n            Club\n          {% else %}\n            Customer\n          {% endif %}\n        body: \"{{ message.body }}\"\n        timestamp: \"{{ message.timestamp }}\"\n        sender: \"{{ message.sender_address }}\"\n    output: labeled_thread_history\n\n  - id: check_internal_sender\n    op: condition/check\n    params:\n      condition: \"{{ email_metadata.sender_address ends_with '@club.example.com' }}\"\n    output: is_internal_sender\n\n  - id: classify_email\n    op: ai/classify\n    params:\n      skip_if: \"{{ is_internal_sender }}\"\n      model: gpt-4\n      system_prompt: >\n        You are a multilingual (EN/FR/ES) email classification agent for a club\n        operating in Montreal. Given an email thread, determine whether the latest\n        inbound message requires a customer support response.\n\n        Rules:\n        - If the sender domain is @club.example.com, always return customerSupport = false.\n        - If the message references a tax receipt request (including but not limited to\n          \"Releve 24\", \"RL-24\", \"relev\u00e9 24\", \"rl-24\"), always return customerSupport = true.\n        - Evaluate the message in its original language (EN, FR, or ES).\n\n        Respond with a JSON object: { \"customerSupport\": true/false, \"reason\": \"...\" }\n      messages:\n        - role: system\n          content: \"Thread history (labeled Club/Customer):\\n{{ labeled_thread_history }}\"\n        - role: user\n          content: \"Latest email from {{ email_metadata.sender_address }}:\\n{{ email_metadata.email_body }}\"\n      response_format: json\n    output: classification_result\n\n  - id: finalize_classification\n    op: transform/merge\n    params:\n      result: |\n        {% if is_internal_sender %}\n          { \"customerSupport\": false, \"reason\": \"Sender is internal @club.example.com\" }\n        {% else %}\n          {{ classification_result }}\n        {% endif %}\n      metadata:\n        thread_id: \"{{ email_metadata.thread_id }}\"\n        sender_address: \"{{ email_metadata.sender_address }}\"\n    output: final_classification",
+      "dsl_type_errors": [
+        "Step 'poll_inbox': unknown op 'gmail/poll'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'extract_email_fields': unknown op 'transform/extract'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'retrieve_full_thread': unknown op 'gmail/get_thread'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'build_thread_history': unknown op 'transform/map'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'check_internal_sender': unknown op 'condition/check'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'classify_email': unknown op 'ai/classify'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'finalize_classification': unknown op 'transform/merge'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "community_sports",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 327,
+  "total_output_tokens": 780
+}

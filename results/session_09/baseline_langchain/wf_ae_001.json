@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_ae_001",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 39.258443707600236,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_ae_001\nsteps:\n  - id: search_pending_pdfs\n    op: fetch_api\n    params:\n      endpoint: \"https://www.googleapis.com/drive/v3/files\"\n      method: GET\n      query:\n        q: \"'pending_articles_folder_id' in parents and mimeType='application/pdf'\"\n        fields: \"files(id,name)\"\n      auth: google_oauth\n    output: pdf_file_list\n\n  - id: loop_pdf_files\n    op: loop_records\n    params:\n      collection: \"{{pdf_file_list.files}}\"\n      iterator: pdf_file\n    output: processed_articles\n\n  - id: download_pdf_binary\n    op: fetch_api\n    params:\n      endpoint: \"https://www.googleapis.com/drive/v3/files/{{pdf_file.id}}?alt=media\"\n      method: GET\n      response_type: binary\n      auth: google_oauth\n    output: pdf_binary\n\n  - id: send_to_ai_vision\n    op: fetch_api\n    params:\n      endpoint: \"https://api.openai.com/v1/chat/completions\"\n      method: POST\n      headers:\n        Content-Type: application/json\n        Authorization: \"Bearer {{secrets.openai_api_key}}\"\n      body:\n        model: \"gpt-4o\"\n        messages:\n          - role: system\n            content: >\n              You are a structured data extractor for an economics magazine.\n              Extract article content from the provided PDF image(s).\n              Return valid JSON with these fields: titulo (title), autor (author),\n              seccion (section), bajada (lead), cuerpo (body text),\n              destacados (highlighted quotes as array), recuadros (sidebars as array).\n              If the PDF contains multiple book reviews, set es_multiple to true\n              and return an array of articles under \"articulos\".\n              For single articles, set es_multiple to false.\n              Replace any double quotes inside text content with single quotes.\n              The bajada (lead) field must never be empty; if not found,\n              use the first sentence of the body.\n          - role: user\n            content:\n              - type: image_url\n                image_url:\n                  url: \"data:application/pdf;base64,{{pdf_binary.base64}}\"\n        max_tokens: 4096\n    output: ai_raw_response\n\n  - id: extract_ai_content\n    op: extract_field\n    params:\n      source: \"{{ai_raw_response}}\"\n      field: \"choices[0].message.content\"\n    output: raw_content_string\n\n  - id: strip_markdown_fences\n    op: transform_json\n    params:\n      input: \"{{raw_content_string}}\"\n      operations:\n        - type: regex_replace\n          pattern: \"^```(?:json)?\\\\n?\"\n          replacement: \"\"\n        - type: regex_replace\n          pattern: \"\\\\n?```$\"\n          replacement: \"\"\n    output: clean_json_string\n\n  - id: replace_double_quotes_in_content\n    op: transform_json\n    params:\n      input: \"{{clean_json_string}}\"\n      operations:\n        - type: string_replace\n          target: '\\\\\"'\n          replacement: \"'\"\n    output: sanitized_json_string\n\n  - id: parse_extracted_json\n    op: transform_json\n    params:\n      input: \"{{sanitized_json_string}}\"\n      operations:\n        - type: parse_json\n    output: extracted_article\n\n  - id: validate_required_fields\n    op: validate_schema\n    params:\n      data: \"{{extracted_article}}\"\n      required_fields:\n        - titulo\n        - seccion\n        - cuerpo\n      rules:\n        - field: bajada\n          condition: not_empty\n          fallback: \"{{extracted_article.cuerpo | first_sentence}}\"\n    output: validated_article\n\n  - id: handle_validation_error\n    op: handle_error\n    params:\n      on_step: validate_required_fields\n      action: log_and_continue\n      message: \"Validation failed for PDF {{pdf_file.name}}: missing required fields\"\n\n  - id: log_extraction\n    op: log_audit\n    params:\n      action: article_extracted\n      details:\n        file_name: \"{{pdf_file.name}}\"\n        file_id: \"{{pdf_file.id}}\"\n        es_multiple: \"{{validated_article.es_multiple}}\"\n        title: \"{{validated_article.titulo}}\"\n    output: audit_record",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ae_001.py::test_parses_and_type_checks": false,
+        "test_wf_ae_001.py::test_passes_taint_analysis": true,
+        "test_wf_ae_001.py::test_has_ai_extraction": false,
+        "test_wf_ae_001.py::test_has_validation": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "publishing",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

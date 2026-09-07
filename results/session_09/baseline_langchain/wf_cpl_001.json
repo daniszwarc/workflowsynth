@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_cpl_001",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 24.955766124650836,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow validates successfully. Here is the final answer:\n\nworkflow_id: wf_cpl_001\nsteps:\n  - id: receive_registration_form\n    op: extract_field\n    params:\n      source: trigger.body\n      fields:\n        - name\n        - logo\n        - league\n        - season\n    output: team_data\n\n  - id: authenticate_admin\n    op: authenticate_user\n    params:\n      token: trigger.headers.auth_token\n      role: admin\n    output: auth_result\n\n  - id: validate_team_data\n    op: validate_schema\n    params:\n      input: team_data\n      schema:\n        required:\n          - name\n          - logo\n          - league\n          - season\n        properties:\n          name:\n            type: string\n          logo:\n            type: string\n          league:\n            type: string\n          season:\n            type: string\n    output: validation_result\n\n  - id: insert_team_record\n    op: write_database\n    params:\n      table: teams\n      operation: insert\n      data:\n        name: team_data.name\n        logo: team_data.logo\n        league: team_data.league\n        season: team_data.season\n        is_hidden: false\n    output: team_record\n\n  - id: initialize_standings_row\n    op: apply_rule\n    params:\n      rule: standings_initialization\n      input:\n        team_id: team_record.id\n        league: team_data.league\n        season: team_data.season\n        played: 0\n        wins: 0\n        draws: 0\n        losses: 0\n        goals_for: 0\n        goals_against: 0\n        goal_difference: 0\n        points: 0\n    output: standings_row\n\n  - id: write_standings_row\n    op: write_database\n    params:\n      table: standings\n      operation: insert\n      data:\n        team_id: team_record.id\n        league: team_data.league\n        season: team_data.season\n        played: 0\n        wins: 0\n        draws: 0\n        losses: 0\n        goals_for: 0\n        goals_against: 0\n        goal_difference: 0\n        points: 0\n    output: standings_record\n\n  - id: log_team_creation\n    op: log_audit\n    params:\n      action: team_created\n      actor: auth_result.user_id\n      resource_type: team\n      resource_id: team_record.id\n      details:\n        team_name: team_data.name\n        league: team_data.league\n        season: team_data.season\n        standings_id: standings_record.id\n    output: audit_log_entry",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_cpl_001.py::test_parses_and_type_checks": false,
+        "test_wf_cpl_001.py::test_passes_taint_analysis": false,
+        "test_wf_cpl_001.py::test_initializes_standings": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "sports_media",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

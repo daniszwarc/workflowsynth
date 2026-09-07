@@ -1,0 +1,54 @@
+{
+  "task_id": "wf_pb_007",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 11.827153249643743,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: duplicate_ticket_merge\nsteps:\n  - id: step_authenticate_producer\n    op: authenticate_user\n    params:\n      role: \"producer\"\n    output: auth_result\n\n  - id: step_read_duplicate_ticket\n    op: read_database\n    params:\n      table: tickets\n      query:\n        ticket_id: \"{{duplicate_ticket_id}}\"\n    output: raw_duplicate_ticket\n\n  - id: step_read_target_ticket\n    op: read_database\n    params:\n      table: tickets\n      query:\n        ticket_id: \"{{target_ticket_id}}\"\n    output: raw_target_ticket\n\n  - id: step_validate_duplicate_ticket\n    op: validate_schema\n    params:\n      input: raw_duplicate_ticket\n      schema: ticket_schema\n    output: validated_duplicate_ticket\n\n  - id: step_validate_target_ticket\n    op: validate_schema\n    params:\n      input: raw_target_ticket\n      schema: ticket_schema\n    output: validated_target_ticket\n\n  - id: step_extract_message_content\n    op: extract_field\n    params:\n      input: validated_duplicate_ticket\n      field: \"message_content\"\n    output: duplicate_message_content\n\n  - id: step_append_message_to_target\n    op: transform_json\n    params:\n      input: validated_target_ticket\n      mapping:\n        action: \"append_to_message_log\"\n        new_message: \"{{duplicate_message_content}}\"\n    output: target_with_appended_message\n\n  - id: step_update_resumen\n    op: apply_rule\n    params:\n      rule: \"check_if_message_adds_information\"\n      input_message: \"{{duplicate_message_content}}\"\n      current_resumen: \"{{validated_target_ticket.resumen}}\"\n    output: resumen_update_decision\n\n  - id: step_route_resumen_update\n    op: route_to_step\n    params:\n      condition: \"resumen_update_decision.should_update == true\"\n      true_step: step_transform_resumen\n      false_step: step_write_updated_target\n\n  - id: step_transform_resumen\n    op: transform_json\n    params:\n      input: target_with_appended_message\n      mapping:\n        action: \"update_resumen\"\n        additional_info: \"{{duplicate_message_content}}\"\n    output: target_with_updated_resumen\n\n  - id: step_write_updated_target\n    op: merge_datasets\n    params:\n      input_a: target_with_appended_message\n      input_b: target_with_updated_resumen\n      key: \"ticket_id\"\n      strategy: \"prefer_b_if_exists\"\n    output: final_target_ticket\n\n  - id: step_write_target_to_db\n    op: write_database\n    params:\n      input: final_target_ticket\n      table: tickets\n      operation: \"update\"\n    output: target_write_result\n\n  - id: step_archive_duplicate\n    op: transform_json\n    params:\n      input: validated_duplicate_ticket\n      mapping:\n        visible: false\n        status: \"archived\"\n        archived_reason: \"merged_into_{{target_ticket_id}}\"\n    output: archived_duplicate_ticket\n\n  - id: step_write_archived_duplicate\n    op: write_database\n    params:\n      input: archived_duplicate_ticket\n      table: tickets\n      operation: \"update\"\n    output: archive_write_result\n\n  - id: step_prepare_audit_entry\n    op: transform_json\n    params:\n      input: validated_duplicate_ticket\n      mapping:\n        action: \"merge\"\n        source_ticket_id: \"{{duplicate_ticket_id}}\"\n        target_ticket_id: \"{{target_ticket_id}}\"\n        performed_by: \"{{auth_result.user_id}}\"\n        timestamp: \"{{now}}\"\n        details: \"Duplicate ticket merged into target ticket\"\n    output: audit_entry\n\n  - id: step_log_merge_action\n    op: log_audit\n    params:\n      input: audit_entry\n      log_name: \"ticket_history\"\n    output: audit_log_result\n\n  - id: step_write_ticket_history\n    op: write_database\n    params:\n      input: audit_entry\n      table: ticket_history\n      operation: \"insert\"\n    output: history_write_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"Duplicate ticket {{duplicate_ticket_id}} successfully merged into {{target_ticket_id}}\"",
+      "dsl_type_errors": [
+        "Step 'step_write_updated_target' (op: merge_datasets): missing required param 'input'. This op requires an input from a previous step's output."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1134,
+      "output_tokens": 1153
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: duplicate_ticket_merge\nsteps:\n  - id: step_authenticate_producer\n    op: authenticate_user\n    params:\n      role: \"producer\"\n    output: auth_result\n\n  - id: step_read_duplicate_ticket\n    op: read_database\n    params:\n      table: tickets\n      query:\n        ticket_id: \"{{duplicate_ticket_id}}\"\n    output: raw_duplicate_ticket\n\n  - id: step_read_target_ticket\n    op: read_database\n    params:\n      table: tickets\n      query:\n        ticket_id: \"{{target_ticket_id}}\"\n    output: raw_target_ticket\n\n  - id: step_validate_duplicate_ticket\n    op: validate_schema\n    params:\n      input: raw_duplicate_ticket\n      schema: ticket_schema\n    output: validated_duplicate_ticket\n\n  - id: step_validate_target_ticket\n    op: validate_schema\n    params:\n      input: raw_target_ticket\n      schema: ticket_schema\n    output: validated_target_ticket\n\n  - id: step_extract_message_content\n    op: extract_field\n    params:\n      input: validated_duplicate_ticket\n      field: \"message_content\"\n    output: duplicate_message_content\n\n  - id: step_append_message_to_target\n    op: transform_json\n    params:\n      input: validated_target_ticket\n      mapping:\n        action: \"append_to_message_log\"\n        new_message: \"{{duplicate_message_content}}\"\n    output: target_with_appended_message\n\n  - id: step_update_resumen\n    op: apply_rule\n    params:\n      rule: \"check_if_message_adds_information\"\n      input_message: \"{{duplicate_message_content}}\"\n      current_resumen: \"{{validated_target_ticket.resumen}}\"\n    output: resumen_update_decision\n\n  - id: step_route_resumen_update\n    op: route_to_step\n    params:\n      condition: \"resumen_update_decision.should_update == true\"\n      true_step: step_transform_resumen\n      false_step: step_write_target_to_db\n\n  - id: step_transform_resumen\n    op: transform_json\n    params:\n      input: target_with_appended_message\n      mapping:\n        action: \"update_resumen\"\n        additional_info: \"{{duplicate_message_content}}\"\n    output: target_with_updated_resumen\n\n  - id: step_merge_target_data\n    op: merge_datasets\n    params:\n      input: target_with_appended_message\n      input_a: target_with_appended_message\n      input_b: target_with_updated_resumen\n      key: \"ticket_id\"\n      strategy: \"prefer_b_if_exists\"\n    output: final_target_ticket\n\n  - id: step_write_target_to_db\n    op: write_database\n    params:\n      input: final_target_ticket\n      table: tickets\n      operation: \"update\"\n    output: target_write_result\n\n  - id: step_archive_duplicate\n    op: transform_json\n    params:\n      input: validated_duplicate_ticket\n      mapping:\n        visible: false\n        status: \"archived\"\n        archived_reason: \"merged_into_{{target_ticket_id}}\"\n    output: archived_duplicate_ticket\n\n  - id: step_write_archived_duplicate\n    op: write_database\n    params:\n      input: archived_duplicate_ticket\n      table: tickets\n      operation: \"update\"\n    output: archive_write_result\n\n  - id: step_prepare_audit_entry\n    op: transform_json\n    params:\n      input: validated_duplicate_ticket\n      mapping:\n        action: \"merge\"\n        source_ticket_id: \"{{duplicate_ticket_id}}\"\n        target_ticket_id: \"{{target_ticket_id}}\"\n        performed_by: \"{{auth_result.user_id}}\"\n        timestamp: \"{{now}}\"\n        details: \"Duplicate ticket merged into target ticket\"\n    output: audit_entry\n\n  - id: step_log_merge_action\n    op: log_audit\n    params:\n      input: audit_entry\n      log_name: \"ticket_history\"\n    output: audit_log_result\n\n  - id: step_write_ticket_history\n    op: write_database\n    params:\n      input: audit_entry\n      table: ticket_history\n      operation: \"insert\"\n    output: history_write_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"Duplicate ticket {{duplicate_ticket_id}} successfully merged into {{target_ticket_id}}\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_pb_007.py::test_parses_and_type_checks": true,
+        "test_wf_pb_007.py::test_passes_taint_analysis": true,
+        "test_wf_pb_007.py::test_reads_both_tickets": true,
+        "test_wf_pb_007.py::test_logs_merge": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 2392,
+      "output_tokens": 1167
+    }
+  ],
+  "complexity": 2,
+  "domain": "insurance_brokerage",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 3526,
+  "total_output_tokens": 2320
+}

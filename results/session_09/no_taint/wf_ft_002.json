@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_ft_002",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.4726405004039407,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: daily_nutrition_log_entry\nsteps:\n  - id: step_authenticate_user\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: step_receive_food_entry\n    op: fetch_api\n    params:\n      endpoint: \"/api/nutrition/food-entry\"\n    output: raw_food_entry\n\n  - id: step_validate_entry\n    op: validate_schema\n    params:\n      input: raw_food_entry\n      schema:\n        required_fields:\n          - item_name\n          - meal_type\n          - calories\n          - protein\n          - carbs\n          - fat\n          - timestamp\n          - user_id\n        rules:\n          meal_type:\n            enum:\n              - breakfast\n              - lunch\n              - dinner\n              - snack\n          calories:\n            type: number\n            min: 0\n          protein:\n            type: number\n            min: 0\n          carbs:\n            type: number\n            min: 0\n          fat:\n            type: number\n            min: 0\n    output: validated_entry\n\n  - id: step_lookup_food_item\n    op: read_database\n    params:\n      table: nutrition_database\n      query_field: item_name\n      query_value_from: validated_entry\n    output: raw_db_food_item\n\n  - id: step_sanitize_db_food_item\n    op: validate_schema\n    params:\n      input: raw_db_food_item\n      schema:\n        required_fields:\n          - item_name\n          - calories\n          - protein\n          - carbs\n          - fat\n    output: verified_food_item\n\n  - id: step_merge_entry_with_db\n    op: merge_datasets\n    params:\n      input: validated_entry\n      secondary: verified_food_item\n      key: item_name\n    output: enriched_entry\n\n  - id: step_read_existing_daily_logs\n    op: read_database\n    params:\n      table: nutrition_logs\n      query_field: user_id_and_date\n      query_value_from: enriched_entry\n    output: raw_daily_logs\n\n  - id: step_sanitize_daily_logs\n    op: filter_records\n    params:\n      input: raw_daily_logs\n      condition: \"record.user_id != null AND record.date != null\"\n    output: clean_daily_logs\n\n  - id: step_aggregate_daily_totals\n    op: aggregate_data\n    params:\n      input: clean_daily_logs\n      group_by: date\n      operations:\n        - field: calories\n          function: sum\n        - field: protein\n          function: sum\n        - field: carbs\n          function: sum\n        - field: fat\n          function: sum\n      include_new_entry: enriched_entry\n    output: daily_totals\n\n  - id: step_write_log_entry\n    op: write_database\n    params:\n      input: enriched_entry\n      table: nutrition_logs\n    output: write_entry_result\n\n  - id: step_write_daily_totals\n    op: write_database\n    params:\n      input: daily_totals\n      table: daily_nutrition_totals\n    output: write_totals_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: daily_totals\n      action: \"nutrition_log_entry_added\"\n      details: \"User added food item and daily totals recomputed\"\n    output: audit_result\n\n  - id: step_notify_user\n    op: notify_user\n    params:\n      input: daily_totals\n      message: \"Your food entry has been logged. Daily totals updated.\"\n      channel: \"in_app\"\n    output: notification_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ft_002.py::test_parses_and_type_checks": true,
+        "test_wf_ft_002.py::test_passes_taint_analysis": true,
+        "test_wf_ft_002.py::test_computes_daily_totals": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1108,
+      "output_tokens": 934
+    }
+  ],
+  "complexity": 2,
+  "domain": "health_fitness",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1108,
+  "total_output_tokens": 934
+}

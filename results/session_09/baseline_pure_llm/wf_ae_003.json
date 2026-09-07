@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_ae_003",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 5,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 9.221356582827866,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: drupal_metadata_lookup\n\nsteps:\n  - id: lookup_author_entity\n    op: cms_jsonapi_query\n    params:\n      endpoint: /jsonapi/node/author\n      filter_field: title\n      filter_value: \"{{ article.author_name }}\"\n      method: GET\n    output: author_result\n    on_failure:\n      op: flag_for_review\n      params:\n        article_id: \"{{ article.id }}\"\n        reason: \"Author not found \u2013 manual assignment required\"\n        flag_type: manual_author_assignment\n\n  - id: lookup_category_term\n    op: cms_jsonapi_query\n    params:\n      endpoint: /jsonapi/taxonomy_term/category\n      filter_field: name\n      filter_value: \"{{ article.category_name }}\"\n      method: GET\n    output: category_result\n    on_failure:\n      op: abort\n      params:\n        reason: \"Category taxonomy term not found for '{{ article.category_name }}'\"\n\n  - id: lookup_magazine_issue\n    op: cms_jsonapi_query\n    params:\n      endpoint: /jsonapi/node/magazine_issue\n      filter_field: field_issue_number\n      filter_value: \"{{ article.magazine_issue_number }}\"\n      method: GET\n    output: issue_result\n    on_failure:\n      op: abort\n      params:\n        reason: \"Magazine issue not found for issue number '{{ article.magazine_issue_number }}'\"\n\n  - id: validate_all_lookups\n    op: assert_all_present\n    params:\n      required:\n        - \"{{ author_result.data.id }}\"\n        - \"{{ category_result.data.id }}\"\n        - \"{{ issue_result.data.id }}\"\n      error_message: \"One or more metadata lookups failed \u2013 cannot proceed with article creation\"\n    depends_on:\n      - lookup_author_entity\n      - lookup_category_term\n      - lookup_magazine_issue\n\n  - id: merge_metadata\n    op: merge_records\n    params:\n      fields:\n        author_entity_id: \"{{ author_result.data.id }}\"\n        author_name: \"{{ author_result.data.attributes.title }}\"\n        category_term_uuid: \"{{ category_result.data.id }}\"\n        category_name: \"{{ category_result.data.attributes.name }}\"\n        magazine_issue_uuid: \"{{ issue_result.data.id }}\"\n        magazine_issue_number: \"{{ issue_result.data.attributes.field_issue_number }}\"\n        article_id: \"{{ article.id }}\"\n    depends_on:\n      - validate_all_lookups\n    output: article_metadata_record",
+      "dsl_type_errors": [
+        "Step 'lookup_author_entity': unknown op 'cms_jsonapi_query'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'lookup_category_term': unknown op 'cms_jsonapi_query'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'lookup_magazine_issue': unknown op 'cms_jsonapi_query'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_all_lookups': unknown op 'assert_all_present'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'merge_metadata': unknown op 'merge_records'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "publishing",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 263,
+  "total_output_tokens": 663
+}

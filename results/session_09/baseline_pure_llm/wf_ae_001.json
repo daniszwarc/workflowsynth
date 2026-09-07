@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_ae_001",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 6,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 14.127847832627594,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: pdf-article-extraction-via-ai-vision\n\nsteps:\n  - id: search_pending_pdfs\n    op: google_drive/search_files\n    params:\n      folder_id: \"pending_articles_folder_id\"\n      mime_type: \"application/pdf\"\n      query: \"mimeType='application/pdf' and trashed=false\"\n    output: pdf_files\n\n  - id: download_pdf_binary\n    op: google_drive/download_file\n    params:\n      file_id: \"{{ pdf_files[0].id }}\"\n      format: binary\n    output: pdf_binary\n\n  - id: send_to_ai_vision\n    op: ai_vision/extract_content\n    params:\n      model: \"gpt-4-vision\"\n      input: \"{{ pdf_binary }}\"\n      prompt: |\n        Extract structured content from this PDF article. Return a JSON object with the following fields:\n        - title (string, required)\n        - author (string)\n        - section (string, required)\n        - lead (string, must not be empty)\n        - content (string, required)\n        - highlighted_quotes (array of strings)\n        - sidebars (array of objects with title and body)\n        - es_multiple (boolean)\n\n        If the PDF contains multiple book reviews rather than a single article, set es_multiple to true\n        and return a \"reviews\" array where each element contains the fields above.\n\n        Return ONLY valid JSON. Replace any double quotes inside text content with single quotes\n        to preserve JSON validity.\n    output: ai_raw_response\n\n  - id: parse_ai_response\n    op: transform/parse_json\n    params:\n      input: \"{{ ai_raw_response }}\"\n      strip_markdown_fences: true\n      operations:\n        - action: regex_replace\n          pattern: \"```json?\"\n          replacement: \"\"\n        - action: regex_replace\n          pattern: \"```\"\n          replacement: \"\"\n        - action: trim_whitespace\n    output: parsed_content\n\n  - id: replace_double_quotes_in_content\n    op: transform/sanitize_strings\n    params:\n      input: \"{{ parsed_content }}\"\n      fields_to_sanitize:\n        - title\n        - lead\n        - content\n        - highlighted_quotes\n        - sidebars.*.body\n        - reviews.*.title\n        - reviews.*.lead\n        - reviews.*.content\n        - reviews.*.highlighted_quotes\n        - reviews.*.sidebars.*.body\n      replace:\n        from: '\"'\n        to: \"'\"\n    output: sanitized_content\n\n  - id: validate_required_fields\n    op: validate/check_fields\n    params:\n      input: \"{{ sanitized_content }}\"\n      rules:\n        - condition: \"{{ sanitized_content.es_multiple == true }}\"\n          required_fields_per_item:\n            array_field: reviews\n            fields:\n              - field: title\n                not_empty: true\n              - field: section\n                not_empty: true\n              - field: content\n                not_empty: true\n              - field: lead\n                not_empty: true\n                error_message: \"Lead field must never be empty\"\n        - condition: \"{{ sanitized_content.es_multiple != true }}\"\n          required_fields:\n            - field: title\n              not_empty: true\n            - field: section\n              not_empty: true\n            - field: content\n              not_empty: true\n            - field: lead\n              not_empty: true\n              error_message: \"Lead field must never be empty\"\n      on_failure: raise_error\n    output: validated_content",
+      "dsl_type_errors": [
+        "Step 'search_pending_pdfs': unknown op 'google_drive/search_files'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'download_pdf_binary': unknown op 'google_drive/download_file'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'send_to_ai_vision': unknown op 'ai_vision/extract_content'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'parse_ai_response': unknown op 'transform/parse_json'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'replace_double_quotes_in_content': unknown op 'transform/sanitize_strings'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_required_fields': unknown op 'validate/check_fields'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "publishing",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 309,
+  "total_output_tokens": 880
+}

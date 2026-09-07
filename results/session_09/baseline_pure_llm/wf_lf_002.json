@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_lf_002",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 4,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 10.507727332413197,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: llm-text-cleanup-via-fastapi-proxy\n\nsteps:\n  - id: receive_extracted_text\n    op: receive_request\n    params:\n      source: pwa_frontend\n      method: POST\n      endpoint: /api/cleanup\n      content_type: application/json\n      expected_payload:\n        - extracted_text\n    output: raw_request\n\n  - id: validate_cors_origin\n    op: validate_origin\n    params:\n      request: \"{{raw_request}}\"\n      allowed_origins:\n        - \"https://<username>.github.io\"\n      reject_on_mismatch: true\n      error_response:\n        status: 403\n        body: \"Origin not allowed\"\n    output: validated_request\n\n  - id: forward_to_llm\n    op: http_post\n    params:\n      url: \"{{LLM_API_ENDPOINT}}\"\n      headers:\n        Authorization: \"Bearer {{LLM_API_KEY}}\"\n        Content-Type: application/json\n      body:\n        model: \"{{LLM_MODEL}}\"\n        messages:\n          - role: system\n            content: >\n              Tu es un assistant de nettoyage de texte. Tu re\u00e7ois un extrait de texte\n              issu d'un livre num\u00e9ris\u00e9. Supprime les num\u00e9ros de page, les en-t\u00eates\n              courants, les notes de bas de page, et les artefacts de c\u00e9sure\n              (traits d'union en fin de ligne avec mot coup\u00e9). Retourne uniquement\n              le texte nettoy\u00e9, sans commentaire ni explication.\n          - role: user\n            content: \"{{validated_request.extracted_text}}\"\n      timeout_seconds: 30\n      no_storage: true\n      no_logging_of_payload: true\n    output: llm_response\n\n  - id: receive_cleaned_text\n    op: extract_field\n    params:\n      source: \"{{llm_response}}\"\n      field: choices[0].message.content\n      trim_whitespace: true\n    output: cleaned_text\n\n  - id: return_cleaned_text\n    op: send_response\n    params:\n      status: 200\n      headers:\n        Content-Type: application/json\n        Access-Control-Allow-Origin: \"https://<username>.github.io\"\n        Access-Control-Allow-Methods: POST\n        Access-Control-Allow-Headers: Content-Type\n      body:\n        cleaned_text: \"{{cleaned_text}}\"\n      no_data_retention: true",
+      "dsl_type_errors": [
+        "Step 'receive_extracted_text': unknown op 'receive_request'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_cors_origin': unknown op 'validate_origin'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'forward_to_llm': unknown op 'http_post'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'return_cleaned_text': unknown op 'send_response'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "personal_tool",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 300,
+  "total_output_tokens": 618
+}

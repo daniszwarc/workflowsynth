@@ -1,0 +1,277 @@
+{
+  "main_results": {
+    "full": {
+      "n_tasks": 60,
+      "pass_at_1": 0.48333333333333334,
+      "pass_at_3": 0.7333333333333333,
+      "pass_at_5": 0.7666666666666667,
+      "pass_at_10": 0.8333333333333334,
+      "mean_attempts_successful": 1.94,
+      "security_pass_at_10": 0.8571428571428571,
+      "n_security_tasks": 28
+    },
+    "no_repair": {
+      "n_tasks": 60,
+      "pass_at_1": 0.5,
+      "pass_at_3": 0.5,
+      "pass_at_5": 0.5,
+      "pass_at_10": 0.5,
+      "mean_attempts_successful": 1,
+      "security_pass_at_10": 0.4642857142857143,
+      "n_security_tasks": 28
+    },
+    "no_verify": {
+      "n_tasks": 60,
+      "pass_at_1": 0.5333333333333333,
+      "pass_at_3": 0.6166666666666667,
+      "pass_at_5": 0.6333333333333333,
+      "pass_at_10": 0.7166666666666667,
+      "mean_attempts_successful": 2.186046511627907,
+      "security_pass_at_10": 0.6428571428571429,
+      "n_security_tasks": 28
+    },
+    "no_taint": {
+      "n_tasks": 60,
+      "pass_at_1": 0.5166666666666667,
+      "pass_at_3": 0.8,
+      "pass_at_5": 0.8166666666666667,
+      "pass_at_10": 0.85,
+      "mean_attempts_successful": 1.7254901960784315,
+      "security_pass_at_10": 0.8928571428571429,
+      "n_security_tasks": 28
+    },
+    "baseline_pure_llm": {
+      "n_tasks": 60,
+      "pass_at_1": 0.0,
+      "pass_at_3": 0.0,
+      "pass_at_5": 0.0,
+      "pass_at_10": 0.0,
+      "mean_attempts_successful": 0.0,
+      "security_pass_at_10": 0.0,
+      "n_security_tasks": 28
+    },
+    "baseline_langchain": {
+      "n_tasks": 37,
+      "pass_at_1": 0.0,
+      "pass_at_3": 0.0,
+      "pass_at_5": 0.0,
+      "pass_at_10": 0.0,
+      "mean_attempts_successful": 0.0,
+      "security_pass_at_10": 0.0,
+      "n_security_tasks": 20
+    }
+  },
+  "ablation_comparison": {
+    "no_repair": {
+      "pass_at_10": 0.5,
+      "delta_vs_full_pp": -33.333333333333336
+    },
+    "no_verify": {
+      "pass_at_10": 0.7166666666666667,
+      "delta_vs_full_pp": -11.66666666666667
+    },
+    "no_taint": {
+      "pass_at_10": 0.85,
+      "delta_vs_full_pp": 1.6666666666666607
+    }
+  },
+  "baseline_comparison": {
+    "baseline_pure_llm": {
+      "pass_at_10": 0.0,
+      "delta_vs_full_pp": -83.33333333333334,
+      "n_tasks": 60,
+      "partial": false
+    },
+    "baseline_langchain": {
+      "pass_at_10": 0.0,
+      "delta_vs_full_pp": -83.33333333333334,
+      "n_tasks": 37,
+      "partial": true
+    }
+  },
+  "by_complexity": {
+    "1": {
+      "pass_at_10": 1.0,
+      "n_tasks": 8
+    },
+    "2": {
+      "pass_at_10": 0.8928571428571429,
+      "n_tasks": 28
+    },
+    "3": {
+      "pass_at_10": 0.8461538461538461,
+      "n_tasks": 13
+    },
+    "4": {
+      "pass_at_10": 0.5714285714285714,
+      "n_tasks": 7
+    },
+    "5": {
+      "pass_at_10": 0.5,
+      "n_tasks": 4
+    }
+  },
+  "by_domain": {
+    "manufacturing": {
+      "pass_at_10": 1.0,
+      "n_tasks": 4
+    },
+    "enterprise_knowledge": {
+      "pass_at_10": 0.6,
+      "n_tasks": 5
+    },
+    "insurance_brokerage": {
+      "pass_at_10": 0.8888888888888888,
+      "n_tasks": 9
+    },
+    "workers_compensation": {
+      "pass_at_10": 1.0,
+      "n_tasks": 3
+    },
+    "community_sports": {
+      "pass_at_10": 0.625,
+      "n_tasks": 8
+    },
+    "healthcare_billing": {
+      "pass_at_10": 1.0,
+      "n_tasks": 4
+    },
+    "publishing": {
+      "pass_at_10": 1.0,
+      "n_tasks": 6
+    },
+    "sports_media": {
+      "pass_at_10": 1.0,
+      "n_tasks": 4
+    },
+    "personal_tool": {
+      "pass_at_10": 0.5,
+      "n_tasks": 4
+    },
+    "clinical_ai": {
+      "pass_at_10": 0.5,
+      "n_tasks": 4
+    },
+    "health_fitness": {
+      "pass_at_10": 1.0,
+      "n_tasks": 9
+    }
+  },
+  "failure_taxonomy": {
+    "per_attempt_bucket": {
+      "attempt 1": {
+        "taint_violation": 2,
+        "type_error": 20,
+        "test_failure": 6,
+        "success": 29,
+        "parse_error": 3
+      },
+      "attempt 2": {
+        "success": 15,
+        "parse_error": 3,
+        "type_error": 6,
+        "test_failure": 7
+      },
+      "attempt 3+": {
+        "parse_error": 32,
+        "success": 6,
+        "type_error": 25,
+        "test_failure": 43
+      }
+    },
+    "avg_attempts_before_success": 1.94,
+    "avg_attempts_failed_tasks": 10
+  },
+  "statistical_tests": {
+    "no_repair": {
+      "n": 60,
+      "t_statistic": 5.064797519451639,
+      "p_value": 4.301715534973224e-06,
+      "cohens_d": 0.6538625481582945,
+      "pass_at_10_diff": 0.33333333333333337,
+      "ci_95_low": 0.17554124161704152,
+      "ci_95_high": 0.4911254250496252,
+      "significant": true
+    },
+    "no_verify": {
+      "n": 60,
+      "t_statistic": 1.8431439955912663,
+      "p_value": 0.07033288335362622,
+      "cohens_d": 0.23794886665290566,
+      "pass_at_10_diff": 0.1166666666666667,
+      "ci_95_low": -0.0312953499850438,
+      "ci_95_high": 0.2646286833183772,
+      "significant": false
+    },
+    "no_taint": {
+      "n": 60,
+      "t_statistic": -0.37524852544314596,
+      "p_value": 0.7088213022065126,
+      "cohens_d": -0.048444376324339816,
+      "pass_at_10_diff": -0.016666666666666607,
+      "ci_95_low": -0.14726286026593974,
+      "ci_95_high": 0.11392952693260652,
+      "significant": false
+    },
+    "baseline_pure_llm": {
+      "n": 60,
+      "t_statistic": 17.17556403731767,
+      "p_value": 1.2513816846484707e-24,
+      "cohens_d": 2.217355782608345,
+      "pass_at_10_diff": 0.8333333333333334,
+      "ci_95_low": 0.7390345221603191,
+      "ci_95_high": 0.9276321445063477,
+      "significant": true
+    },
+    "baseline_langchain": {
+      "n": 37,
+      "t_statistic": 17.233687939614086,
+      "p_value": 5.671408097870615e-19,
+      "cohens_d": 2.833200844809105,
+      "pass_at_10_diff": 0.8918918918918919,
+      "ci_95_low": 0.7918383492469495,
+      "ci_95_high": 0.9919454345368343,
+      "significant": true
+    }
+  },
+  "cost_summary": {
+    "full": {
+      "input_tokens": 440182,
+      "output_tokens": 264427,
+      "cost_usd": 8.811585000000001
+    },
+    "no_repair": {
+      "input_tokens": 68370,
+      "output_tokens": 67388,
+      "cost_usd": 2.0265500000000003
+    },
+    "no_verify": {
+      "input_tokens": 574210,
+      "output_tokens": 321234,
+      "cost_usd": 10.901900000000001
+    },
+    "no_taint": {
+      "input_tokens": 384932,
+      "output_tokens": 234982,
+      "cost_usd": 7.79921
+    },
+    "baseline_pure_llm": {
+      "input_tokens": 17430,
+      "output_tokens": 46446,
+      "cost_usd": 1.2483000000000002
+    },
+    "baseline_langchain": {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cost_usd": 0.0
+    },
+    "grand_total": {
+      "input_tokens": 1485124,
+      "output_tokens": 934477,
+      "cost_usd": 30.787545
+    }
+  },
+  "notes": {
+    "baseline_langchain": "37/60 valid tasks; 23 excluded due to Anthropic API billing failure ('credit balance is too low'), not real synthesis attempts."
+  }
+}

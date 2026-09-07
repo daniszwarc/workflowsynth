@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_cpl_009",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 5,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 8.352544208057225,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: attachment_upload_for_requests\nsteps:\n  - id: receive_file_upload\n    op: receive_upload\n    params:\n      source: dropzone_interface\n      required_fields:\n        - file\n        - parent_request_id\n    output:\n      file: uploaded_file\n      parent_request_id: parent_request_id\n\n  - id: validate_parent_request\n    op: lookup_record\n    params:\n      table: requests\n      filter:\n        id: \"{{ parent_request_id }}\"\n    output:\n      request_record: request_record\n    on_failure:\n      error: \"Parent request not found. Attachment must be linked to an existing request.\"\n\n  - id: validate_file_type_and_size\n    op: validate_file\n    params:\n      file: \"{{ uploaded_file }}\"\n      allowed_types:\n        - application/pdf\n        - image/png\n        - image/jpeg\n        - application/msword\n        - application/vnd.openxmlformats-officedocument.wordprocessingml.document\n        - application/vnd.ms-excel\n        - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\n        - text/plain\n      max_size_mb: 25\n    output:\n      validation_result: file_validation_result\n    on_failure:\n      error: \"File validation failed. Please check the file type and size constraints.\"\n\n  - id: store_attachment_file\n    op: store_file\n    params:\n      file: \"{{ uploaded_file }}\"\n      storage_path: \"attachments/{{ parent_request_id }}\"\n    output:\n      stored_file_path: stored_file_path\n      stored_file_url: stored_file_url\n\n  - id: insert_attachment_record\n    op: insert_record\n    params:\n      table: attachments\n      fields:\n        request_id: \"{{ parent_request_id }}\"\n        file_name: \"{{ uploaded_file.name }}\"\n        file_type: \"{{ uploaded_file.content_type }}\"\n        file_size: \"{{ uploaded_file.size }}\"\n        file_path: \"{{ stored_file_path }}\"\n        file_url: \"{{ stored_file_url }}\"\n        uploaded_at: \"{{ now() }}\"\n    output:\n      attachment_id: attachment_id",
+      "dsl_type_errors": [
+        "Step at index 0 (id='receive_file_upload'): 'output' must be a string if present.",
+        "Step at index 1 (id='validate_parent_request'): 'output' must be a string if present.",
+        "Step at index 2 (id='validate_file_type_and_size'): 'output' must be a string if present.",
+        "Step at index 3 (id='store_attachment_file'): 'output' must be a string if present.",
+        "Step at index 4 (id='insert_attachment_record'): 'output' must be a string if present."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "sports_media",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 221,
+  "total_output_tokens": 581
+}

@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_lf_004",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.7382129589095712,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: pwa_offline_asset_caching\nsteps:\n  - id: step_authenticate_service_worker\n    op: authenticate_user\n    params:\n      role: \"service_worker\"\n    output: sw_auth_result\n\n  - id: step_fetch_critical_assets\n    op: fetch_api\n    params:\n      endpoint: \"/api/pwa/critical-assets-manifest\"\n    output: raw_critical_assets\n\n  - id: step_validate_critical_assets\n    op: validate_schema\n    params:\n      input: raw_critical_assets\n      schema: critical_assets_schema\n    output: validated_critical_assets\n\n  - id: step_transform_assets_for_cache\n    op: transform_json\n    params:\n      input: validated_critical_assets\n      mapping:\n        include_fields:\n          - asset_url\n          - asset_hash\n          - content_type\n        add_fields:\n          cache_name: \"pwa-critical-v1\"\n          precache: true\n    output: cacheable_assets\n\n  - id: step_write_precache\n    op: write_database\n    params:\n      input: cacheable_assets\n      table: service_worker_cache_store\n    output: precache_result\n\n  - id: step_log_precache_install\n    op: log_audit\n    params:\n      input: cacheable_assets\n      message: \"Service worker installed and critical assets pre-cached\"\n    output: precache_audit\n\n  - id: step_intercept_fetch_request\n    op: fetch_api\n    params:\n      endpoint: \"/api/pwa/intercepted-request\"\n    output: raw_fetch_request\n\n  - id: step_validate_fetch_request\n    op: validate_schema\n    params:\n      input: raw_fetch_request\n      schema: fetch_request_schema\n    output: validated_fetch_request\n\n  - id: step_extract_request_url\n    op: extract_field\n    params:\n      input: validated_fetch_request\n      field: \"request_url\"\n    output: request_url\n\n  - id: step_check_llm_cleanup_exclusion\n    op: apply_rule\n    params:\n      rule: \"request_url matches '/api/llm/cleanup*'\"\n      input_ref: request_url\n    output: is_llm_cleanup_request\n\n  - id: step_route_llm_cleanup\n    op: route_to_step\n    params:\n      condition: \"is_llm_cleanup_request == true\"\n      target: step_network_only_fetch\n      fallback: step_cache_lookup\n    output: route_decision\n\n  - id: step_network_only_fetch\n    op: fetch_api\n    params:\n      endpoint: \"/api/pwa/network-passthrough\"\n    output: raw_network_response\n\n  - id: step_validate_network_response\n    op: validate_schema\n    params:\n      input: raw_network_response\n      schema: network_response_schema\n    output: validated_network_response\n\n  - id: step_format_network_response\n    op: format_output\n    params:\n      input: validated_network_response\n      format: \"json\"\n    output: formatted_network_response\n\n  - id: step_cache_lookup\n    op: read_database\n    params:\n      table: service_worker_cache_store\n      query:\n        asset_url: \"request_url\"\n    output: raw_cache_lookup_result\n\n  - id: step_validate_cache_result\n    op: validate_schema\n    params:\n      input: raw_cache_lookup_result\n      schema: cache_entry_schema\n    output: validated_cache_result\n\n  - id: step_check_cache_hit\n    op: apply_rule\n    params:\n      rule: \"validated_cache_result is not empty\"\n      input_ref: validated_cache_result\n    output: cache_hit\n\n  - id: step_route_cache_or_network\n    op: route_to_step\n    params:\n      condition: \"cache_hit == true\"\n      target: step_serve_from_cache\n      fallback: step_fetch_from_network\n    output: cache_route_decision\n\n  - id: step_serve_from_cache\n    op: format_output\n    params:\n      input: validated_cache_result\n      format: \"json\"\n    output: cached_response\n\n  - id: step_log_cache_hit\n    op: log_audit\n    params:\n      input: validated_cache_result\n      message: \"Cache-first: served asset from cache\"\n    output: cache_hit_audit\n\n  - id: step_fetch_from_network\n    op: fetch_api\n    params:\n      endpoint: \"/api/pwa/network-fetch\"\n    output: raw_network_asset\n\n  - id: step_validate_network_asset\n    op: validate_schema\n    params:\n      input: raw_network_asset\n      schema: network_asset_schema\n    output: validated_network_asset\n\n  - id: step_transform_network_asset\n    op: transform_json\n    params:\n      input: validated_network_asset\n      mapping:\n        add_fields:\n          cache_name: \"pwa-runtime-v1\"\n          cached_at: \"now()\"\n    output: transformed_network_asset\n\n  - id: step_write_network_asset_to_cache\n    op: write_database\n    params:\n      input: transformed_network_asset\n      table: service_worker_cache_store\n    output: cache_write_result\n\n  - id: step_format_network_asset_response\n    op: format_output\n    params:\n      input: transformed_network_asset\n      format: \"json\"\n    output: network_asset_response\n\n  - id: step_log_cache_miss_and_store\n    op: log_audit\n    params:\n      input: transformed_network_asset\n      message: \"Cache-first fallback: fetched from network and stored in cache\"\n    output: cache_miss_audit\n\n  - id: step_handle_errors\n    op: handle_error\n    params:\n      on_error: step_error_termination\n    output: error_handler\n\n  - id: step_error_termination\n    op: terminate_workflow\n    params:\n      status: \"error\"\n      message: \"PWA offline asset caching workflow encountered an error\"\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"PWA fetch request handled via cache-first strategy\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_lf_004.py::test_parses_and_type_checks": true,
+        "test_wf_lf_004.py::test_passes_taint_analysis": true,
+        "test_wf_lf_004.py::test_applies_cache_rule": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1100,
+      "output_tokens": 1594
+    }
+  ],
+  "complexity": 1,
+  "domain": "personal_tool",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1100,
+  "total_output_tokens": 1594
+}

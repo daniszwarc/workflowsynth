@@ -1,0 +1,54 @@
+{
+  "task_id": "wf_cpl_001",
+  "condition": "no_taint",
+  "success": true,
+  "attempts_used": 2,
+  "pass_at_k": {
+    "1": false,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 2,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 6.8006189577281475,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: team_registration_and_standings_init\nsteps:\n  - id: receive_team_form\n    op: fetch_api\n    params:\n      endpoint: \"/api/teams/registration-form\"\n    output: raw_team_data\n\n  - id: authenticate_admin\n    op: authenticate_user\n    params:\n      role: \"admin\"\n    output: admin_auth\n\n  - id: validate_team_data\n    op: validate_schema\n    params:\n      input: raw_team_data\n      schema: team_registration_schema\n    output: validated_team_data\n\n  - id: insert_team_record\n    op: write_database\n    params:\n      input: validated_team_data\n      table: teams\n    output: team_record\n\n  - id: apply_standings_init_rule\n    op: apply_rule\n    params:\n      rule: \"initialize_standings_row\"\n      team: team_record\n    output: standings_init\n\n  - id: transform_standings_row\n    op: transform_json\n    params:\n      input: standings_init\n      mapping:\n        team_id: \"$.team_id\"\n        league: \"$.league\"\n        season: \"$.season\"\n        wins: 0\n        losses: 0\n        draws: 0\n        points: 0\n        goals_for: 0\n        goals_against: 0\n        goal_difference: 0\n        matches_played: 0\n    output: standings_row\n\n  - id: write_standings_record\n    op: write_database\n    params:\n      input: standings_row\n      table: standings\n    output: standings_write_result\n\n  - id: format_audit_entry\n    op: format_output\n    params:\n      input: team_record\n      format: \"json\"\n      template:\n        event: \"team_created\"\n        team_id: \"$.team_id\"\n        league: \"$.league\"\n        season: \"$.season\"\n        created_by: \"admin\"\n    output: audit_entry\n\n  - id: log_team_creation\n    op: log_audit\n    params:\n      input: audit_entry\n      action: \"team_registration\"\n      details: \"New team registered and standings row initialized\"",
+      "dsl_type_errors": [
+        "Step 'transform_standings_row': op 'transform_json' requires input of type 'records' but 'standings_init' has type 'boolean'. Make sure the step producing 'standings_init' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database).",
+        "Step 'format_audit_entry': op 'format_output' requires input of type 'records' but 'team_record' has type 'none'. Make sure the step producing 'team_record' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1130,
+      "output_tokens": 540
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: team_registration_and_standings_init\nsteps:\n  - id: receive_team_form\n    op: fetch_api\n    params:\n      endpoint: \"/api/teams/registration-form\"\n    output: raw_team_data\n\n  - id: authenticate_admin\n    op: authenticate_user\n    params:\n      role: \"admin\"\n    output: admin_auth\n\n  - id: validate_team_data\n    op: validate_schema\n    params:\n      input: raw_team_data\n      schema: team_registration_schema\n    output: validated_team_data\n\n  - id: insert_team_record\n    op: write_database\n    params:\n      input: validated_team_data\n      table: teams\n    output: team_write_result\n\n  - id: read_inserted_team\n    op: read_database\n    params:\n      table: teams\n      filter: \"latest_inserted\"\n    output: team_record_raw\n\n  - id: validate_team_record\n    op: validate_schema\n    params:\n      input: team_record_raw\n      schema: team_record_schema\n    output: team_record\n\n  - id: transform_standings_row\n    op: transform_json\n    params:\n      input: team_record\n      mapping:\n        team_id: \"$.team_id\"\n        league: \"$.league\"\n        season: \"$.season\"\n        wins: 0\n        losses: 0\n        draws: 0\n        points: 0\n        goals_for: 0\n        goals_against: 0\n        goal_difference: 0\n        matches_played: 0\n    output: standings_row\n\n  - id: write_standings_record\n    op: write_database\n    params:\n      input: standings_row\n      table: standings\n    output: standings_write_result\n\n  - id: format_audit_entry\n    op: format_output\n    params:\n      input: team_record\n      format: \"json\"\n      template:\n        event: \"team_created\"\n        team_id: \"$.team_id\"\n        league: \"$.league\"\n        season: \"$.season\"\n        created_by: \"admin\"\n    output: audit_entry\n\n  - id: log_team_creation\n    op: log_audit\n    params:\n      input: audit_entry\n      action: \"team_registration\"\n      details: \"New team registered and standings row initialized\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_cpl_001.py::test_parses_and_type_checks": true,
+        "test_wf_cpl_001.py::test_passes_taint_analysis": true,
+        "test_wf_cpl_001.py::test_initializes_standings": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1896,
+      "output_tokens": 584
+    }
+  ],
+  "complexity": 3,
+  "domain": "sports_media",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 3026,
+  "total_output_tokens": 1124
+}

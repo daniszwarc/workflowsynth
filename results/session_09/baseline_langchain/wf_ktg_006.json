@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_ktg_006",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 45.390037124976516,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow validates successfully. Here is the final YAML:\n\nworkflow_id: wf_ktg_006\nsteps:\n  - id: receive_request\n    op: validate_schema\n    params:\n      schema: claim_status_report_request\n      required_fields:\n        - date_range_start\n        - date_range_end\n        - audience\n        - filters\n    output: report_request\n\n  - id: authenticate_user\n    op: authenticate_user\n    params:\n      token: \"{{report_request.auth_token}}\"\n    output: auth_context\n\n  - id: log_report_request\n    op: log_audit\n    params:\n      action: claim_status_report_requested\n      user: \"{{auth_context.user_id}}\"\n      details:\n        audience: \"{{report_request.audience}}\"\n        date_range_start: \"{{report_request.date_range_start}}\"\n        date_range_end: \"{{report_request.date_range_end}}\"\n\n  - id: parallel_data_reads\n    op: parallel_execute\n    params:\n      branches:\n        - step_ref: read_employer_summary\n        - step_ref: read_activity_data\n        - step_ref: read_medical_data\n        - step_ref: read_litigation_data\n        - step_ref: read_lost_time_data\n        - step_ref: read_incident_data\n\n  - id: read_employer_summary\n    op: read_database\n    params:\n      tenant: \"{{auth_context.tenant_id}}\"\n      table: employer_summary\n      filters:\n        date_range_start: \"{{report_request.date_range_start}}\"\n        date_range_end: \"{{report_request.date_range_end}}\"\n        custom_filters: \"{{report_request.filters}}\"\n    output: employer_data\n\n  - id: read_activity_data\n    op: read_database\n    params:\n      tenant: \"{{auth_context.tenant_id}}\"\n      table: activity_data\n      filters:\n        date_range_start: \"{{report_request.date_range_start}}\"\n        date_range_end: \"{{report_request.date_range_end}}\"\n        categories:\n          - FCM\n          - IME\n        custom_filters: \"{{report_request.filters}}\"\n    output: activity_data\n\n  - id: read_medical_data\n    op: read_database\n    params:\n      tenant: \"{{auth_context.tenant_id}}\"\n      table: medical_data\n      filters:\n        date_range_start: \"{{report_request.date_range_start}}\"\n        date_range_end: \"{{report_request.date_range_end}}\"\n        custom_filters: \"{{report_request.filters}}\"\n    output: medical_data\n\n  - id: read_litigation_data\n    op: read_database\n    params:\n      tenant: \"{{auth_context.tenant_id}}\"\n      table: litigation_data\n      filters:\n        date_range_start: \"{{report_request.date_range_start}}\"\n        date_range_end: \"{{report_request.date_range_end}}\"\n        custom_filters: \"{{report_request.filters}}\"\n    output: litigation_data\n\n  - id: read_lost_time_data\n    op: read_database\n    params:\n      tenant: \"{{auth_context.tenant_id}}\"\n      table: lost_time_data\n      filters:\n        date_range_start: \"{{report_request.date_range_start}}\"\n        date_range_end: \"{{report_request.date_range_end}}\"\n        custom_filters: \"{{report_request.filters}}\"\n    output: lost_time_data\n\n  - id: read_incident_data\n    op: read_database\n    params:\n      tenant: \"{{auth_context.tenant_id}}\"\n      table: incident_data\n      filters:\n        date_range_start: \"{{report_request.date_range_start}}\"\n        date_range_end: \"{{report_request.date_range_end}}\"\n        custom_filters: \"{{report_request.filters}}\"\n    output: incident_data\n\n  - id: merge_all_categories\n    op: merge_datasets\n    params:\n      sources:\n        - \"{{employer_data}}\"\n        - \"{{activity_data}}\"\n        - \"{{medical_data}}\"\n        - \"{{litigation_data}}\"\n        - \"{{lost_time_data}}\"\n        - \"{{incident_data}}\"\n      labels:\n        - employer\n        - activity\n        - medical\n        - litigation\n        - lost_time\n        - incident\n    output: merged_data\n\n  - id: aggregate_report\n    op: aggregate_data\n    params:\n      source: \"{{merged_data}}\"\n      group_by:\n        - category\n        - audience\n      metrics:\n        - count\n        - totals\n        - averages\n      audience: \"{{report_request.audience}}\"\n    output: aggregated_report\n\n  - id: apply_audience_rules\n    op: apply_rule\n    params:\n      rule: audience_report_variant\n      audience: \"{{report_request.audience}}\"\n      date_range_start: \"{{report_request.date_range_start}}\"\n      date_range_end: \"{{report_request.date_range_end}}\"\n      data: \"{{aggregated_report}}\"\n    output: variant_report\n\n  - id: format_html_report\n    op: format_output\n    params:\n      format: html\n      template: claim_status_report\n      data: \"{{variant_report}}\"\n      print_optimized: true\n    output: html_report\n\n  - id: log_report_generated\n    op: log_audit\n    params:\n      action: claim_status_report_generated\n      user: \"{{auth_context.user_id}}\"\n      details:\n        audience: \"{{report_request.audience}}\"\n        variant: \"{{variant_report.variant_id}}\"\n        record_count: \"{{variant_report.record_count}}\"\n\n  - id: handle_errors\n    op: handle_error\n    params:\n      on_error: terminate\n      notify: \"{{auth_context.user_id}}\"\n      message: \"Claim status report generation failed.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ktg_006.py::test_parses_and_type_checks": false,
+        "test_wf_ktg_006.py::test_passes_taint_analysis": true,
+        "test_wf_ktg_006.py::test_reads_multiple_data_sources": true,
+        "test_wf_ktg_006.py::test_aggregates_report": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 5,
+  "domain": "workers_compensation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

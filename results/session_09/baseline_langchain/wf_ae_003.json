@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_ae_003",
+  "condition": "baseline_langchain",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 29.494153583422303,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "The workflow validates. Here is the final YAML:\n\nworkflow_id: wf_ae_003\nsteps:\n  - id: parallel_lookups\n    op: parallel_execute\n    params:\n      branches:\n        - id: lookup_author\n          op: fetch_api\n          params:\n            endpoint: \"/jsonapi/node/author\"\n            method: GET\n            query_params:\n              filter[field_author_name]: \"{{ article.author_name }}\"\n          output: author_result\n        - id: lookup_category\n          op: fetch_api\n          params:\n            endpoint: \"/jsonapi/taxonomy_term/category\"\n            method: GET\n            query_params:\n              filter[name]: \"{{ article.category_name }}\"\n          output: category_result\n        - id: lookup_issue\n          op: fetch_api\n          params:\n            endpoint: \"/jsonapi/node/magazine_issue\"\n            method: GET\n            query_params:\n              filter[field_issue_number]: \"{{ article.issue_number }}\"\n          output: issue_result\n    output: parallel_results\n\n  - id: extract_author_id\n    op: extract_field\n    params:\n      source: \"{{ author_result }}\"\n      field: \"data[0].id\"\n    output: author_entity_id\n\n  - id: handle_author_not_found\n    op: handle_error\n    params:\n      step_ref: extract_author_id\n      on_error:\n        - id: flag_manual_assignment\n          op: notify_user\n          params:\n            recipient: \"cms_editorial_team\"\n            subject: \"Author not found \u2013 manual assignment required\"\n            message: \"Author '{{ article.author_name }}' was not found in the CMS. Article '{{ article.title }}' has been flagged for manual author assignment.\"\n        - id: terminate_on_author_missing\n          op: terminate_workflow\n          params:\n            reason: \"Author not found; article flagged for manual assignment.\"\n\n  - id: extract_category_uuid\n    op: extract_field\n    params:\n      source: \"{{ category_result }}\"\n      field: \"data[0].id\"\n    output: category_term_uuid\n\n  - id: extract_issue_uuid\n    op: extract_field\n    params:\n      source: \"{{ issue_result }}\"\n      field: \"data[0].id\"\n    output: issue_uuid\n\n  - id: validate_lookups\n    op: validate_schema\n    params:\n      inputs:\n        author_entity_id: \"{{ author_entity_id }}\"\n        category_term_uuid: \"{{ category_term_uuid }}\"\n        issue_uuid: \"{{ issue_uuid }}\"\n      rules:\n        - field: author_entity_id\n          condition: not_empty\n        - field: category_term_uuid\n          condition: not_empty\n        - field: issue_uuid\n          condition: not_empty\n    output: validation_result\n\n  - id: merge_metadata\n    op: merge_datasets\n    params:\n      sources:\n        - key: author_entity_id\n          value: \"{{ author_entity_id }}\"\n        - key: category_term_uuid\n          value: \"{{ category_term_uuid }}\"\n        - key: issue_uuid\n          value: \"{{ issue_uuid }}\"\n      strategy: combine\n    output: article_metadata\n\n  - id: log_metadata_resolution\n    op: log_audit\n    params:\n      action: \"metadata_resolved\"\n      details: \"Author: {{ author_entity_id }}, Category: {{ category_term_uuid }}, Issue: {{ issue_uuid }}\"\n    output: audit_log_entry",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_ae_003.py::test_parses_and_type_checks": false,
+        "test_wf_ae_003.py::test_passes_taint_analysis": true,
+        "test_wf_ae_003.py::test_has_three_lookups": false,
+        "test_wf_ae_003.py::test_merges_metadata": true
+      },
+      "failure_category": "test_failure",
+      "success": false
+    }
+  ],
+  "complexity": 2,
+  "domain": "publishing",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}
