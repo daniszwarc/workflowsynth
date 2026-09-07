@@ -1,0 +1,42 @@
+{
+  "task_id": "wf_tool_013",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 7,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 7.870206207968295,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: secured_api_aggregation_pipeline\nsteps:\n  - id: authenticate\n    op: authenticate\n    params:\n      service: aggregation_service\n      method: oauth2_client_credentials\n    output: auth_token\n\n  - id: fetch_api_1\n    op: http_get\n    params:\n      url: \"{{apis.first.url}}\"\n      headers:\n        Authorization: \"Bearer {{auth_token}}\"\n    depends_on:\n      - authenticate\n    output: dataset_1\n\n  - id: fetch_api_2\n    op: http_get\n    params:\n      url: \"{{apis.second.url}}\"\n      headers:\n        Authorization: \"Bearer {{auth_token}}\"\n    depends_on:\n      - authenticate\n    output: dataset_2\n\n  - id: aggregate_datasets\n    op: aggregate\n    params:\n      sources:\n        - \"{{dataset_1}}\"\n        - \"{{dataset_2}}\"\n      strategy: merge\n    depends_on:\n      - fetch_api_1\n      - fetch_api_2\n    output: aggregated_result\n\n  - id: extract_sensitive_fields\n    op: extract_fields\n    params:\n      input: \"{{aggregated_result}}\"\n      fields:\n        - ssn\n        - credit_card\n        - email\n        - phone\n    depends_on:\n      - aggregate_datasets\n    output: sensitive_fields\n\n  - id: encrypt_sensitive_fields\n    op: encrypt\n    params:\n      input: \"{{sensitive_fields}}\"\n      algorithm: AES-256-GCM\n      key_ref: \"{{secrets.encryption_key}}\"\n    depends_on:\n      - extract_sensitive_fields\n    output: encrypted_fields\n\n  - id: store_result\n    op: persist\n    params:\n      destination: secure_data_store\n      payload:\n        aggregated_result: \"{{aggregated_result}}\"\n        encrypted_sensitive_fields: \"{{encrypted_fields}}\"\n      write_mode: upsert\n    depends_on:\n      - encrypt_sensitive_fields\n    output: storage_receipt",
+      "dsl_type_errors": [
+        "Step 'authenticate': unknown op 'authenticate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'fetch_api_1': unknown op 'http_get'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'fetch_api_2': unknown op 'http_get'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'aggregate_datasets': unknown op 'aggregate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'extract_sensitive_fields': unknown op 'extract_fields'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'encrypt_sensitive_fields': unknown op 'encrypt'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'store_result': unknown op 'persist'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 4,
+  "domain": "api_integration",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 266,
+  "total_output_tokens": 511
+}

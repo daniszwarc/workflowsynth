@@ -1,0 +1,43 @@
+{
+  "task_id": "wf_web_015",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 8,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 11.326416332274675,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: full_ecommerce_pipeline\nsteps:\n  - id: search_product\n    op: catalog/search\n    params:\n      query: \"{{trigger.search_query}}\"\n      filters: \"{{trigger.search_filters}}\"\n    output: search_results\n\n  - id: authenticate_shopper\n    op: auth/authenticate\n    params:\n      token: \"{{trigger.auth_token}}\"\n      session_id: \"{{trigger.session_id}}\"\n    output: shopper_identity\n\n  - id: validate_cart\n    op: schema/validate\n    params:\n      schema: checkout_schema\n      data:\n        shopper_id: \"{{authenticate_shopper.shopper_identity.user_id}}\"\n        cart_items: \"{{trigger.cart_items}}\"\n        shipping_address: \"{{trigger.shipping_address}}\"\n        payment_method: \"{{trigger.payment_method}}\"\n    depends_on:\n      - authenticate_shopper\n    output: validated_cart\n\n  - id: process_order\n    op: order/process\n    params:\n      shopper_id: \"{{authenticate_shopper.shopper_identity.user_id}}\"\n      validated_cart: \"{{validate_cart.validated_cart}}\"\n      payment_method: \"{{trigger.payment_method}}\"\n    depends_on:\n      - authenticate_shopper\n      - validate_cart\n    output: order_result\n\n  - id: fulfill_order\n    op: subworkflow/invoke\n    params:\n      workflow_id: fulfillment_subworkflow\n      input:\n        order_id: \"{{process_order.order_result.order_id}}\"\n        items: \"{{validate_cart.validated_cart.items}}\"\n        shipping_address: \"{{trigger.shipping_address}}\"\n    depends_on:\n      - process_order\n    output: fulfillment_result\n\n  - id: extract_fulfillment_status\n    op: transform/extract\n    params:\n      source: \"{{fulfill_order.fulfillment_result}}\"\n      fields:\n        - status\n        - tracking_number\n        - estimated_delivery\n    depends_on:\n      - fulfill_order\n    output: fulfillment_status\n\n  - id: notify_customer\n    op: notification/send\n    params:\n      recipient: \"{{authenticate_shopper.shopper_identity.email}}\"\n      template: order_fulfilled\n      data:\n        order_id: \"{{process_order.order_result.order_id}}\"\n        status: \"{{extract_fulfillment_status.fulfillment_status.status}}\"\n        tracking_number: \"{{extract_fulfillment_status.fulfillment_status.tracking_number}}\"\n        estimated_delivery: \"{{extract_fulfillment_status.fulfillment_status.estimated_delivery}}\"\n    depends_on:\n      - extract_fulfillment_status\n    output: notification_result\n\n  - id: log_purchase_audit\n    op: audit/log\n    params:\n      event_type: purchase_completed\n      shopper_id: \"{{authenticate_shopper.shopper_identity.user_id}}\"\n      order_id: \"{{process_order.order_result.order_id}}\"\n      fulfillment_status: \"{{extract_fulfillment_status.fulfillment_status.status}}\"\n      notification_status: \"{{notify_customer.notification_result.status}}\"\n      timestamp: \"{{$now}}\"\n    depends_on:\n      - notify_customer\n    on_failure: retry\n    always_run: true\n    output: audit_log_entry",
+      "dsl_type_errors": [
+        "Step 'search_product': unknown op 'catalog/search'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'authenticate_shopper': unknown op 'auth/authenticate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_cart': unknown op 'schema/validate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'process_order': unknown op 'order/process'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'fulfill_order': unknown op 'subworkflow/invoke'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'extract_fulfillment_status': unknown op 'transform/extract'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'notify_customer': unknown op 'notification/send'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'log_purchase_audit': unknown op 'audit/log'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 5,
+  "domain": "web_automation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 292,
+  "total_output_tokens": 874
+}

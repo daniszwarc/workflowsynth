@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_agent_012",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 4,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 6.742765832692385,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: multi_agent_delegation_and_synthesis\n\nsteps:\n  - id: classify_task\n    op: classify\n    params:\n      input: \"{{trigger.task}}\"\n      categories:\n        - research\n        - code_generation\n        - data_analysis\n        - creative_writing\n        - decision_support\n      model: classification-agent\n    output: classification_result\n\n  - id: delegate_to_subworkflow\n    op: delegate\n    params:\n      task: \"{{trigger.task}}\"\n      subworkflow_id: \"{{classification_result.category}}_subworkflow\"\n      context:\n        original_task: \"{{trigger.task}}\"\n        classification: \"{{classification_result}}\"\n    output: subworkflow_result\n\n  - id: merge_results\n    op: merge\n    params:\n      sources:\n        - key: original_task\n          value: \"{{trigger.task}}\"\n        - key: classification\n          value: \"{{classification_result}}\"\n        - key: subworkflow_output\n          value: \"{{subworkflow_result}}\"\n      strategy: deep_merge\n    output: merged_context\n\n  - id: format_final_answer\n    op: synthesise\n    params:\n      prompt: >\n        You are a synthesis agent. Given the original task and the specialised\n        subworkflow's result, produce a single coherent final answer.\n        The final answer MUST incorporate the subworkflow's result, not just\n        restate the original task.\n      inputs:\n        original_task: \"{{merged_context.original_task}}\"\n        classification: \"{{merged_context.classification}}\"\n        subworkflow_output: \"{{merged_context.subworkflow_output}}\"\n      model: synthesis-agent\n    output: final_answer",
+      "dsl_type_errors": [
+        "Step 'classify_task': unknown op 'classify'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'delegate_to_subworkflow': unknown op 'delegate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'merge_results': unknown op 'merge'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'format_final_answer': unknown op 'synthesise'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 4,
+  "domain": "agent_tasks",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 246,
+  "total_output_tokens": 428
+}

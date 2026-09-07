@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_agent_013",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 6,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 7.2038218742236495,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: verified_knowledge_graph_update\nsteps:\n  - id: fetch_candidate_data\n    op: fetch_data\n    params:\n      source: knowledge_graph_candidate_feed\n      format: structured\n    output: candidate_data\n\n  - id: validate_candidate_data\n    op: validate_schema\n    params:\n      data: \"{{candidate_data}}\"\n      schema: knowledge_graph_schema\n    output: validated_data\n\n  - id: merge_into_graph\n    op: merge_graph\n    params:\n      existing_graph: current_knowledge_graph\n      new_data: \"{{validated_data}}\"\n      strategy: upsert\n    output: merged_graph\n\n  - id: verify_consistency\n    op: consistency_check\n    params:\n      graph: \"{{merged_graph}}\"\n      rule: knowledge_graph_consistency_rule\n    output: consistency_result\n\n  - id: authenticate_service\n    op: authenticate\n    params:\n      service_name: graph_update_service\n      auth_method: service_credentials\n    output: auth_token\n\n  - id: store_graph_update\n    op: store_data\n    params:\n      target: knowledge_graph_store\n      data: \"{{merged_graph}}\"\n      auth_token: \"{{auth_token}}\"\n    depends_on:\n      - verify_consistency\n      - authenticate_service\n    preconditions:\n      - \"{{consistency_result.status}} == passed\"\n    output: store_confirmation\n\n  - id: notify_stakeholders\n    op: send_notification\n    params:\n      recipients: knowledge_graph_stakeholders\n      channel: email\n      subject: \"Knowledge Graph Updated\"\n      message: \"The knowledge graph has been successfully updated and verified for consistency.\"\n      details:\n        store_confirmation: \"{{store_confirmation}}\"\n    depends_on:\n      - store_graph_update",
+      "dsl_type_errors": [
+        "Step 'fetch_candidate_data': unknown op 'fetch_data'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'merge_into_graph': unknown op 'merge_graph'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'verify_consistency': unknown op 'consistency_check'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'authenticate_service': unknown op 'authenticate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'store_graph_update': unknown op 'store_data'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'notify_stakeholders': unknown op 'send_notification'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 4,
+  "domain": "agent_tasks",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 265,
+  "total_output_tokens": 451
+}

@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_agent_007",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 6,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 6.526050916872919,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: audited_database_update\nsteps:\n  - id: read_current_record\n    op: database_read\n    params:\n      source: database\n      record_id: \"${trigger.record_id}\"\n    output: current_record\n\n  - id: validate_change\n    op: validate\n    params:\n      schema: update_schema\n      current_record: \"${read_current_record.current_record}\"\n      requested_change: \"${trigger.requested_change}\"\n    output: validated_change\n\n  - id: transform_change\n    op: transform\n    params:\n      input: \"${validate_change.validated_change}\"\n      target_format: storage_format\n    output: transformed_change\n\n  - id: authenticate_service\n    op: authenticate\n    params:\n      service: update_service\n      credentials: \"${secrets.update_service_credentials}\"\n    output: auth_token\n\n  - id: write_to_database\n    op: database_write\n    params:\n      target: database\n      record_id: \"${trigger.record_id}\"\n      data: \"${transform_change.transformed_change}\"\n      auth_token: \"${authenticate_service.auth_token}\"\n    depends_on:\n      - validate_change\n      - transform_change\n      - authenticate_service\n    output: write_result\n\n  - id: log_audit_entry\n    op: audit_log\n    params:\n      action: record_update\n      record_id: \"${trigger.record_id}\"\n      previous_state: \"${read_current_record.current_record}\"\n      new_state: \"${transform_change.transformed_change}\"\n      write_result: \"${write_to_database.write_result}\"\n      timestamp: \"${system.current_timestamp}\"\n      performed_by: \"${authenticate_service.auth_token.identity}\"\n    depends_on:\n      - write_to_database\n    output: audit_log_entry",
+      "dsl_type_errors": [
+        "Step 'read_current_record': unknown op 'database_read'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_change': unknown op 'validate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'transform_change': unknown op 'transform'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'authenticate_service': unknown op 'authenticate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'write_to_database': unknown op 'database_write'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'log_audit_entry': unknown op 'audit_log'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "agent_tasks",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 242,
+  "total_output_tokens": 452
+}

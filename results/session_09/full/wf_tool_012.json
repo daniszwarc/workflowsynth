@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_tool_012",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.5887127090245485,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: multi_api_orchestration_with_retry\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_operator\"\n    output: auth_result\n\n  - id: step_call_primary_api\n    op: fetch_api\n    params:\n      endpoint: \"/api/primary/operation\"\n    output: raw_primary_response\n\n  - id: step_retry_primary_api\n    op: retry_step\n    params:\n      step_ref: step_call_primary_api\n      max_retries: 3\n      backoff: \"exponential\"\n    output: retry_result\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      source_step: step_retry_primary_api\n      on_error: step_evaluate_error\n    output: error_context\n\n  - id: step_evaluate_error\n    op: apply_rule\n    params:\n      rule: \"error_context.category == 'unrecoverable'\"\n      input_ref: error_context\n    output: error_evaluation\n\n  - id: step_route_on_error\n    op: route_to_step\n    params:\n      condition: \"error_evaluation.result == true\"\n      true_step: step_call_fallback_api\n      false_step: step_validate_primary\n    output: route_decision\n\n  - id: step_call_fallback_api\n    op: fetch_api\n    params:\n      endpoint: \"/api/fallback/operation\"\n    output: raw_fallback_response\n\n  - id: step_validate_fallback\n    op: validate_schema\n    params:\n      input: raw_fallback_response\n      schema: api_response_schema\n    output: validated_fallback_response\n\n  - id: step_validate_primary\n    op: validate_schema\n    params:\n      input: raw_primary_response\n      schema: api_response_schema\n    output: validated_primary_response\n\n  - id: step_transform_primary\n    op: transform_json\n    params:\n      input: validated_primary_response\n      mapping: \"standard_output_mapping\"\n    output: transformed_primary\n\n  - id: step_transform_fallback\n    op: transform_json\n    params:\n      input: validated_fallback_response\n      mapping: \"standard_output_mapping\"\n    output: transformed_fallback\n\n  - id: step_write_primary_result\n    op: write_database\n    params:\n      input: transformed_primary\n      table: api_operation_results\n    output: write_primary_result\n\n  - id: step_write_fallback_result\n    op: write_database\n    params:\n      input: transformed_fallback\n      table: api_operation_results\n    output: write_fallback_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: transformed_primary\n      message: \"Multi-API orchestration completed\"\n    output: audit_log_entry\n\n  - id: step_log_fallback_audit\n    op: log_audit\n    params:\n      input: transformed_fallback\n      message: \"Multi-API orchestration completed via fallback path\"\n    output: fallback_audit_log_entry\n\n  - id: step_notify_operator\n    op: notify_user\n    params:\n      input: transformed_fallback\n      recipient: \"api_operator\"\n      message: \"Primary API failed; fallback API was used successfully.\"\n    output: notification_result\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_012.py::test_parses_and_type_checks": true,
+        "test_wf_tool_012.py::test_passes_taint_analysis": true,
+        "test_wf_tool_012.py::test_retry_before_route": true,
+        "test_wf_tool_012.py::test_has_error_handling": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1080,
+      "output_tokens": 875
+    }
+  ],
+  "complexity": 4,
+  "domain": "api_integration",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1080,
+  "total_output_tokens": 875
+}

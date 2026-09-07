@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_tool_014",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.5803852081298828,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: real_time_classified_data_pipeline\nsteps:\n  - id: ingest_event\n    op: fetch_api\n    params:\n      endpoint: \"/api/realtime/events/incoming\"\n    output: raw_event\n\n  - id: validate_event\n    op: validate_schema\n    params:\n      input: raw_event\n      schema: realtime_event_schema\n    output: validated_event\n\n  - id: transform_event\n    op: transform_json\n    params:\n      input: validated_event\n      mapping: internal_representation_mapping\n    output: transformed_event\n\n  - id: classify_event\n    op: apply_rule\n    params:\n      input: transformed_event\n      rule: classification_rule\n    output: classification_result\n\n  - id: extract_category\n    op: extract_field\n    params:\n      input: classification_result\n      field: category\n    output: event_category\n\n  - id: route_event\n    op: route_to_step\n    params:\n      input: event_category\n      conditions:\n        high_priority: store_high_priority\n        low_priority: store_low_priority\n        default: store_default\n\n  - id: store_high_priority\n    op: filter_records\n    params:\n      input: transformed_event\n      condition: \"category == 'high_priority'\"\n    output: filtered_high_priority\n\n  - id: store_low_priority\n    op: filter_records\n    params:\n      input: transformed_event\n      condition: \"category == 'low_priority'\"\n    output: filtered_low_priority\n\n  - id: store_default\n    op: filter_records\n    params:\n      input: transformed_event\n      condition: \"category == 'default'\"\n    output: filtered_default\n\n  - id: authenticate_pipeline_writer\n    op: authenticate_user\n    params:\n      role: pipeline_writer\n    output: auth_result\n\n  - id: store_classified_event\n    op: write_database\n    params:\n      input: transformed_event\n      table: classified_events\n    output: write_result\n\n  - id: handle_store_error\n    op: handle_error\n    params:\n      step: store_classified_event\n      fallback: retry_store\n\n  - id: retry_store\n    op: retry_step\n    params:\n      step: store_classified_event\n      max_retries: 3\n\n  - id: log_audit_trail\n    op: log_audit\n    params:\n      input: write_result\n      message: \"Pipeline run completed. Event classified and stored.\"\n    output: audit_log_entry\n\n  - id: notify_completion\n    op: notify_user\n    params:\n      input: audit_log_entry\n      recipient: pipeline_admin\n      message: \"Real-time classified data pipeline run completed successfully.\"\n\n  - id: end_workflow\n    op: terminate_workflow\n    params:\n      status: success",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_014.py::test_parses_and_type_checks": true,
+        "test_wf_tool_014.py::test_passes_taint_analysis": true,
+        "test_wf_tool_014.py::test_classify_before_route": true,
+        "test_wf_tool_014.py::test_has_audit_log": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1127,
+      "output_tokens": 705
+    }
+  ],
+  "complexity": 4,
+  "domain": "api_integration",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1127,
+  "total_output_tokens": 705
+}

@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_gaia_011",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 3,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 5.349782791920006,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: conditional_routing_by_classification\n\nsteps:\n  - id: fetch_item_details\n    op: fetch\n    params:\n      source: item_registry\n      key: \"{{ trigger.item_id }}\"\n    output: item_details\n\n  - id: classify_item\n    op: classify\n    params:\n      input: \"{{ item_details }}\"\n      rule: classification_rule\n      use_cache: false\n    output: classification_result\n\n  - id: route_item\n    op: conditional_route\n    params:\n      condition: \"{{ classification_result.category }}\"\n      branches:\n        - match: \"category_a\"\n          steps:\n            - id: process_category_a\n              op: invoke\n              params:\n                pipeline: category_a_processing\n                payload: \"{{ item_details }}\"\n              output: processing_result\n        - match: \"category_b\"\n          steps:\n            - id: process_category_b\n              op: invoke\n              params:\n                pipeline: category_b_processing\n                payload: \"{{ item_details }}\"\n              output: processing_result\n    output: route_outcome",
+      "dsl_type_errors": [
+        "Step 'fetch_item_details': unknown op 'fetch'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'classify_item': unknown op 'classify'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'route_item': unknown op 'conditional_route'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "general_ai",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 207,
+  "total_output_tokens": 275
+}

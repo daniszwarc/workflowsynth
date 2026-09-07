@@ -1,0 +1,85 @@
+{
+  "task_id": "wf_tool_004",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 4,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 15.978319832123816,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: two_api_chain_with_transformation\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_consumer\"\n    output: auth_result\n\n  - id: step_fetch_first_api\n    op: fetch_api\n    params:\n      endpoint: \"/api/first/data\"\n    output: raw_first_data\n\n  - id: step_validate_first\n    op: validate_schema\n    params:\n      input: raw_first_data\n      schema: first_api_response_schema\n    output: validated_first_data\n\n  - id: step_transform_for_second_api\n    op: transform_json\n    params:\n      input: validated_first_data\n      mapping: \"reshape_for_second_api\"\n    output: transformed_request_data\n\n  - id: step_call_second_api\n    op: call_webhook\n    params:\n      input: transformed_request_data\n      url: \"/api/second/query\"\n      method: \"POST\"\n    output: raw_second_data\n\n  - id: step_validate_second\n    op: validate_schema\n    params:\n      input: raw_second_data\n      schema: second_api_response_schema\n    output: validated_second_data\n\n  - id: step_format_result\n    op: format_output\n    params:\n      input: validated_second_data\n      format: \"json\"\n    output: final_output\n\n  - id: step_log\n    op: log_audit\n    params:\n      input: final_output\n      message: \"Two-API chain completed successfully\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_004.py::test_parses_and_type_checks": true,
+        "test_wf_tool_004.py::test_passes_taint_analysis": true,
+        "test_wf_tool_004.py::test_transform_between_fetches": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1062,
+      "output_tokens": 394
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: two_api_chain_with_transformation\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_consumer\"\n    output: auth_result\n\n  - id: step_fetch_first_api\n    op: fetch_api\n    params:\n      endpoint: \"/api/first/data\"\n    output: raw_first_data\n\n  - id: step_transform_for_second_api\n    op: transform_json\n    params:\n      input: raw_first_data\n      mapping: \"reshape_for_second_api\"\n    output: transformed_request_data\n\n  - id: step_call_second_api\n    op: call_webhook\n    params:\n      input: transformed_request_data\n      url: \"/api/second/query\"\n      method: \"POST\"\n    output: raw_second_data\n\n  - id: step_validate_second\n    op: validate_schema\n    params:\n      input: raw_second_data\n      schema: second_api_response_schema\n    output: validated_second_data\n\n  - id: step_format_result\n    op: format_output\n    params:\n      input: validated_second_data\n      format: \"json\"\n    output: final_output\n\n  - id: step_log\n    op: log_audit\n    params:\n      input: final_output\n      message: \"Two-API chain completed successfully\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_004.py::test_parses_and_type_checks": true,
+        "test_wf_tool_004.py::test_passes_taint_analysis": true,
+        "test_wf_tool_004.py::test_transform_between_fetches": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1539,
+      "output_tokens": 344
+    },
+    {
+      "attempt_number": 2,
+      "llm_sketch": "workflow_id: two_api_chain_with_transformation\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_consumer\"\n    output: auth_result\n\n  - id: step_fetch_first_api\n    op: fetch_api\n    params:\n      endpoint: \"/api/first/data\"\n    output: raw_first_data\n\n  - id: step_validate_first\n    op: validate_schema\n    params:\n      input: raw_first_data\n      schema: first_api_response_schema\n    output: validated_first_data\n\n  - id: step_transform_for_second_api\n    op: transform_json\n    params:\n      input: validated_first_data\n      mapping: \"reshape_for_second_api\"\n    output: transformed_request_data\n\n  - id: step_call_second_api\n    op: call_webhook\n    params:\n      input: transformed_request_data\n      url: \"/api/second/query\"\n      method: \"POST\"\n    output: raw_second_data\n\n  - id: step_validate_second\n    op: validate_schema\n    params:\n      input: raw_second_data\n      schema: second_api_response_schema\n    output: validated_second_data\n\n  - id: step_format_result\n    op: format_output\n    params:\n      input: validated_second_data\n      format: \"json\"\n    output: final_output\n\n  - id: step_log\n    op: log_audit\n    params:\n      input: final_output\n      message: \"Two-API chain completed successfully\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_004.py::test_parses_and_type_checks": true,
+        "test_wf_tool_004.py::test_passes_taint_analysis": true,
+        "test_wf_tool_004.py::test_transform_between_fetches": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1489,
+      "output_tokens": 394
+    },
+    {
+      "attempt_number": 3,
+      "llm_sketch": "workflow_id: two_api_chain_with_transformation\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_consumer\"\n    output: auth_result\n\n  - id: step_fetch_first_api\n    op: fetch_api\n    params:\n      endpoint: \"/api/first/data\"\n    output: raw_first_data\n\n  - id: step_validate_first\n    op: validate_schema\n    params:\n      input: raw_first_data\n      schema: first_api_response_schema\n    output: validated_first_data\n\n  - id: step_transform_for_second_api\n    op: transform_json\n    params:\n      input: validated_first_data\n      mapping: \"reshape_for_second_api\"\n    output: transformed_request_data\n\n  - id: step_fetch_second_api\n    op: fetch_api\n    params:\n      endpoint: \"/api/second/query\"\n      body: transformed_request_data\n    output: raw_second_data\n\n  - id: step_validate_second\n    op: validate_schema\n    params:\n      input: raw_second_data\n      schema: second_api_response_schema\n    output: validated_second_data\n\n  - id: step_format_result\n    op: format_output\n    params:\n      input: validated_second_data\n      format: \"json\"\n    output: final_output\n\n  - id: step_log\n    op: log_audit\n    params:\n      input: final_output\n      message: \"Two-API chain completed successfully\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_004.py::test_parses_and_type_checks": true,
+        "test_wf_tool_004.py::test_passes_taint_analysis": true,
+        "test_wf_tool_004.py::test_transform_between_fetches": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1539,
+      "output_tokens": 387
+    }
+  ],
+  "complexity": 2,
+  "domain": "api_integration",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 5629,
+  "total_output_tokens": 1519
+}

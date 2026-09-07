@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_gaia_006",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.5713302502408624,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: two_source_data_merge\nsteps:\n  - id: authenticate_requester\n    op: authenticate_user\n    params:\n      role: \"analyst\"\n    output: auth_result\n\n  - id: fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_one/entities\"\n    output: raw_source_one\n\n  - id: fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_two/entities\"\n    output: raw_source_two\n\n  - id: validate_source_one\n    op: validate_schema\n    params:\n      input: raw_source_one\n      schema: entity_schema\n    output: validated_source_one\n\n  - id: validate_source_two\n    op: validate_schema\n    params:\n      input: raw_source_two\n      schema: entity_schema\n    output: validated_source_two\n\n  - id: merge_sources\n    op: merge_datasets\n    params:\n      input: validated_source_one\n      secondary_input: validated_source_two\n      join_key: \"entity_id\"\n    output: merged_entities\n\n  - id: format_combined_view\n    op: format_output\n    params:\n      input: merged_entities\n      format: \"json\"\n    output: combined_view\n\n  - id: log_merge_request\n    op: log_audit\n    params:\n      input: combined_view\n      action: \"two_source_merge_completed\"\n    output: audit_log_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_006.py::test_parses_and_type_checks": true,
+        "test_wf_gaia_006.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_006.py::test_has_two_fetches_and_merge": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1052,
+      "output_tokens": 378
+    }
+  ],
+  "complexity": 2,
+  "domain": "general_ai",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1052,
+  "total_output_tokens": 378
+}

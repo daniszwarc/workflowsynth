@@ -1,0 +1,43 @@
+{
+  "task_id": "wf_tool_014",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 8,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 8.528880042023957,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: real-time-classified-data-pipeline\n\nsteps:\n  - id: ingest_event\n    op: ingest\n    params:\n      source: real_time_feed\n      mode: streaming\n    output: raw_event\n\n  - id: validate_event\n    op: validate\n    params:\n      input: \"{{ingest_event.raw_event}}\"\n      schema: real_time_event_schema\n    output: validated_event\n\n  - id: transform_event\n    op: transform\n    params:\n      input: \"{{validate_event.validated_event}}\"\n      target_format: internal_representation\n    output: transformed_event\n\n  - id: classify_event\n    op: classify\n    params:\n      input: \"{{transform_event.transformed_event}}\"\n      classifier: routing_category_model\n    output: classification_result\n\n  - id: route_event\n    op: route\n    params:\n      input: \"{{transform_event.transformed_event}}\"\n      category: \"{{classify_event.classification_result.category}}\"\n      routing_table: category_routing_config\n    output: routed_destination\n\n  - id: authenticate_pipeline_writer\n    op: authenticate\n    params:\n      identity: pipeline_writer\n      method: service_account\n      scope: datastore_write\n    output: auth_token\n\n  - id: store_event\n    op: store\n    params:\n      input: \"{{transform_event.transformed_event}}\"\n      classification: \"{{classify_event.classification_result}}\"\n      destination: \"{{route_event.routed_destination}}\"\n      auth_token: \"{{authenticate_pipeline_writer.auth_token}}\"\n    output: storage_receipt\n\n  - id: audit_log\n    op: log\n    params:\n      pipeline_run_id: \"{{ingest_event.raw_event.event_id}}\"\n      ingestion_timestamp: \"{{ingest_event.raw_event.timestamp}}\"\n      validation_status: \"{{validate_event.validated_event.status}}\"\n      classification: \"{{classify_event.classification_result}}\"\n      routed_to: \"{{route_event.routed_destination}}\"\n      storage_receipt: \"{{store_event.storage_receipt}}\"\n      log_target: audit_trail\n    output: audit_record",
+      "dsl_type_errors": [
+        "Step 'ingest_event': unknown op 'ingest'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_event': unknown op 'validate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'transform_event': unknown op 'transform'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'classify_event': unknown op 'classify'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'route_event': unknown op 'route'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'authenticate_pipeline_writer': unknown op 'authenticate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'store_event': unknown op 'store'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'audit_log': unknown op 'log'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 4,
+  "domain": "api_integration",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 278,
+  "total_output_tokens": 559
+}

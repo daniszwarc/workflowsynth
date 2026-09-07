@@ -1,0 +1,2432 @@
+{
+  "condition": "no_repair",
+  "total_tasks": 60,
+  "pass_at_1": 0.75,
+  "pass_at_3": 0.75,
+  "pass_at_5": 0.75,
+  "pass_at_10": 0.75,
+  "mean_attempts": 1.0,
+  "security_pass_rate": 0.7083333333333334,
+  "by_complexity": {
+    "1": 0.9285714285714286,
+    "2": 0.7333333333333333,
+    "3": 0.5625,
+    "4": 0.8,
+    "5": 0.8
+  },
+  "by_domain": {
+    "agent_tasks": 0.6,
+    "api_integration": 0.6666666666666666,
+    "general_ai": 0.8666666666666667,
+    "web_automation": 0.8666666666666667
+  },
+  "results": [
+    {
+      "task_id": "wf_web_006",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6600064160302281,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: article_publishing_workflow\nsteps:\n  - id: fetch_article_draft\n    op: fetch_api\n    params:\n      endpoint: \"/api/cms/articles/draft\"\n    output: raw_article_draft\n\n  - id: validate_article_draft\n    op: validate_schema\n    params:\n      input: raw_article_draft\n      schema: article_schema\n    output: validated_article\n\n  - id: authenticate_publishing_service\n    op: authenticate_user\n    params:\n      role: \"publishing_service\"\n    output: auth_result\n\n  - id: publish_article\n    op: call_webhook\n    params:\n      input: validated_article\n      url: \"/api/cms/articles/publish\"\n      method: \"POST\"\n    output: publish_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_006.py::test_parses_and_type_checks": true,
+            "test_wf_web_006.py::test_passes_taint_analysis": true,
+            "test_wf_web_006.py::test_auth_before_publish": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1048,
+          "output_tokens": 192
+        }
+      ],
+      "complexity": 2,
+      "domain": "web_automation",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1048,
+      "total_output_tokens": 192
+    },
+    {
+      "task_id": "wf_tool_008",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6043006666004658,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: three_api_chain_with_merge\nsteps:\n  - id: fetch_api_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_one\"\n    output: raw_api_one\n\n  - id: fetch_api_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_two\"\n    output: raw_api_two\n\n  - id: fetch_api_three\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_three\"\n    output: raw_api_three\n\n  - id: validate_api_one\n    op: validate_schema\n    params:\n      input: raw_api_one\n      schema: api_one_schema\n    output: validated_api_one\n\n  - id: validate_api_two\n    op: validate_schema\n    params:\n      input: raw_api_two\n      schema: api_two_schema\n    output: validated_api_two\n\n  - id: validate_api_three\n    op: validate_schema\n    params:\n      input: raw_api_three\n      schema: api_three_schema\n    output: validated_api_three\n\n  - id: merge_one_and_two\n    op: merge_datasets\n    params:\n      input: validated_api_one\n      secondary: validated_api_two\n      key: record_id\n    output: merged_one_two\n\n  - id: merge_all_three\n    op: merge_datasets\n    params:\n      input: merged_one_two\n      secondary: validated_api_three\n      key: record_id\n    output: merged_all\n\n  - id: transform_combined\n    op: transform_json\n    params:\n      input: merged_all\n      mapping:\n        output_format: combined_result_schema\n    output: transformed_result\n\n  - id: format_final_output\n    op: format_output\n    params:\n      input: transformed_result\n      format: json\n    output: final_output",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_008.py::test_parses_and_type_checks": true,
+            "test_wf_tool_008.py::test_passes_taint_analysis": true,
+            "test_wf_tool_008.py::test_merge_before_transform": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1068,
+          "output_tokens": 484
+        }
+      ],
+      "complexity": 3,
+      "domain": "api_integration",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1068,
+      "total_output_tokens": 484
+    },
+    {
+      "task_id": "wf_web_007",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6393665419891477,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: authenticated_profile_update\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"user\"\n    output: auth_result\n\n  - id: step_fetch_profile\n    op: fetch_api\n    params:\n      endpoint: \"/api/users/profile\"\n      user: auth_result\n    output: raw_profile\n\n  - id: step_validate_changes\n    op: validate_schema\n    params:\n      input: raw_profile\n      schema: profile_schema\n    output: validated_profile\n\n  - id: step_update_profile\n    op: write_database\n    params:\n      input: validated_profile\n      table: user_profiles\n    output: update_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_007.py::test_parses_and_type_checks": true,
+            "test_wf_web_007.py::test_passes_taint_analysis": true,
+            "test_wf_web_007.py::test_auth_before_update": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1046,
+          "output_tokens": 178
+        }
+      ],
+      "complexity": 2,
+      "domain": "web_automation",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1046,
+      "total_output_tokens": 178
+    },
+    {
+      "task_id": "wf_web_014",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.7005245005711913,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: multi_step_content_publishing_with_approval\nsteps:\n  - id: step_authenticate_editor\n    op: authenticate_user\n    params:\n      role: \"editor\"\n    output: auth_result\n\n  - id: step_fetch_draft\n    op: fetch_api\n    params:\n      endpoint: \"/api/content/drafts/pending\"\n    output: raw_draft\n\n  - id: step_validate_draft\n    op: validate_schema\n    params:\n      input: raw_draft\n      schema: editorial_schema\n    output: validated_draft\n\n  - id: step_apply_approval_rule\n    op: apply_rule\n    params:\n      input: validated_draft\n      rule: \"editorial_approval\"\n    output: approval_result\n\n  - id: step_extract_decision\n    op: extract_field\n    params:\n      input: approval_result\n      field: \"approved\"\n    output: is_approved\n\n  - id: step_route_decision\n    op: route_to_step\n    params:\n      condition: \"is_approved == true\"\n      true_step: step_publish_subworkflow\n      false_step: step_send_to_revision_queue\n\n  - id: step_publish_subworkflow\n    op: call_subworkflow\n    params:\n      workflow_id: \"publishing_subworkflow\"\n      input: validated_draft\n    output: publish_result\n\n  - id: step_transform_publish_result\n    op: transform_json\n    params:\n      input: publish_result\n      mapping:\n        status: \"$.status\"\n        published_url: \"$.url\"\n        content_id: \"$.content_id\"\n    output: sanitized_publish_result\n\n  - id: step_log_approved\n    op: log_audit\n    params:\n      input: sanitized_publish_result\n      event: \"content_published\"\n      message: \"Draft approved and published successfully.\"\n    output: audit_log_approved\n\n  - id: step_route_to_end_approved\n    op: route_to_step\n    params:\n      condition: \"true\"\n      true_step: step_terminate\n\n  - id: step_send_to_revision_queue\n    op: send_to_queue\n    params:\n      input: validated_draft\n      queue: \"content_revision_queue\"\n    output: revision_queue_result\n\n  - id: step_log_rejected\n    op: log_audit\n    params:\n      input: validated_draft\n      event: \"content_rejected\"\n      message: \"Draft not approved. Sent to revision queue.\"\n    output: audit_log_rejected\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_014.py::test_parses_and_type_checks": true,
+            "test_wf_web_014.py::test_passes_taint_analysis": true,
+            "test_wf_web_014.py::test_approval_before_route": true,
+            "test_wf_web_014.py::test_has_subworkflow_delegation": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1110,
+          "output_tokens": 660
+        }
+      ],
+      "complexity": 4,
+      "domain": "web_automation",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1110,
+      "total_output_tokens": 660
+    },
+    {
+      "task_id": "wf_tool_011",
+      "condition": "no_repair",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 0.6281805001199245,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: primary_secondary_api_enrichment\nsteps:\n  - id: fetch_primary_record\n    op: fetch_api\n    params:\n      endpoint: \"/api/primary/record\"\n    output: raw_primary\n\n  - id: fetch_enrichment_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/secondary/enrichment\"\n    output: raw_enrichment\n\n  - id: sanitize_primary\n    op: validate_schema\n    params:\n      input: raw_primary\n      schema: primary_record_schema\n    output: validated_primary\n\n  - id: sanitize_enrichment\n    op: validate_schema\n    params:\n      input: raw_enrichment\n      schema: enrichment_data_schema\n    output: validated_enrichment\n\n  - id: merge_primary_and_enrichment\n    op: merge_datasets\n    params:\n      input: validated_primary\n      secondary_input: validated_enrichment\n      merge_key: record_id\n    output: merged_record\n\n  - id: validate_enriched_result\n    op: validate_schema\n    params:\n      input: merged_record\n      schema: enriched_record_schema\n    output: enriched_result\n\n  - id: format_response\n    op: format_output\n    params:\n      input: enriched_result\n      format: json\n    output: final_output",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_011.py::test_parses_and_type_checks": true,
+            "test_wf_tool_011.py::test_passes_taint_analysis": true,
+            "test_wf_tool_011.py::test_merge_before_validate": false
+          },
+          "failure_category": "test_failure",
+          "success": false,
+          "input_tokens": 1070,
+          "output_tokens": 332
+        }
+      ],
+      "complexity": 3,
+      "domain": "api_integration",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1070,
+      "total_output_tokens": 332
+    },
+    {
+      "task_id": "wf_agent_008",
+      "condition": "no_repair",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 0.6682436252012849,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: agent_task_routing_to_subworkflow\nsteps:\n  - id: step_fetch_task\n    op: fetch_api\n    params:\n      endpoint: \"/api/agent/tasks/pending\"\n    output: raw_task\n\n  - id: step_validate_task\n    op: validate_schema\n    params:\n      input: raw_task\n      schema: agent_task_schema\n    output: validated_task\n\n  - id: step_classify_task\n    op: transform_json\n    params:\n      input: validated_task\n      mapping:\n        category: \"$.task_type\"\n        priority: \"$.priority\"\n        payload: \"$.details\"\n    output: classified_task\n\n  - id: step_apply_routing_rule\n    op: apply_rule\n    params:\n      input: classified_task\n      rule: \"route_by_category_and_priority\"\n    output: routing_decision\n\n  - id: step_extract_target_workflow\n    op: extract_field\n    params:\n      input: routing_decision\n      field: \"target_subworkflow_id\"\n    output: target_subworkflow_id\n\n  - id: step_route_to_subworkflow\n    op: call_subworkflow\n    params:\n      workflow_id_ref: target_subworkflow_id\n      input: classified_task\n    output: subworkflow_result\n\n  - id: step_log_routing\n    op: log_audit\n    params:\n      input: classified_task\n      event: \"task_routed\"\n      details:\n        routing_decision: routing_decision\n        subworkflow_result: subworkflow_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_008.py::test_parses_and_type_checks": true,
+            "test_wf_agent_008.py::test_passes_taint_analysis": true,
+            "test_wf_agent_008.py::test_two_rules_before_route": false
+          },
+          "failure_category": "test_failure",
+          "success": false,
+          "input_tokens": 1064,
+          "output_tokens": 399
+        }
+      ],
+      "complexity": 3,
+      "domain": "agent_tasks",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1064,
+      "total_output_tokens": 399
+    },
+    {
+      "task_id": "wf_tool_004",
+      "condition": "no_repair",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 0.6569168344140053,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: two_api_chain_with_transformation\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_consumer\"\n    output: auth_result\n\n  - id: step_fetch_first_api\n    op: fetch_api\n    params:\n      endpoint: \"/api/first/data\"\n    output: raw_first_data\n\n  - id: step_validate_first\n    op: validate_schema\n    params:\n      input: raw_first_data\n      schema: first_api_response_schema\n    output: validated_first_data\n\n  - id: step_transform_for_second_api\n    op: transform_json\n    params:\n      input: validated_first_data\n      mapping: \"reshape_for_second_api\"\n    output: transformed_data\n\n  - id: step_call_second_api\n    op: call_webhook\n    params:\n      input: transformed_data\n      url: \"/api/second/query\"\n      method: \"POST\"\n    output: raw_second_data\n\n  - id: step_validate_second\n    op: validate_schema\n    params:\n      input: raw_second_data\n      schema: second_api_response_schema\n    output: validated_second_data\n\n  - id: step_format_result\n    op: format_output\n    params:\n      input: validated_second_data\n      format: \"json\"\n    output: final_output\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: final_output\n      message: \"Two-API chain completed successfully\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_004.py::test_parses_and_type_checks": true,
+            "test_wf_tool_004.py::test_passes_taint_analysis": true,
+            "test_wf_tool_004.py::test_transform_between_fetches": false
+          },
+          "failure_category": "test_failure",
+          "success": false,
+          "input_tokens": 1062,
+          "output_tokens": 392
+        }
+      ],
+      "complexity": 2,
+      "domain": "api_integration",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1062,
+      "total_output_tokens": 392
+    },
+    {
+      "task_id": "wf_gaia_014",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6042112903669477,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: secured_multi_source_data_pipeline\nsteps:\n  - id: step_authenticate_pipeline\n    op: authenticate_user\n    params:\n      role: \"pipeline_service\"\n    output: auth_result\n\n  - id: step_fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/sensitive-source/one\"\n    output: raw_source_one\n\n  - id: step_fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/sensitive-source/two\"\n    output: raw_source_two\n\n  - id: step_filter_source_one\n    op: filter_records\n    params:\n      input: raw_source_one\n      condition: \"record IS NOT NULL\"\n    output: clean_source_one\n\n  - id: step_filter_source_two\n    op: filter_records\n    params:\n      input: raw_source_two\n      condition: \"record IS NOT NULL\"\n    output: clean_source_two\n\n  - id: step_merge_datasets\n    op: merge_datasets\n    params:\n      input: clean_source_one\n      secondary_input: clean_source_two\n      key: \"record_id\"\n    output: merged_dataset\n\n  - id: step_validate_merged\n    op: validate_schema\n    params:\n      input: merged_dataset\n      schema: \"sensitive_data_schema\"\n    output: validated_dataset\n\n  - id: step_extract_sensitive_fields\n    op: extract_field\n    params:\n      input: validated_dataset\n      field: \"sensitive_fields\"\n    output: extracted_sensitive_fields\n\n  - id: step_encrypt_sensitive\n    op: encrypt_field\n    params:\n      input: extracted_sensitive_fields\n      algorithm: \"AES-256\"\n    output: encrypted_dataset\n\n  - id: step_write_to_database\n    op: write_database\n    params:\n      input: encrypted_dataset\n      table: \"secured_sensitive_data\"\n    output: write_result\n\n  - id: step_log_storage_audit\n    op: log_audit\n    params:\n      input: write_result\n      action: \"persisted_encrypted_sensitive_data\"\n      details: \"Encrypted multi-source sensitive data written to secured_sensitive_data table\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_014.py::test_parses_and_type_checks": true,
+            "test_wf_gaia_014.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_014.py::test_auth_before_store": true,
+            "test_wf_gaia_014.py::test_encrypt_before_store": true,
+            "test_wf_gaia_014.py::test_log_after_store": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1138,
+          "output_tokens": 559
+        }
+      ],
+      "complexity": 4,
+      "domain": "general_ai",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1138,
+      "total_output_tokens": 559
+    },
+    {
+      "task_id": "wf_gaia_011",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6008434584364295,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: conditional_routing_by_classification\nsteps:\n  - id: fetch_item_details\n    op: fetch_api\n    params:\n      endpoint: \"/api/items/incoming\"\n    output: raw_item\n\n  - id: validate_item\n    op: validate_schema\n    params:\n      input: raw_item\n      schema: item_schema\n    output: validated_item\n\n  - id: classify_item\n    op: apply_rule\n    params:\n      input: validated_item\n      rule: classification_rule\n    output: classification_result\n\n  - id: extract_classification\n    op: extract_field\n    params:\n      input: classification_result\n      field: classification\n    output: item_classification\n\n  - id: route_by_classification\n    op: route_to_step\n    params:\n      input: item_classification\n      conditions:\n        - when: \"classification == 'category_a'\"\n          goto: process_category_a\n        - when: \"classification == 'category_b'\"\n          goto: process_category_b\n\n  - id: process_category_a\n    op: transform_json\n    params:\n      input: validated_item\n      mapping: category_a_transform\n    output: category_a_result\n\n  - id: log_category_a\n    op: log_audit\n    params:\n      input: category_a_result\n      message: \"Item routed and processed via category A path\"\n    output: audit_a\n\n  - id: terminate_category_a\n    op: terminate_workflow\n    params:\n      status: \"completed_category_a\"\n\n  - id: process_category_b\n    op: transform_json\n    params:\n      input: validated_item\n      mapping: category_b_transform\n    output: category_b_result\n\n  - id: log_category_b\n    op: log_audit\n    params:\n      input: category_b_result\n      message: \"Item routed and processed via category B path\"\n    output: audit_b\n\n  - id: terminate_category_b\n    op: terminate_workflow\n    params:\n      status: \"completed_category_b\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_011.py::test_parses_and_type_checks": true,
+            "test_wf_gaia_011.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_011.py::test_classify_before_route": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1056,
+          "output_tokens": 514
+        }
+      ],
+      "complexity": 3,
+      "domain": "general_ai",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1056,
+      "total_output_tokens": 514
+    },
+    {
+      "task_id": "wf_gaia_008",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.5896181249991059,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: rule_based_record_update\nsteps:\n  - id: step_read_pending\n    op: read_database\n    params:\n      table: pending_records\n    output: raw_pending_records\n\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"processing_service\"\n    output: auth_result\n\n  - id: step_validate_schema\n    op: validate_schema\n    params:\n      input: raw_pending_records\n      schema: pending_record_schema\n    output: validated_records\n\n  - id: step_apply_rule\n    op: apply_rule\n    params:\n      input: validated_records\n      rule: \"determine_record_outcome\"\n    output: rule_outcomes\n\n  - id: step_write_outcomes\n    op: write_database\n    params:\n      input: rule_outcomes\n      table: pending_records\n    output: write_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_008.py::test_parses_and_type_checks": true,
+            "test_wf_gaia_008.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_008.py::test_rule_before_write": true,
+            "test_wf_gaia_008.py::test_auth_before_write": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1071,
+          "output_tokens": 223
+        }
+      ],
+      "complexity": 2,
+      "domain": "general_ai",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1071,
+      "total_output_tokens": 223
+    },
+    {
+      "task_id": "wf_agent_009",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.647490500472486,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: knowledge_retrieval_and_response_formatting\nsteps:\n  - id: fetch_user_query\n    op: fetch_api\n    params:\n      endpoint: \"/api/user/query\"\n    output: raw_user_query\n\n  - id: validate_user_query\n    op: validate_schema\n    params:\n      input: raw_user_query\n      schema: user_query_schema\n    output: validated_user_query\n\n  - id: transform_query_to_embedding\n    op: transform_json\n    params:\n      input: validated_user_query\n      mapping:\n        operation: \"generate_embedding\"\n        source_field: \"query_text\"\n        target_field: \"embedding_vector\"\n    output: embedded_query\n\n  - id: search_knowledge_base\n    op: read_database\n    params:\n      table: knowledge_base\n      query_vector: embedded_query\n    output: raw_search_results\n\n  - id: validate_search_results\n    op: validate_schema\n    params:\n      input: raw_search_results\n      schema: search_results_schema\n    output: validated_search_results\n\n  - id: fetch_contextual_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/context/session\"\n    output: raw_contextual_data\n\n  - id: validate_contextual_data\n    op: validate_schema\n    params:\n      input: raw_contextual_data\n      schema: contextual_data_schema\n    output: validated_contextual_data\n\n  - id: merge_results_with_context\n    op: merge_datasets\n    params:\n      input: validated_search_results\n      secondary_input: validated_contextual_data\n      merge_key: \"session_id\"\n    output: merged_results\n\n  - id: format_final_response\n    op: format_output\n    params:\n      input: merged_results\n      format: \"json\"\n      template: \"knowledge_response_template\"\n    output: final_response\n\n  - id: log_query_audit\n    op: log_audit\n    params:\n      input: final_response\n      event: \"knowledge_retrieval_completed\"\n      details:\n        query_source: validated_user_query",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_009.py::test_parses_and_type_checks": true,
+            "test_wf_agent_009.py::test_passes_taint_analysis": true,
+            "test_wf_agent_009.py::test_merge_before_format": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1091,
+          "output_tokens": 542
+        }
+      ],
+      "complexity": 3,
+      "domain": "agent_tasks",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1091,
+      "total_output_tokens": 542
+    },
+    {
+      "task_id": "wf_gaia_001",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.5841500423848629,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: weather_report_generation\nsteps:\n  - id: fetch_weather_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/weather/current\"\n      query_params:\n        city: \"{{requested_city}}\"\n        cache: false\n    output: raw_weather_data\n\n  - id: validate_weather_data\n    op: validate_schema\n    params:\n      input: raw_weather_data\n      schema: weather_data_schema\n    output: validated_weather_data\n\n  - id: format_weather_report\n    op: format_output\n    params:\n      input: validated_weather_data\n      format: human_readable_report\n      template: \"Weather Report for {{city}}: Temperature: {{temperature}}\u00b0, Conditions: {{conditions}}, Humidity: {{humidity}}%, Wind: {{wind_speed}} km/h\"\n    output: weather_report\n\n  - id: notify_requester\n    op: notify_user\n    params:\n      input: weather_report\n      channel: requester\n      message: \"Your weather report is ready.\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_001.py::test_parses_and_type_checks": true,
+            "test_wf_gaia_001.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_001.py::test_has_fetch_step": true,
+            "test_wf_gaia_001.py::test_has_format_step": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1047,
+          "output_tokens": 260
+        }
+      ],
+      "complexity": 1,
+      "domain": "general_ai",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1047,
+      "total_output_tokens": 260
+    },
+    {
+      "task_id": "wf_web_008",
+      "condition": "no_repair",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "type_error",
+      "synthesis_time_seconds": 0.002911332994699478,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: ecommerce_checkout_workflow\nsteps:\n  - id: step_fetch_cart\n    op: fetch_api\n    params:\n      endpoint: \"/api/cart/contents\"\n    output: raw_cart\n\n  - id: step_validate_cart\n    op: validate_schema\n    params:\n      input: raw_cart\n      schema: checkout_schema\n    output: validated_cart\n\n  - id: step_apply_promo\n    op: apply_rule\n    params:\n      input: validated_cart\n      rule: promo_code_rule\n    output: cart_with_promo\n\n  - id: step_authenticate_shopper\n    op: authenticate_user\n    params:\n      role: \"shopper\"\n    output: auth_result\n\n  - id: step_transform_order\n    op: transform_json\n    params:\n      input: cart_with_promo\n      mapping:\n        include_auth: auth_result\n        format: order_payload\n    output: order_payload\n\n  - id: step_process_order\n    op: call_webhook\n    params:\n      input: order_payload\n      url: \"/payments/process-order\"\n    output: raw_order_result\n\n  - id: step_validate_order_result\n    op: validate_schema\n    params:\n      input: raw_order_result\n      schema: order_result_schema\n    output: validated_order_result\n\n  - id: step_notify_customer\n    op: notify_user\n    params:\n      input: validated_order_result\n      template: order_confirmation\n      channel: email\n\n  - id: step_log_order\n    op: log_audit\n    params:\n      input: validated_order_result\n      event: \"order_placed\"\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: step_terminate_failure\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      reason: \"Checkout process encountered an error\"",
+          "dsl_type_errors": [
+            "Step 'step_transform_order': op 'transform_json' requires input of type 'records' but 'cart_with_promo' has type 'boolean'. Make sure the step producing 'cart_with_promo' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "type_error",
+          "success": false,
+          "input_tokens": 1103,
+          "output_tokens": 493
+        }
+      ],
+      "complexity": 3,
+      "domain": "web_automation",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1103,
+      "total_output_tokens": 493
+    },
+    {
+      "task_id": "wf_web_010",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.7698057498782873,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: user_registration_workflow\nsteps:\n  - id: step_fetch_registration\n    op: fetch_api\n    params:\n      endpoint: \"/api/registration/submit\"\n    output: raw_registration\n\n  - id: step_validate_registration\n    op: validate_schema\n    params:\n      input: raw_registration\n      schema: registration_schema\n    output: validated_registration\n\n  - id: step_extract_email\n    op: extract_field\n    params:\n      input: validated_registration\n      field: \"email\"\n    output: user_email\n\n  - id: step_check_duplicate\n    op: apply_rule\n    params:\n      rule: \"duplicate_email_check\"\n      input: user_email\n    output: duplicate_check_result\n\n  - id: step_route_duplicate\n    op: route_to_step\n    params:\n      condition: \"duplicate_check_result.is_duplicate == true\"\n      target: step_terminate_duplicate\n\n  - id: step_authenticate_service\n    op: authenticate_user\n    params:\n      role: \"registration_service\"\n    output: auth_result\n\n  - id: step_create_account\n    op: write_database\n    params:\n      input: validated_registration\n      table: user_accounts\n    output: created_account\n\n  - id: step_notify_welcome\n    op: notify_user\n    params:\n      input: validated_registration\n      template: \"welcome_email\"\n      recipient: user_email\n    output: notification_result\n\n  - id: step_log_registration\n    op: log_audit\n    params:\n      input: validated_registration\n      action: \"user_registered\"\n      details: \"New user account created successfully\"\n    output: audit_log_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"User registration completed successfully\"\n\n  - id: step_terminate_duplicate\n    op: terminate_workflow\n    params:\n      status: \"rejected\"\n      message: \"Email address already registered\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_010.py::test_parses_and_type_checks": true,
+            "test_wf_web_010.py::test_passes_taint_analysis": true,
+            "test_wf_web_010.py::test_duplicate_check_before_create": true,
+            "test_wf_web_010.py::test_has_welcome_notification": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1097,
+          "output_tokens": 498
+        }
+      ],
+      "complexity": 3,
+      "domain": "web_automation",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1097,
+      "total_output_tokens": 498
+    },
+    {
+      "task_id": "wf_gaia_012",
+      "condition": "no_repair",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 4,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "type_error",
+      "synthesis_time_seconds": 0.004541999660432339,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: three_source_aggregation_with_error_handling\nsteps:\n  - id: fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_one/data\"\n    output: raw_source_one\n\n  - id: handle_error_source_one\n    op: handle_error\n    params:\n      step: fetch_source_one\n      fallback_value: []\n    output: safe_source_one\n\n  - id: validate_source_one\n    op: validate_schema\n    params:\n      input: safe_source_one\n      schema: source_record_schema\n    output: validated_source_one\n\n  - id: fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_two/data\"\n    output: raw_source_two\n\n  - id: handle_error_source_two\n    op: handle_error\n    params:\n      step: fetch_source_two\n      fallback_value: []\n    output: safe_source_two\n\n  - id: validate_source_two\n    op: validate_schema\n    params:\n      input: safe_source_two\n      schema: source_record_schema\n    output: validated_source_two\n\n  - id: fetch_source_three\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_three/data\"\n    output: raw_source_three\n\n  - id: handle_error_source_three\n    op: handle_error\n    params:\n      step: fetch_source_three\n      fallback_value: []\n    output: safe_source_three\n\n  - id: validate_source_three\n    op: validate_schema\n    params:\n      input: safe_source_three\n      schema: source_record_schema\n    output: validated_source_three\n\n  - id: merge_one_two\n    op: merge_datasets\n    params:\n      input: validated_source_one\n      secondary: validated_source_two\n      strategy: union\n    output: merged_one_two\n\n  - id: merge_all_sources\n    op: merge_datasets\n    params:\n      input: merged_one_two\n      secondary: validated_source_three\n      strategy: union\n    output: merged_all\n\n  - id: aggregate_consolidated\n    op: aggregate_data\n    params:\n      input: merged_all\n      group_by: entity_id\n      operations:\n        - type: collect\n    output: aggregated_view\n\n  - id: handle_aggregation_error\n    op: handle_error\n    params:\n      step: aggregate_consolidated\n      fallback_value: null\n    output: safe_aggregated_view\n\n  - id: check_aggregation_result\n    op: apply_rule\n    params:\n      rule: \"safe_aggregated_view != null\"\n      input_ref: safe_aggregated_view\n    output: aggregation_ok\n\n  - id: route_on_aggregation\n    op: route_to_step\n    params:\n      condition: \"aggregation_ok == true\"\n      true_step: format_consolidated_output\n      false_step: fallback_format_merged\n\n  - id: format_consolidated_output\n    op: format_output\n    params:\n      input: safe_aggregated_view\n      format: json\n    output: final_output\n\n  - id: fallback_format_merged\n    op: format_output\n    params:\n      input: merged_all\n      format: json\n    output: final_output_fallback\n\n  - id: log_result\n    op: log_audit\n    params:\n      input: final_output\n      message: \"Three-source aggregation completed\"\n\n  - id: terminate\n    op: terminate_workflow\n    params:\n      status: completed",
+          "dsl_type_errors": [
+            "Step 'validate_source_one': op 'validate_schema' requires input of type 'records' but 'safe_source_one' has type 'none'. Make sure the step producing 'safe_source_one' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database).",
+            "Step 'validate_source_two': op 'validate_schema' requires input of type 'records' but 'safe_source_two' has type 'none'. Make sure the step producing 'safe_source_two' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database).",
+            "Step 'validate_source_three': op 'validate_schema' requires input of type 'records' but 'safe_source_three' has type 'none'. Make sure the step producing 'safe_source_three' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database).",
+            "Step 'format_consolidated_output': op 'format_output' requires input of type 'records' but 'safe_aggregated_view' has type 'none'. Make sure the step producing 'safe_aggregated_view' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "type_error",
+          "success": false,
+          "input_tokens": 1084,
+          "output_tokens": 908
+        }
+      ],
+      "complexity": 3,
+      "domain": "general_ai",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1084,
+      "total_output_tokens": 908
+    },
+    {
+      "task_id": "wf_tool_002",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6606373749673367,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: currency_conversion_logging\nsteps:\n  - id: step_fetch_conversion\n    op: fetch_api\n    params:\n      endpoint: \"/api/currency/convert\"\n      query_params:\n        source_amount: \"{{request.source_amount}}\"\n        source_currency: \"{{request.source_currency}}\"\n        target_currency: \"{{request.target_currency}}\"\n    output: raw_conversion_response\n\n  - id: step_extract_converted_amount\n    op: extract_field\n    params:\n      input: raw_conversion_response\n      field: \"converted_amount\"\n    output: converted_amount\n\n  - id: step_log_conversion\n    op: log_audit\n    params:\n      input: converted_amount\n      event: \"currency_conversion\"\n      details:\n        source_amount: \"{{request.source_amount}}\"\n        source_currency: \"{{request.source_currency}}\"\n        target_currency: \"{{request.target_currency}}\"\n    output: audit_log_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_002.py::test_parses_and_type_checks": true,
+            "test_wf_tool_002.py::test_passes_taint_analysis": true,
+            "test_wf_tool_002.py::test_has_fetch_and_log": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1045,
+          "output_tokens": 250
+        }
+      ],
+      "complexity": 1,
+      "domain": "api_integration",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1045,
+      "total_output_tokens": 250
+    },
+    {
+      "task_id": "wf_gaia_015",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6170756667852402,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: full_reasoning_and_audit_pipeline\nsteps:\n  - id: step_fetch_source_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/high-value-requests/source-data\"\n    output: raw_source_data\n\n  - id: step_filter_source_data\n    op: filter_records\n    params:\n      input: raw_source_data\n      condition: \"record is present and well-formed\"\n    output: filtered_source_data\n\n  - id: step_classify_request\n    op: apply_rule\n    params:\n      input: filtered_source_data\n      rule: \"classification_rule\"\n    output: classification_result\n\n  - id: step_route_by_classification\n    op: route_to_step\n    params:\n      input: classification_result\n      routes:\n        category_a: step_transform_category_a\n        category_b: step_transform_category_b\n        default: step_transform_default\n\n  - id: step_transform_category_a\n    op: transform_json\n    params:\n      input: filtered_source_data\n      mapping: \"canonical_output_format_a\"\n    output: transformed_data\n\n  - id: step_transform_category_b\n    op: transform_json\n    params:\n      input: filtered_source_data\n      mapping: \"canonical_output_format_b\"\n    output: transformed_data\n\n  - id: step_transform_default\n    op: transform_json\n    params:\n      input: filtered_source_data\n      mapping: \"canonical_output_format_default\"\n    output: transformed_data\n\n  - id: step_validate_transformed\n    op: validate_schema\n    params:\n      input: transformed_data\n      schema: \"canonical_output_schema\"\n    output: validated_data\n\n  - id: step_authenticate_pipeline_service\n    op: authenticate_user\n    params:\n      role: \"pipeline_service\"\n    output: auth_result\n\n  - id: step_write_result\n    op: write_database\n    params:\n      input: validated_data\n      table: \"pipeline_results\"\n    output: write_result\n\n  - id: step_notify_stakeholder\n    op: notify_user\n    params:\n      input: validated_data\n      recipient: \"stakeholder\"\n      message: \"The full reasoning and audit pipeline has completed successfully.\"\n    output: notification_result\n\n  - id: step_log_audit_trail\n    op: log_audit\n    params:\n      input: validated_data\n      details:\n        source: raw_source_data\n        classification: classification_result\n        transformed: transformed_data\n        validated: validated_data\n        write_status: write_result\n        notification_status: notification_result\n    output: audit_log_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_015.py::test_parses_and_type_checks": true,
+            "test_wf_gaia_015.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_015.py::test_verify_before_store": true,
+            "test_wf_gaia_015.py::test_notify_and_log_present": true,
+            "test_wf_gaia_015.py::test_classify_before_route": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1160,
+          "output_tokens": 672
+        }
+      ],
+      "complexity": 5,
+      "domain": "general_ai",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1160,
+      "total_output_tokens": 672
+    },
+    {
+      "task_id": "wf_tool_015",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.638582875020802,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: full_four_source_api_integration\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"integration_service\"\n    output: auth_result\n\n  - id: step_fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/one\"\n    output: raw_source_one\n\n  - id: step_fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/two\"\n    output: raw_source_two\n\n  - id: step_fetch_source_three\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/three\"\n    output: raw_source_three\n\n  - id: step_fetch_source_four\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/four\"\n    output: raw_source_four\n\n  - id: step_filter_source_one\n    op: filter_records\n    params:\n      input: raw_source_one\n      condition: \"record IS NOT NULL\"\n    output: clean_source_one\n\n  - id: step_filter_source_two\n    op: filter_records\n    params:\n      input: raw_source_two\n      condition: \"record IS NOT NULL\"\n    output: clean_source_two\n\n  - id: step_filter_source_three\n    op: filter_records\n    params:\n      input: raw_source_three\n      condition: \"record IS NOT NULL\"\n    output: clean_source_three\n\n  - id: step_filter_source_four\n    op: filter_records\n    params:\n      input: raw_source_four\n      condition: \"record IS NOT NULL\"\n    output: clean_source_four\n\n  - id: step_merge_one_two\n    op: merge_datasets\n    params:\n      input: clean_source_one\n      secondary: clean_source_two\n      key: \"record_id\"\n    output: merged_one_two\n\n  - id: step_merge_three_four\n    op: merge_datasets\n    params:\n      input: clean_source_three\n      secondary: clean_source_four\n      key: \"record_id\"\n    output: merged_three_four\n\n  - id: step_merge_all\n    op: merge_datasets\n    params:\n      input: merged_one_two\n      secondary: merged_three_four\n      key: \"record_id\"\n    output: merged_result\n\n  - id: step_validate_merged\n    op: validate_schema\n    params:\n      input: merged_result\n      schema: \"integration_schema\"\n    output: validated_result\n\n  - id: step_extract_sensitive\n    op: extract_field\n    params:\n      input: validated_result\n      field: \"sensitive_fields\"\n    output: sensitive_fields\n\n  - id: step_encrypt_sensitive\n    op: encrypt_field\n    params:\n      input: sensitive_fields\n      algorithm: \"AES-256\"\n    output: encrypted_result\n\n  - id: step_transform_for_storage\n    op: transform_json\n    params:\n      input: validated_result\n      mapping:\n        sensitive_fields: encrypted_result\n    output: final_record\n\n  - id: step_write_database\n    op: write_database\n    params:\n      input: final_record\n      table: \"integrated_data\"\n    output: write_result\n\n  - id: step_notify_owner\n    op: notify_user\n    params:\n      input: final_record\n      recipient: \"integration_owner\"\n      message: \"Full four-source integration run completed successfully.\"\n    output: notify_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: final_record\n      event: \"full_four_source_integration_completed\"\n      details:\n        sources: 4\n        write_status: write_result\n        notification_status: notify_result\n    output: audit_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_015.py::test_parses_and_type_checks": true,
+            "test_wf_tool_015.py::test_passes_taint_analysis": true,
+            "test_wf_tool_015.py::test_auth_before_fetches": true,
+            "test_wf_tool_015.py::test_validate_and_encrypt_before_store": true,
+            "test_wf_tool_015.py::test_has_notify_and_audit": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1176,
+          "output_tokens": 966
+        }
+      ],
+      "complexity": 5,
+      "domain": "api_integration",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1176,
+      "total_output_tokens": 966
+    },
+    {
+      "task_id": "wf_web_001",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.710106915794313,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: product_listing_fetch\nsteps:\n  - id: fetch_product_listing\n    op: fetch_api\n    params:\n      endpoint: \"/api/products/listing\"\n      filters:\n        status: \"live\"\n    output: raw_listing\n\n  - id: validate_listing_schema\n    op: validate_schema\n    params:\n      input: raw_listing\n      schema: product_listing_schema\n    output: validated_listing\n\n  - id: filter_live_listing\n    op: filter_records\n    params:\n      input: validated_listing\n      condition: \"status == 'live'\"\n    output: live_listing\n\n  - id: format_listing_output\n    op: format_output\n    params:\n      input: live_listing\n      format: json\n    output: formatted_listing",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_001.py::test_parses_and_type_checks": true,
+            "test_wf_web_001.py::test_passes_taint_analysis": true,
+            "test_wf_web_001.py::test_has_fetch": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1022,
+          "output_tokens": 195
+        }
+      ],
+      "complexity": 1,
+      "domain": "web_automation",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1022,
+      "total_output_tokens": 195
+    },
+    {
+      "task_id": "wf_gaia_013",
+      "condition": "no_repair",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "type_error",
+      "synthesis_time_seconds": 0.0020942501723766327,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: record_loop_with_rule_collection\nsteps:\n  - id: fetch_queued_records\n    op: fetch_api\n    params:\n      endpoint: \"/api/batches/queued-records\"\n    output: raw_batch\n\n  - id: validate_batch\n    op: validate_schema\n    params:\n      input: raw_batch\n      schema: queued_records_schema\n    output: validated_batch\n\n  - id: loop_over_records\n    op: loop_records\n    params:\n      input: validated_batch\n      steps:\n        - id: apply_business_rule\n          op: apply_rule\n          params:\n            input: current_record\n            rule: \"batch_record_evaluation_rule\"\n          output: rule_result\n\n        - id: transform_rule_outcome\n          op: transform_json\n          params:\n            input: rule_result\n            mapping:\n              format: \"collected_results\"\n          output: transformed_outcome\n    output: collected_results\n\n  - id: aggregate_collected_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: \"status\"\n      operations:\n        - type: \"count\"\n          field: \"*\"\n        - type: \"summary\"\n          field: \"outcome\"\n    output: aggregated_summary",
+          "dsl_type_errors": [
+            "Step 'aggregate_collected_results': op 'aggregate_data' requires input of type 'records' but 'collected_results' has type 'none'. Make sure the step producing 'collected_results' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "type_error",
+          "success": false,
+          "input_tokens": 1077,
+          "output_tokens": 319
+        }
+      ],
+      "complexity": 3,
+      "domain": "general_ai",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1077,
+      "total_output_tokens": 319
+    },
+    {
+      "task_id": "wf_gaia_009",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6102388752624393,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: api_data_transformation_and_storage\nsteps:\n  - id: fetch_external_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/external/latest\"\n    output: raw_external_data\n\n  - id: transform_to_internal_format\n    op: transform_json\n    params:\n      input: raw_external_data\n      mapping: external_to_internal\n    output: transformed_data\n\n  - id: authenticate_sync_service\n    op: authenticate_user\n    params:\n      role: \"sync_service\"\n    output: auth_result\n\n  - id: store_transformed_data\n    op: write_database\n    params:\n      input: transformed_data\n      table: internal_records\n    output: write_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_009.py::test_parses_and_type_checks": true,
+            "test_wf_gaia_009.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_009.py::test_transform_before_store": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1057,
+          "output_tokens": 187
+        }
+      ],
+      "complexity": 2,
+      "domain": "general_ai",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1057,
+      "total_output_tokens": 187
+    },
+    {
+      "task_id": "wf_tool_007",
+      "condition": "no_repair",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "type_error",
+      "synthesis_time_seconds": 0.0018067080527544022,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: authenticated_paginated_aggregation\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_consumer\"\n    output: auth_result\n\n  - id: step_fetch_paginated_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/paginated/results\"\n      pagination: true\n    output: raw_paginated_data\n\n  - id: step_validate_paginated_data\n    op: validate_schema\n    params:\n      input: raw_paginated_data\n      schema: paginated_results_schema\n    output: validated_paginated_data\n\n  - id: step_aggregate_summary\n    op: aggregate_data\n    params:\n      input: validated_paginated_data\n      group_by: null\n      operations:\n        - type: \"summary\"\n    output: aggregated_summary\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: aggregated_summary\n      format: \"json\"\n    output: formatted_summary\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: formatted_summary\n      message: \"Paginated aggregation completed successfully\"",
+          "dsl_type_errors": [
+            "Step 'step_format_summary': op 'format_output' requires input of type 'records' but 'aggregated_summary' has type 'record'. Make sure the step producing 'aggregated_summary' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "type_error",
+          "success": false,
+          "input_tokens": 1050,
+          "output_tokens": 299
+        }
+      ],
+      "complexity": 2,
+      "domain": "api_integration",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1050,
+      "total_output_tokens": 299
+    },
+    {
+      "task_id": "wf_tool_001",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6493613757193089,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: weather_api_formatting\nsteps:\n  - id: fetch_weather_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/weather\"\n      query_param: location\n    output: raw_weather\n\n  - id: validate_weather_data\n    op: validate_schema\n    params:\n      input: raw_weather\n      schema: weather_response_schema\n    output: validated_weather\n\n  - id: format_weather_display\n    op: format_output\n    params:\n      input: validated_weather\n      format: display_text\n      template: \"Location: {{location}}\\nTemperature: {{temperature}}\u00b0\\nConditions: {{conditions}}\\nHumidity: {{humidity}}%\\nWind: {{wind_speed}} {{wind_direction}}\"\n    output: formatted_weather",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_001.py::test_parses_and_type_checks": true,
+            "test_wf_tool_001.py::test_passes_taint_analysis": true,
+            "test_wf_tool_001.py::test_has_fetch_and_format": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1030,
+          "output_tokens": 199
+        }
+      ],
+      "complexity": 1,
+      "domain": "api_integration",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1030,
+      "total_output_tokens": 199
+    },
+    {
+      "task_id": "wf_agent_015",
+      "condition": "no_repair",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "type_error",
+      "synthesis_time_seconds": 0.0043852077797055244,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: complex_reasoning_with_encrypted_storage\nsteps:\n  - id: fetch_batch_records\n    op: fetch_api\n    params:\n      endpoint: \"/api/batch/queued-records\"\n    output: raw_batch_records\n\n  - id: validate_batch_records\n    op: validate_schema\n    params:\n      input: raw_batch_records\n      schema: batch_records_schema\n    output: validated_batch_records\n\n  - id: loop_over_records\n    op: loop_records\n    params:\n      input: validated_batch_records\n      step: apply_reasoning_rule\n    output: per_record_outcomes\n\n  - id: apply_reasoning_rule\n    op: apply_rule\n    params:\n      input: validated_batch_records\n      rule: multi_step_reasoning_rule\n    output: rule_outcomes\n\n  - id: transform_rule_outcomes\n    op: transform_json\n    params:\n      input: per_record_outcomes\n      mapping: collected_results_format\n    output: collected_results\n\n  - id: aggregate_collected_results\n    op: aggregate_data\n    params:\n      input: collected_results\n      group_by: batch_id\n      summarise:\n        - function: collect\n          field: result\n    output: aggregated_results\n\n  - id: apply_security_validation\n    op: apply_rule\n    params:\n      input: aggregated_results\n      rule: security_validation_rule\n    output: security_validated_results\n\n  - id: extract_sensitive_fields\n    op: extract_field\n    params:\n      input: security_validated_results\n      field: sensitive_fields\n    output: sensitive_fields\n\n  - id: authenticate_reasoning_service\n    op: authenticate_user\n    params:\n      role: reasoning_service\n    output: auth_result\n\n  - id: encrypt_sensitive_fields\n    op: encrypt_field\n    params:\n      input: sensitive_fields\n      field: \"*\"\n    output: encrypted_sensitive_fields\n\n  - id: merge_encrypted_with_aggregated\n    op: merge_datasets\n    params:\n      input: aggregated_results\n      secondary: encrypted_sensitive_fields\n      key: batch_id\n    output: encrypted_aggregated_results\n\n  - id: store_encrypted_results\n    op: write_database\n    params:\n      input: encrypted_aggregated_results\n      table: batch_reasoning_results\n    output: write_result\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      input: encrypted_aggregated_results\n      recipient: stakeholders\n      message: \"Batch reasoning run completed successfully.\"\n    output: notification_result\n\n  - id: log_batch_audit\n    op: log_audit\n    params:\n      input: encrypted_aggregated_results\n      event: batch_reasoning_run_completed\n      details:\n        batch_id: batch_id\n        status: completed\n    output: audit_log_result",
+          "dsl_type_errors": [
+            "Step 'transform_rule_outcomes': op 'transform_json' requires input of type 'records' but 'per_record_outcomes' has type 'none'. Make sure the step producing 'per_record_outcomes' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "type_error",
+          "success": false,
+          "input_tokens": 1191,
+          "output_tokens": 712
+        }
+      ],
+      "complexity": 5,
+      "domain": "agent_tasks",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1191,
+      "total_output_tokens": 712
+    },
+    {
+      "task_id": "wf_gaia_004",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6570813748985529,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: input_form_validation_and_storage\nsteps:\n  - id: fetch_form_submission\n    op: fetch_api\n    params:\n      endpoint: \"/api/intake/submissions\"\n    output: raw_form_payload\n\n  - id: validate_form_payload\n    op: validate_schema\n    params:\n      input: raw_form_payload\n      schema: intake_form_schema\n    output: validated_form_data\n\n  - id: authenticate_intake_service\n    op: authenticate_user\n    params:\n      role: \"intake_service\"\n    output: auth_result\n\n  - id: store_validated_form\n    op: write_database\n    params:\n      input: validated_form_data\n      table: intake_submissions\n    output: write_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_004.py::test_parses_and_type_checks": true,
+            "test_wf_gaia_004.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_004.py::test_has_validation_before_store": true,
+            "test_wf_gaia_004.py::test_has_auth_before_store": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1052,
+          "output_tokens": 189
+        }
+      ],
+      "complexity": 1,
+      "domain": "general_ai",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1052,
+      "total_output_tokens": 189
+    },
+    {
+      "task_id": "wf_agent_014",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6292487094178796,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: full_agent_pipeline_three_sources\nsteps:\n  - id: read_agent_config\n    op: read_database\n    params:\n      table: agent_configuration\n      query: \"SELECT * FROM agent_configuration WHERE active = true\"\n    output: raw_agent_config\n\n  - id: validate_agent_config\n    op: validate_schema\n    params:\n      input: raw_agent_config\n      schema: agent_config_schema\n    output: agent_config\n\n  - id: authenticate_agent\n    op: authenticate_user\n    params:\n      role: \"agent_service\"\n      config: agent_config\n    output: auth_result\n\n  - id: fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source-one/data\"\n    output: raw_source_one\n\n  - id: fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source-two/data\"\n    output: raw_source_two\n\n  - id: fetch_source_three\n    op: fetch_api\n    params:\n      endpoint: \"/api/source-three/data\"\n    output: raw_source_three\n\n  - id: sanitize_source_one\n    op: filter_records\n    params:\n      input: raw_source_one\n      condition: \"valid_record == true\"\n    output: clean_source_one\n\n  - id: sanitize_source_two\n    op: filter_records\n    params:\n      input: raw_source_two\n      condition: \"valid_record == true\"\n    output: clean_source_two\n\n  - id: sanitize_source_three\n    op: filter_records\n    params:\n      input: raw_source_three\n      condition: \"valid_record == true\"\n    output: clean_source_three\n\n  - id: merge_one_and_two\n    op: merge_datasets\n    params:\n      input: clean_source_one\n      secondary: clean_source_two\n      key: \"record_id\"\n    output: merged_partial\n\n  - id: merge_all_sources\n    op: merge_datasets\n    params:\n      input: merged_partial\n      secondary: clean_source_three\n      key: \"record_id\"\n    output: combined_data\n\n  - id: classify_context\n    op: apply_rule\n    params:\n      input: combined_data\n      rule: \"classify_agent_context\"\n    output: classification_result\n\n  - id: route_on_classification\n    op: route_to_step\n    params:\n      condition: classification_result\n      mappings:\n        high_priority: transform_high_priority\n        standard: transform_standard\n    output: routed_data\n\n  - id: transform_high_priority\n    op: transform_json\n    params:\n      input: combined_data\n      mapping:\n        format: \"high_priority_storage_schema\"\n        include_classification: true\n    output: transformed_data\n\n  - id: transform_standard\n    op: transform_json\n    params:\n      input: combined_data\n      mapping:\n        format: \"standard_storage_schema\"\n        include_classification: true\n    output: transformed_data\n\n  - id: validate_transformed\n    op: validate_schema\n    params:\n      input: transformed_data\n      schema: agent_output_schema\n    output: validated_data\n\n  - id: handle_validation_error\n    op: handle_error\n    params:\n      step: validate_transformed\n      on_error: terminate_on_failure\n\n  - id: store_validated_result\n    op: write_database\n    params:\n      input: validated_data\n      table: agent_results\n    output: write_result\n\n  - id: log_agent_run_audit\n    op: log_audit\n    params:\n      input: validated_data\n      event: \"agent_pipeline_complete\"\n      details:\n        classification: classification_result\n        write_status: write_result\n    output: audit_log_entry\n\n  - id: terminate_on_failure\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"Validation of transformed data failed\"\n\n  - id: terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_014.py::test_parses_and_type_checks": true,
+            "test_wf_agent_014.py::test_passes_taint_analysis": true,
+            "test_wf_agent_014.py::test_auth_before_write": true,
+            "test_wf_agent_014.py::test_validate_before_store": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1153,
+          "output_tokens": 1030
+        }
+      ],
+      "complexity": 5,
+      "domain": "agent_tasks",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1153,
+      "total_output_tokens": 1030
+    },
+    {
+      "task_id": "wf_gaia_010",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6771959997713566,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: multi_step_research_pipeline\nsteps:\n  - id: fetch_source_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/research/sources\"\n      query: topic\n    output: raw_source_data\n\n  - id: validate_source_data\n    op: validate_schema\n    params:\n      input: raw_source_data\n      schema: research_source_schema\n    output: validated_source_data\n\n  - id: transform_to_report\n    op: transform_json\n    params:\n      input: validated_source_data\n      mapping: research_report_format\n    output: research_report\n\n  - id: authenticate_research_service\n    op: authenticate_user\n    params:\n      role: \"research_service\"\n    output: auth_result\n\n  - id: store_research_report\n    op: write_database\n    params:\n      input: research_report\n      table: research_reports\n    output: write_result\n\n  - id: notify_requester\n    op: notify_user\n    params:\n      input: research_report\n      message: \"Your research report is ready.\"\n      recipient: requester",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_010.py::test_parses_and_type_checks": true,
+            "test_wf_gaia_010.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_010.py::test_store_before_notify": true,
+            "test_wf_gaia_010.py::test_validate_before_transform": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1096,
+          "output_tokens": 280
+        }
+      ],
+      "complexity": 3,
+      "domain": "general_ai",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1096,
+      "total_output_tokens": 280
+    },
+    {
+      "task_id": "wf_gaia_002",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6095783337950706,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: stock_price_lookup_and_logging\nsteps:\n  - id: fetch_stock_price\n    op: fetch_api\n    params:\n      endpoint: \"/api/market-data/price\"\n      query_param: ticker\n    output: raw_price_data\n\n  - id: validate_price_data\n    op: validate_schema\n    params:\n      input: raw_price_data\n      schema: stock_price_schema\n    output: validated_price_data\n\n  - id: extract_price\n    op: extract_field\n    params:\n      input: validated_price_data\n      field: \"current_price\"\n    output: current_price\n\n  - id: log_price_audit\n    op: log_audit\n    params:\n      input: current_price\n      message: \"Recorded stock price lookup for requested ticker\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_002.py::test_parses_and_type_checks": true,
+            "test_wf_gaia_002.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_002.py::test_has_lookup_and_log": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1038,
+          "output_tokens": 203
+        }
+      ],
+      "complexity": 1,
+      "domain": "general_ai",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1038,
+      "total_output_tokens": 203
+    },
+    {
+      "task_id": "wf_agent_003",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.5814883336424828,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: knowledge_graph_node_field_extraction\nsteps:\n  - id: fetch_knowledge_graph_node\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge-graph/node\"\n    output: raw_node\n\n  - id: extract_requested_fields\n    op: extract_field\n    params:\n      input: raw_node\n      fields: requested_fields\n    output: extracted_fields\n\n  - id: format_response\n    op: format_output\n    params:\n      input: extracted_fields\n      format: json\n    output: final_output",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_003.py::test_parses_and_type_checks": true,
+            "test_wf_agent_003.py::test_passes_taint_analysis": true,
+            "test_wf_agent_003.py::test_has_fetch_and_extract": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1031,
+          "output_tokens": 142
+        }
+      ],
+      "complexity": 1,
+      "domain": "agent_tasks",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1031,
+      "total_output_tokens": 142
+    },
+    {
+      "task_id": "wf_gaia_007",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6868382915854454,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: filtered_search_with_notification\nsteps:\n  - id: step_fetch_search_results\n    op: fetch_api\n    params:\n      endpoint: \"/api/search/subscription_query\"\n    output: raw_search_results\n\n  - id: step_validate_results\n    op: validate_schema\n    params:\n      input: raw_search_results\n      schema: search_results_schema\n    output: validated_search_results\n\n  - id: step_filter_relevant\n    op: filter_records\n    params:\n      input: validated_search_results\n      condition: \"relevance_score >= threshold\"\n    output: relevant_matches\n\n  - id: step_check_matches_exist\n    op: apply_rule\n    params:\n      rule: \"count(relevant_matches) > 0\"\n      input_ref: relevant_matches\n    output: has_matches\n\n  - id: step_route_on_matches\n    op: route_to_step\n    params:\n      condition: \"has_matches == true\"\n      true_step: step_notify_subscriber\n      false_step: step_terminate_no_results\n\n  - id: step_notify_subscriber\n    op: notify_user\n    params:\n      input: relevant_matches\n      recipient: subscriber\n      message: \"Relevant matches found for your subscribed query.\"\n    output: notification_result\n\n  - id: step_log_notification\n    op: log_audit\n    params:\n      input: relevant_matches\n      event: \"subscriber_notified\"\n      details: \"Notification sent with relevant search matches.\"\n    output: audit_result\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"Subscriber notified of relevant matches.\"\n\n  - id: step_terminate_no_results\n    op: terminate_workflow\n    params:\n      status: \"completed\"\n      message: \"No relevant matches found. Subscriber not notified.\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_007.py::test_parses_and_type_checks": true,
+            "test_wf_gaia_007.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_007.py::test_has_filter_before_notify": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1051,
+          "output_tokens": 473
+        }
+      ],
+      "complexity": 2,
+      "domain": "general_ai",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1051,
+      "total_output_tokens": 473
+    },
+    {
+      "task_id": "wf_agent_007",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6304668337106705,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: audited_database_update\nsteps:\n  - id: step_read_current_record\n    op: read_database\n    params:\n      table: records\n      query: \"SELECT * FROM records WHERE id = :record_id\"\n    output: current_record\n\n  - id: step_validate_change\n    op: validate_schema\n    params:\n      input: current_record\n      schema: update_request_schema\n    output: validated_change\n\n  - id: step_transform_to_storage_format\n    op: transform_json\n    params:\n      input: validated_change\n      mapping:\n        format: storage_format\n    output: transformed_change\n\n  - id: step_authenticate_service\n    op: authenticate_user\n    params:\n      role: \"update_service\"\n    output: auth_result\n\n  - id: step_write_update\n    op: write_database\n    params:\n      input: transformed_change\n      table: records\n    output: write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: transformed_change\n      action: \"database_record_updated\"\n      details:\n        previous_state: current_record\n        new_state: transformed_change\n        write_result: write_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_007.py::test_parses_and_type_checks": true,
+            "test_wf_agent_007.py::test_passes_taint_analysis": true,
+            "test_wf_agent_007.py::test_validate_before_write": true,
+            "test_wf_agent_007.py::test_log_after_write": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1091,
+          "output_tokens": 309
+        }
+      ],
+      "complexity": 3,
+      "domain": "agent_tasks",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1091,
+      "total_output_tokens": 309
+    },
+    {
+      "task_id": "wf_gaia_003",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6039110822603106,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: knowledge_base_top_result_search\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"search_user\"\n    output: auth_result\n\n  - id: step_search_knowledge_base\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge-base/search\"\n      query_param: \"user_query\"\n    output: raw_search_results\n\n  - id: step_validate_results\n    op: validate_schema\n    params:\n      input: raw_search_results\n      schema: search_results_schema\n    output: validated_search_results\n\n  - id: step_extract_top_result\n    op: extract_field\n    params:\n      input: validated_search_results\n      field: \"results[0]\"\n    output: top_result\n\n  - id: step_format_response\n    op: format_output\n    params:\n      input: top_result\n      format: \"json\"\n    output: formatted_response\n\n  - id: step_log_search\n    op: log_audit\n    params:\n      input: formatted_response\n      action: \"knowledge_base_search\"\n      detail: \"Returned top-ranked result to user\"\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      result: formatted_response",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_003.py::test_parses_and_type_checks": true,
+            "test_wf_gaia_003.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_003.py::test_has_search_and_extract": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1035,
+          "output_tokens": 335
+        }
+      ],
+      "complexity": 1,
+      "domain": "general_ai",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1035,
+      "total_output_tokens": 335
+    },
+    {
+      "task_id": "wf_web_012",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6626076251268387,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: order_fulfillment_routing\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"fulfillment_manager\"\n    output: auth_result\n\n  - id: step_fetch_order\n    op: fetch_api\n    params:\n      endpoint: \"/api/orders/confirmed\"\n    output: raw_order\n\n  - id: step_validate_order\n    op: validate_schema\n    params:\n      input: raw_order\n      schema: fulfillment_order_schema\n    output: validated_order\n\n  - id: step_check_inventory\n    op: read_database\n    params:\n      table: inventory\n      query: \"SELECT * FROM inventory WHERE item_id IN (order_items)\"\n    output: raw_inventory\n\n  - id: step_validate_inventory\n    op: validate_schema\n    params:\n      input: raw_inventory\n      schema: inventory_status_schema\n    output: validated_inventory\n\n  - id: step_apply_availability_rule\n    op: apply_rule\n    params:\n      rule: \"check_all_items_in_stock\"\n      order: validated_order\n      inventory: validated_inventory\n    output: availability_result\n\n  - id: step_route_fulfillment\n    op: route_to_step\n    params:\n      condition: \"availability_result.all_in_stock == true\"\n      true_step: step_log_instock\n      false_step: step_notify_supplier\n\n  - id: step_notify_supplier\n    op: notify_user\n    params:\n      input: validated_order\n      recipient: \"supplier\"\n      message: \"Order routed to backorder fulfillment path. Please confirm availability.\"\n    output: supplier_notification_result\n\n  - id: step_log_backorder\n    op: log_audit\n    params:\n      input: validated_order\n      event: \"fulfillment_routing\"\n      decision: \"backorder\"\n      details: \"Order routed to backorder path due to insufficient inventory.\"\n    output: audit_backorder_result\n\n  - id: step_terminate_backorder\n    op: terminate_workflow\n    params:\n      status: \"completed_backorder\"\n\n  - id: step_log_instock\n    op: log_audit\n    params:\n      input: validated_order\n      event: \"fulfillment_routing\"\n      decision: \"in_stock\"\n      details: \"Order routed to in-stock fulfillment path.\"\n    output: audit_instock_result\n\n  - id: step_terminate_instock\n    op: terminate_workflow\n    params:\n      status: \"completed_instock\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_012.py::test_parses_and_type_checks": true,
+            "test_wf_web_012.py::test_passes_taint_analysis": true,
+            "test_wf_web_012.py::test_inventory_before_route": true,
+            "test_wf_web_012.py::test_has_audit_log": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1141,
+          "output_tokens": 638
+        }
+      ],
+      "complexity": 4,
+      "domain": "web_automation",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1141,
+      "total_output_tokens": 638
+    },
+    {
+      "task_id": "wf_gaia_006",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.5713302502408624,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: two_source_data_merge\nsteps:\n  - id: authenticate_requester\n    op: authenticate_user\n    params:\n      role: \"analyst\"\n    output: auth_result\n\n  - id: fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_one/entities\"\n    output: raw_source_one\n\n  - id: fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_two/entities\"\n    output: raw_source_two\n\n  - id: validate_source_one\n    op: validate_schema\n    params:\n      input: raw_source_one\n      schema: entity_schema\n    output: validated_source_one\n\n  - id: validate_source_two\n    op: validate_schema\n    params:\n      input: raw_source_two\n      schema: entity_schema\n    output: validated_source_two\n\n  - id: merge_sources\n    op: merge_datasets\n    params:\n      input: validated_source_one\n      secondary_input: validated_source_two\n      join_key: \"entity_id\"\n    output: merged_entities\n\n  - id: format_combined_view\n    op: format_output\n    params:\n      input: merged_entities\n      format: \"json\"\n    output: combined_view\n\n  - id: log_merge_request\n    op: log_audit\n    params:\n      input: combined_view\n      action: \"two_source_merge_completed\"\n    output: audit_log_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_006.py::test_parses_and_type_checks": true,
+            "test_wf_gaia_006.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_006.py::test_has_two_fetches_and_merge": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1052,
+          "output_tokens": 378
+        }
+      ],
+      "complexity": 2,
+      "domain": "general_ai",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1052,
+      "total_output_tokens": 378
+    },
+    {
+      "task_id": "wf_web_009",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.634122958406806,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: content_moderation_routing\nsteps:\n  - id: fetch_submitted_post\n    op: fetch_api\n    params:\n      endpoint: \"/api/posts/submitted\"\n    output: raw_post\n\n  - id: validate_post_schema\n    op: validate_schema\n    params:\n      input: raw_post\n      schema: post_schema\n    output: validated_post\n\n  - id: authenticate_moderator\n    op: authenticate_user\n    params:\n      role: \"moderator\"\n    output: auth_result\n\n  - id: classify_post\n    op: apply_rule\n    params:\n      input: validated_post\n      rule: \"moderation_classification\"\n    output: classification_result\n\n  - id: extract_classification\n    op: extract_field\n    params:\n      input: classification_result\n      field: \"decision\"\n    output: decision\n\n  - id: route_post\n    op: route_to_step\n    params:\n      input: decision\n      conditions:\n        - when: \"approved\"\n          goto: send_to_approve_queue\n        - when: \"rejected\"\n          goto: send_to_reject_queue\n\n  - id: send_to_approve_queue\n    op: send_to_queue\n    params:\n      input: validated_post\n      queue: \"approval_queue\"\n    output: approve_queue_result\n\n  - id: log_approval_routing\n    op: log_audit\n    params:\n      input: validated_post\n      message: \"Post routed to approval queue\"\n\n  - id: terminate_approved\n    op: terminate_workflow\n    params:\n      status: \"routed_to_approval\"\n\n  - id: send_to_reject_queue\n    op: send_to_queue\n    params:\n      input: validated_post\n      queue: \"rejection_queue\"\n    output: reject_queue_result\n\n  - id: log_rejection_routing\n    op: log_audit\n    params:\n      input: validated_post\n      message: \"Post routed to rejection queue\"\n\n  - id: terminate_rejected\n    op: terminate_workflow\n    params:\n      status: \"routed_to_rejection\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_009.py::test_parses_and_type_checks": true,
+            "test_wf_web_009.py::test_passes_taint_analysis": true,
+            "test_wf_web_009.py::test_classify_before_route": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1057,
+          "output_tokens": 523
+        }
+      ],
+      "complexity": 3,
+      "domain": "web_automation",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1057,
+      "total_output_tokens": 523
+    },
+    {
+      "task_id": "wf_web_003",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6227454170584679,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: structured_content_extraction\nsteps:\n  - id: fetch_page_content\n    op: fetch_api\n    params:\n      endpoint: \"/api/scraper/page\"\n    output: raw_page_content\n\n  - id: validate_page_content\n    op: validate_schema\n    params:\n      input: raw_page_content\n      schema: page_content_schema\n    output: validated_page_content\n\n  - id: extract_structured_fields\n    op: extract_field\n    params:\n      input: validated_page_content\n      fields:\n        - title\n        - author\n        - published_date\n        - summary\n    output: structured_fields\n\n  - id: format_structured_output\n    op: format_output\n    params:\n      input: structured_fields\n      format: json\n    output: final_output\n\n  - id: log_extraction\n    op: log_audit\n    params:\n      input: final_output\n      message: \"Structured content extraction completed\"\n\n  - id: end_workflow\n    op: terminate_workflow\n    params:\n      status: success",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_003.py::test_parses_and_type_checks": true,
+            "test_wf_web_003.py::test_passes_taint_analysis": true,
+            "test_wf_web_003.py::test_has_scrape_and_extract": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1033,
+          "output_tokens": 265
+        }
+      ],
+      "complexity": 1,
+      "domain": "web_automation",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1033,
+      "total_output_tokens": 265
+    },
+    {
+      "task_id": "wf_web_013",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.5962746664881706,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: forum_thread_escalation\nsteps:\n  - id: fetch_reported_thread\n    op: fetch_api\n    params:\n      endpoint: \"/api/forum/reported_threads\"\n    output: raw_report_data\n\n  - id: validate_report_data\n    op: validate_schema\n    params:\n      input: raw_report_data\n      schema: report_schema\n    output: validated_report\n\n  - id: classify_severity\n    op: apply_rule\n    params:\n      rule: escalation_rule\n      input: validated_report\n    output: severity_result\n\n  - id: extract_severity_level\n    op: extract_field\n    params:\n      input: severity_result\n      field: severity\n    output: severity_level\n\n  - id: route_by_severity\n    op: route_to_step\n    params:\n      condition: \"severity_level == 'severe'\"\n      true_step: send_to_senior_queue\n      false_step: send_to_standard_queue\n\n  - id: send_to_senior_queue\n    op: send_to_queue\n    params:\n      input: validated_report\n      queue: senior_escalation_queue\n    output: senior_queue_result\n\n  - id: notify_senior_moderator\n    op: notify_user\n    params:\n      input: validated_report\n      recipient: senior_moderator\n      message: \"A forum thread has been escalated due to severe report classification. Please review immediately.\"\n    output: notification_result\n\n  - id: log_escalation_audit\n    op: log_audit\n    params:\n      input: validated_report\n      action: escalated_to_senior\n      severity: severe\n    output: escalation_audit_log\n\n  - id: terminate_escalation\n    op: terminate_workflow\n    params:\n      status: escalation_complete\n\n  - id: send_to_standard_queue\n    op: send_to_queue\n    params:\n      input: validated_report\n      queue: standard_moderation_queue\n    output: standard_queue_result\n\n  - id: log_standard_audit\n    op: log_audit\n    params:\n      input: validated_report\n      action: routed_to_standard_queue\n      severity: non_severe\n    output: standard_audit_log\n\n  - id: terminate_standard\n    op: terminate_workflow\n    params:\n      status: standard_routing_complete",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_013.py::test_parses_and_type_checks": true,
+            "test_wf_web_013.py::test_passes_taint_analysis": true,
+            "test_wf_web_013.py::test_classify_before_route": true,
+            "test_wf_web_013.py::test_has_notify_and_log": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1113,
+          "output_tokens": 580
+        }
+      ],
+      "complexity": 4,
+      "domain": "web_automation",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1113,
+      "total_output_tokens": 580
+    },
+    {
+      "task_id": "wf_tool_003",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6189157078042626,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: geocoding_coordinate_extraction\nsteps:\n  - id: step_fetch_geocoding\n    op: fetch_api\n    params:\n      endpoint: \"/api/geocoding\"\n      query_param: address\n    output: raw_geocoding_response\n\n  - id: step_extract_latitude\n    op: extract_field\n    params:\n      input: raw_geocoding_response\n      field: \"latitude\"\n    output: latitude_value\n\n  - id: step_extract_longitude\n    op: extract_field\n    params:\n      input: raw_geocoding_response\n      field: \"longitude\"\n    output: longitude_value\n\n  - id: step_format_coordinates\n    op: format_output\n    params:\n      input: latitude_value\n      additional_input: longitude_value\n      format: \"json\"\n      template:\n        latitude: \"{{latitude_value}}\"\n        longitude: \"{{longitude_value}}\"\n    output: coordinates_output\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      result: coordinates_output",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_003.py::test_parses_and_type_checks": true,
+            "test_wf_tool_003.py::test_passes_taint_analysis": true,
+            "test_wf_tool_003.py::test_has_fetch_and_extract": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1036,
+          "output_tokens": 265
+        }
+      ],
+      "complexity": 1,
+      "domain": "api_integration",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1036,
+      "total_output_tokens": 265
+    },
+    {
+      "task_id": "wf_agent_011",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.601646333001554,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: verified_database_migration\nsteps:\n  - id: read_source_records\n    op: read_database\n    params:\n      table: source_table\n    output: raw_source_records\n\n  - id: transform_to_target_format\n    op: transform_json\n    params:\n      input: raw_source_records\n      mapping: target_schema_mapping\n    output: transformed_records\n\n  - id: validate_before_write\n    op: validate_schema\n    params:\n      input: transformed_records\n      schema: target_schema\n    output: validated_records\n\n  - id: authenticate_migration_service\n    op: authenticate_user\n    params:\n      role: migration_service\n    output: auth_result\n\n  - id: write_to_target_table\n    op: write_database\n    params:\n      input: validated_records\n      table: target_table\n    output: write_result\n\n  - id: read_back_migrated_records\n    op: read_database\n    params:\n      table: target_table\n    output: raw_migrated_records\n\n  - id: validate_after_write\n    op: validate_schema\n    params:\n      input: raw_migrated_records\n      schema: target_schema\n    output: verified_migrated_records\n\n  - id: log_migration_audit\n    op: log_audit\n    params:\n      input: verified_migrated_records\n      message: \"Database migration completed and verified successfully\"\n    output: audit_log_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_011.py::test_parses_and_type_checks": true,
+            "test_wf_agent_011.py::test_passes_taint_analysis": true,
+            "test_wf_agent_011.py::test_validate_before_and_after_write": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1125,
+          "output_tokens": 362
+        }
+      ],
+      "complexity": 4,
+      "domain": "agent_tasks",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1125,
+      "total_output_tokens": 362
+    },
+    {
+      "task_id": "wf_agent_004",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.5981110827997327,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: database_read_transform_write\nsteps:\n  - id: step_read_source\n    op: read_database\n    params:\n      table: source_table\n    output: raw_records\n\n  - id: step_transform_records\n    op: transform_json\n    params:\n      input: raw_records\n      mapping: target_format\n    output: transformed_records\n\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"migration_service\"\n    output: auth_result\n\n  - id: step_write_target\n    op: write_database\n    params:\n      input: transformed_records\n      table: target_table\n    output: write_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_004.py::test_parses_and_type_checks": true,
+            "test_wf_agent_004.py::test_passes_taint_analysis": true,
+            "test_wf_agent_004.py::test_transform_before_write": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1053,
+          "output_tokens": 171
+        }
+      ],
+      "complexity": 2,
+      "domain": "agent_tasks",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1053,
+      "total_output_tokens": 171
+    },
+    {
+      "task_id": "wf_agent_013",
+      "condition": "no_repair",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "type_error",
+      "synthesis_time_seconds": 0.003515167161822319,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: verified_knowledge_graph_update\nsteps:\n  - id: fetch_candidate_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge-graph/candidates\"\n    output: raw_candidate_data\n\n  - id: validate_candidate_data\n    op: validate_schema\n    params:\n      input: raw_candidate_data\n      schema: knowledge_graph_schema\n    output: validated_candidate_data\n\n  - id: read_existing_graph\n    op: read_database\n    params:\n      table: knowledge_graph\n    output: raw_existing_graph\n\n  - id: sanitize_existing_graph\n    op: validate_schema\n    params:\n      input: raw_existing_graph\n      schema: knowledge_graph_schema\n    output: existing_graph\n\n  - id: merge_graph_data\n    op: merge_datasets\n    params:\n      input: validated_candidate_data\n      secondary_input: existing_graph\n      key: entity_id\n    output: merged_graph\n\n  - id: check_consistency\n    op: apply_rule\n    params:\n      input: merged_graph\n      rule: consistency_rule\n    output: consistency_result\n\n  - id: route_on_consistency\n    op: route_to_step\n    params:\n      condition: \"consistency_result == 'pass'\"\n      true_step: authenticate_graph_service\n      false_step: terminate_on_failure\n\n  - id: terminate_on_failure\n    op: terminate_workflow\n    params:\n      status: \"failed\"\n      reason: \"Merged graph failed consistency check\"\n\n  - id: authenticate_graph_service\n    op: authenticate_user\n    params:\n      role: \"graph_update_service\"\n    output: auth_result\n\n  - id: store_merged_graph\n    op: write_database\n    params:\n      input: merged_graph\n      table: knowledge_graph\n    output: write_result\n\n  - id: format_notification\n    op: format_output\n    params:\n      input: write_result\n      format: \"json\"\n      template: \"Knowledge graph updated successfully. Entities affected: {{record_count}}\"\n    output: notification_payload\n\n  - id: notify_stakeholders\n    op: notify_user\n    params:\n      input: notification_payload\n      recipient: \"knowledge_graph_stakeholders\"\n      channel: \"email\"\n\n  - id: log_update_audit\n    op: log_audit\n    params:\n      input: notification_payload\n      action: \"knowledge_graph_updated\"\n      details: \"Candidate data merged and stored after consistency verification\"",
+          "dsl_type_errors": [
+            "Step 'format_notification': op 'format_output' requires input of type 'records' but 'write_result' has type 'none'. Make sure the step producing 'write_result' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "type_error",
+          "success": false,
+          "input_tokens": 1114,
+          "output_tokens": 624
+        }
+      ],
+      "complexity": 4,
+      "domain": "agent_tasks",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1114,
+      "total_output_tokens": 624
+    },
+    {
+      "task_id": "wf_tool_013",
+      "condition": "no_repair",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "type_error",
+      "synthesis_time_seconds": 0.002859959378838539,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: secured_api_aggregation_pipeline\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"aggregation_service\"\n    output: auth_result\n\n  - id: step_fetch_api_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_one/data\"\n    output: raw_data_one\n\n  - id: step_fetch_api_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_two/data\"\n    output: raw_data_two\n\n  - id: step_validate_data_one\n    op: validate_schema\n    params:\n      input: raw_data_one\n      schema: source_one_schema\n    output: validated_data_one\n\n  - id: step_validate_data_two\n    op: validate_schema\n    params:\n      input: raw_data_two\n      schema: source_two_schema\n    output: validated_data_two\n\n  - id: step_aggregate\n    op: aggregate_data\n    params:\n      input: validated_data_one\n      secondary_input: validated_data_two\n      strategy: \"combine\"\n    output: aggregated_result\n\n  - id: step_extract_sensitive\n    op: extract_field\n    params:\n      input: aggregated_result\n      field: \"sensitive_fields\"\n    output: sensitive_fields\n\n  - id: step_encrypt_sensitive\n    op: encrypt_field\n    params:\n      input: sensitive_fields\n      algorithm: \"AES-256\"\n    output: encrypted_fields\n\n  - id: step_transform_merge\n    op: transform_json\n    params:\n      input: aggregated_result\n      mapping:\n        sensitive_fields: encrypted_fields\n    output: secured_aggregated_result\n\n  - id: step_write_database\n    op: write_database\n    params:\n      input: secured_aggregated_result\n      table: aggregated_data_store\n    output: write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: secured_aggregated_result\n      message: \"Secured aggregated data persisted successfully\"\n    output: audit_log_result",
+          "dsl_type_errors": [
+            "Step 'step_transform_merge': op 'transform_json' requires input of type 'records' but 'aggregated_result' has type 'record'. Make sure the step producing 'aggregated_result' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "type_error",
+          "success": false,
+          "input_tokens": 1115,
+          "output_tokens": 542
+        }
+      ],
+      "complexity": 4,
+      "domain": "api_integration",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1115,
+      "total_output_tokens": 542
+    },
+    {
+      "task_id": "wf_tool_009",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6691661663353443,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: parallel_api_fan_out_with_merge\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_consumer\"\n    output: auth_result\n\n  - id: step_parallel_fetch\n    op: parallel_execute\n    params:\n      steps:\n        - step_fetch_endpoint_a\n        - step_fetch_endpoint_b\n        - step_fetch_endpoint_c\n\n  - id: step_fetch_endpoint_a\n    op: fetch_api\n    params:\n      endpoint: \"/api/endpoint_a\"\n    output: raw_data_a\n\n  - id: step_fetch_endpoint_b\n    op: fetch_api\n    params:\n      endpoint: \"/api/endpoint_b\"\n    output: raw_data_b\n\n  - id: step_fetch_endpoint_c\n    op: fetch_api\n    params:\n      endpoint: \"/api/endpoint_c\"\n    output: raw_data_c\n\n  - id: step_validate_a\n    op: validate_schema\n    params:\n      input: raw_data_a\n      schema: endpoint_a_schema\n    output: validated_data_a\n\n  - id: step_validate_b\n    op: validate_schema\n    params:\n      input: raw_data_b\n      schema: endpoint_b_schema\n    output: validated_data_b\n\n  - id: step_validate_c\n    op: validate_schema\n    params:\n      input: raw_data_c\n      schema: endpoint_c_schema\n    output: validated_data_c\n\n  - id: step_merge_ab\n    op: merge_datasets\n    params:\n      input: validated_data_a\n      secondary: validated_data_b\n      key: \"id\"\n    output: merged_ab\n\n  - id: step_merge_abc\n    op: merge_datasets\n    params:\n      input: merged_ab\n      secondary: validated_data_c\n      key: \"id\"\n    output: merged_dataset\n\n  - id: step_format_output\n    op: format_output\n    params:\n      input: merged_dataset\n      format: \"json\"\n    output: final_output\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: final_output\n      message: \"Parallel fan-out merge completed successfully\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_009.py::test_parses_and_type_checks": true,
+            "test_wf_tool_009.py::test_passes_taint_analysis": true,
+            "test_wf_tool_009.py::test_has_parallel_and_merge": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1072,
+          "output_tokens": 572
+        }
+      ],
+      "complexity": 3,
+      "domain": "api_integration",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1072,
+      "total_output_tokens": 572
+    },
+    {
+      "task_id": "wf_tool_006",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6311486242339015,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: filtered_api_notification\nsteps:\n  - id: fetch_latest_records\n    op: fetch_api\n    params:\n      endpoint: \"/api/records/latest\"\n    output: raw_records\n\n  - id: filter_relevant_records\n    op: filter_records\n    params:\n      input: raw_records\n      condition: \"record.relevant == true\"\n    output: relevant_records\n\n  - id: notify_about_relevant_records\n    op: notify_user\n    params:\n      input: relevant_records\n      message: \"New relevant records have been detected.\"\n      recipient: \"monitoring_team\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_006.py::test_parses_and_type_checks": true,
+            "test_wf_tool_006.py::test_passes_taint_analysis": true,
+            "test_wf_tool_006.py::test_filter_before_notify": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1051,
+          "output_tokens": 151
+        }
+      ],
+      "complexity": 2,
+      "domain": "api_integration",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1051,
+      "total_output_tokens": 151
+    },
+    {
+      "task_id": "wf_web_002",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6076272083446383,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: contact_form_submission_logging\nsteps:\n  - id: step_fetch_submission\n    op: fetch_api\n    params:\n      endpoint: \"/api/contact-form/submissions\"\n    output: raw_submission\n\n  - id: step_validate_submission\n    op: validate_schema\n    params:\n      input: raw_submission\n      schema: contact_form_schema\n    output: validated_submission\n\n  - id: step_log_submission\n    op: log_audit\n    params:\n      input: validated_submission\n      action: \"contact_form_submitted\"\n      message: \"Contact form submission recorded for follow-up\"\n    output: log_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_002.py::test_parses_and_type_checks": true,
+            "test_wf_web_002.py::test_passes_taint_analysis": true,
+            "test_wf_web_002.py::test_has_log": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1029,
+          "output_tokens": 162
+        }
+      ],
+      "complexity": 1,
+      "domain": "web_automation",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1029,
+      "total_output_tokens": 162
+    },
+    {
+      "task_id": "wf_tool_005",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6248139590024948,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: validated_api_data_storage\nsteps:\n  - id: fetch_data\n    op: fetch_api\n    params:\n      endpoint: \"/api/sync/data\"\n    output: raw_data\n\n  - id: validate_data\n    op: validate_schema\n    params:\n      input: raw_data\n      schema: expected_data_schema\n    output: validated_data\n\n  - id: handle_validation_error\n    op: handle_error\n    params:\n      step: validate_data\n      on_error: terminate_on_invalid\n\n  - id: terminate_on_invalid\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      reason: \"Schema validation failed \u2014 data rejected before storage\"\n\n  - id: authenticate_storage_service\n    op: authenticate_user\n    params:\n      role: \"storage_service\"\n    output: auth_result\n\n  - id: store_validated_data\n    op: write_database\n    params:\n      input: validated_data\n      table: synced_data\n    output: write_result\n\n  - id: log_storage_event\n    op: log_audit\n    params:\n      input: validated_data\n      message: \"Validated API data successfully written to synced_data table\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_005.py::test_parses_and_type_checks": true,
+            "test_wf_tool_005.py::test_passes_taint_analysis": true,
+            "test_wf_tool_005.py::test_validate_before_store": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1045,
+          "output_tokens": 303
+        }
+      ],
+      "complexity": 2,
+      "domain": "api_integration",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1045,
+      "total_output_tokens": 303
+    },
+    {
+      "task_id": "wf_web_004",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.5832018340006471,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: price_filtered_product_search\nsteps:\n  - id: step_fetch_products\n    op: fetch_api\n    params:\n      endpoint: \"/api/products/search\"\n      query_params:\n        q: \"{{search_query}}\"\n    output: raw_products\n\n  - id: step_validate_products\n    op: validate_schema\n    params:\n      input: raw_products\n      schema: product_search_results_schema\n    output: validated_products\n\n  - id: step_filter_by_price\n    op: filter_records\n    params:\n      input: validated_products\n      condition: \"price <= {{max_price}}\"\n    output: filtered_products\n\n  - id: step_format_results\n    op: format_output\n    params:\n      input: filtered_products\n      format: json\n    output: search_results",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_004.py::test_parses_and_type_checks": true,
+            "test_wf_web_004.py::test_passes_taint_analysis": true,
+            "test_wf_web_004.py::test_filter_after_search": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1036,
+          "output_tokens": 209
+        }
+      ],
+      "complexity": 2,
+      "domain": "web_automation",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1036,
+      "total_output_tokens": 209
+    },
+    {
+      "task_id": "wf_agent_010",
+      "condition": "no_repair",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 0.7132929991930723,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: config_driven_conditional_execution\nsteps:\n  - id: read_job_configuration\n    op: read_database\n    params:\n      table: job_configuration\n      query: \"SELECT * FROM job_configuration WHERE status = 'active' ORDER BY updated_at DESC LIMIT 1\"\n    output: raw_config\n\n  - id: validate_config\n    op: validate_schema\n    params:\n      input: raw_config\n      schema: job_configuration_schema\n    output: validated_config\n\n  - id: extract_rule_definition\n    op: extract_field\n    params:\n      input: validated_config\n      field: rule_definition\n    output: rule_definition\n\n  - id: apply_config_rule\n    op: apply_rule\n    params:\n      rule: rule_definition\n    output: rule_outcome\n\n  - id: route_by_rule_outcome\n    op: route_to_step\n    params:\n      condition: rule_outcome\n      branches:\n        branch_a: execute_branch_a\n        branch_b: execute_branch_b\n        default: execute_default_branch\n\n  - id: execute_branch_a\n    op: call_subworkflow\n    params:\n      workflow_id: branch_a_workflow\n    output: branch_a_result\n\n  - id: execute_branch_b\n    op: call_subworkflow\n    params:\n      workflow_id: branch_b_workflow\n    output: branch_b_result\n\n  - id: execute_default_branch\n    op: call_subworkflow\n    params:\n      workflow_id: default_branch_workflow\n    output: default_branch_result\n\n  - id: log_execution\n    op: log_audit\n    params:\n      input: validated_config\n      message: \"Config-driven workflow executed successfully\"\n\n  - id: end_workflow\n    op: terminate_workflow\n    params:\n      status: completed",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_010.py::test_parses_and_type_checks": true,
+            "test_wf_agent_010.py::test_passes_taint_analysis": true,
+            "test_wf_agent_010.py::test_config_before_rule": false
+          },
+          "failure_category": "test_failure",
+          "success": false,
+          "input_tokens": 1065,
+          "output_tokens": 458
+        }
+      ],
+      "complexity": 3,
+      "domain": "agent_tasks",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1065,
+      "total_output_tokens": 458
+    },
+    {
+      "task_id": "wf_tool_010",
+      "condition": "no_repair",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "type_error",
+      "synthesis_time_seconds": 0.0033845417201519012,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: webhook_ingestion_pipeline\nsteps:\n  - id: step_fetch_webhook\n    op: fetch_api\n    params:\n      endpoint: \"/incoming/webhook\"\n    output: raw_payload\n\n  - id: step_validate_payload\n    op: validate_schema\n    params:\n      input: raw_payload\n      schema: webhook_payload_schema\n    output: validated_payload\n\n  - id: step_transform_payload\n    op: transform_json\n    params:\n      input: validated_payload\n      mapping: internal_event_format\n    output: transformed_event\n\n  - id: step_extract_event_type\n    op: extract_field\n    params:\n      input: transformed_event\n      field: event_type\n    output: event_type\n\n  - id: step_route_by_type\n    op: route_to_step\n    params:\n      condition: event_type\n      routes:\n        order: step_authenticate\n        payment: step_authenticate\n        default: step_authenticate\n\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"ingestion_service\"\n    output: auth_result\n\n  - id: step_store_event\n    op: write_database\n    params:\n      input: transformed_event\n      table: ingested_events\n    output: write_result\n\n  - id: step_format_confirmation\n    op: format_output\n    params:\n      input: write_result\n      format: json\n      template:\n        status: \"received\"\n        event_id: \"{{write_result.id}}\"\n    output: confirmation_payload\n\n  - id: step_confirm_receipt\n    op: call_webhook\n    params:\n      input: confirmation_payload\n      url: \"{{raw_payload.callback_url}}\"\n      method: POST\n    output: confirmation_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: transformed_event\n      action: \"webhook_ingested\"\n      details:\n        event_type: \"{{event_type}}\"\n        confirmation_status: \"{{confirmation_result.status}}\"",
+          "dsl_type_errors": [
+            "Step 'step_format_confirmation': op 'format_output' requires input of type 'records' but 'write_result' has type 'none'. Make sure the step producing 'write_result' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "type_error",
+          "success": false,
+          "input_tokens": 1094,
+          "output_tokens": 512
+        }
+      ],
+      "complexity": 3,
+      "domain": "api_integration",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1094,
+      "total_output_tokens": 512
+    },
+    {
+      "task_id": "wf_agent_012",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6825758330523968,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: multi_agent_delegation_and_synthesis\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"task_dispatcher\"\n    output: auth_result\n\n  - id: step_fetch_task\n    op: fetch_api\n    params:\n      endpoint: \"/api/tasks/incoming\"\n    output: raw_task\n\n  - id: step_validate_task\n    op: validate_schema\n    params:\n      input: raw_task\n      schema: incoming_task_schema\n    output: validated_task\n\n  - id: step_classify_task\n    op: apply_rule\n    params:\n      rule: \"classify_task_to_subworkflow\"\n      input: validated_task\n    output: classification_result\n\n  - id: step_extract_subworkflow_id\n    op: extract_field\n    params:\n      input: classification_result\n      field: \"subworkflow_id\"\n    output: target_subworkflow_id\n\n  - id: step_delegate_to_subworkflow\n    op: call_subworkflow\n    params:\n      workflow_id_from: target_subworkflow_id\n      task: validated_task\n    output: raw_subworkflow_result\n\n  - id: step_validate_subworkflow_result\n    op: validate_schema\n    params:\n      input: raw_subworkflow_result\n      schema: subworkflow_result_schema\n    output: validated_subworkflow_result\n\n  - id: step_merge_result_with_context\n    op: merge_datasets\n    params:\n      input: validated_subworkflow_result\n      secondary_input: validated_task\n      key: \"task_id\"\n    output: merged_result\n\n  - id: step_format_final_answer\n    op: format_output\n    params:\n      input: merged_result\n      format: \"json\"\n      template: \"synthesised_answer\"\n    output: final_answer\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: final_answer\n      event: \"multi_agent_delegation_completed\"\n\n  - id: step_notify_requester\n    op: notify_user\n    params:\n      input: final_answer\n      message: \"Your task has been processed and a synthesised answer is ready.\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_012.py::test_parses_and_type_checks": true,
+            "test_wf_agent_012.py::test_passes_taint_analysis": true,
+            "test_wf_agent_012.py::test_delegate_before_synthesize": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1095,
+          "output_tokens": 562
+        }
+      ],
+      "complexity": 4,
+      "domain": "agent_tasks",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1095,
+      "total_output_tokens": 562
+    },
+    {
+      "task_id": "wf_agent_005",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.5796938324347138,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: intent_classification_and_routing\nsteps:\n  - id: fetch_user_input\n    op: fetch_api\n    params:\n      endpoint: \"/api/agent/incoming_input\"\n    output: raw_user_input\n\n  - id: validate_user_input\n    op: validate_schema\n    params:\n      input: raw_user_input\n      schema: user_input_schema\n    output: validated_input\n\n  - id: classify_intent\n    op: apply_rule\n    params:\n      input: validated_input\n      rule: \"intent_classification\"\n    output: classified_intent\n\n  - id: extract_intent_label\n    op: extract_field\n    params:\n      input: classified_intent\n      field: \"intent\"\n    output: intent_label\n\n  - id: route_by_intent\n    op: route_to_step\n    params:\n      input: intent_label\n      routes:\n        greeting: handler_greeting\n        question: handler_question\n        command: handler_command\n        fallback: handler_fallback\n\n  - id: handler_greeting\n    op: call_subworkflow\n    params:\n      workflow_id: greeting_handler\n      input: validated_input\n    output: greeting_result\n\n  - id: handler_question\n    op: call_subworkflow\n    params:\n      workflow_id: question_handler\n      input: validated_input\n    output: question_result\n\n  - id: handler_command\n    op: call_subworkflow\n    params:\n      workflow_id: command_handler\n      input: validated_input\n    output: command_result\n\n  - id: handler_fallback\n    op: call_subworkflow\n    params:\n      workflow_id: fallback_handler\n      input: validated_input\n    output: fallback_result\n\n  - id: log_classification\n    op: log_audit\n    params:\n      input: intent_label\n      message: \"User input classified and routed to appropriate handler\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_005.py::test_parses_and_type_checks": true,
+            "test_wf_agent_005.py::test_passes_taint_analysis": true,
+            "test_wf_agent_005.py::test_classify_before_route": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1058,
+          "output_tokens": 474
+        }
+      ],
+      "complexity": 2,
+      "domain": "agent_tasks",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1058,
+      "total_output_tokens": 474
+    },
+    {
+      "task_id": "wf_gaia_005",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.8168225847184658,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: news_feed_headline_extraction\nsteps:\n  - id: fetch_news_feed\n    op: fetch_api\n    params:\n      endpoint: \"/api/news/feed/latest\"\n    output: raw_feed_items\n\n  - id: extract_headlines\n    op: extract_field\n    params:\n      input: raw_feed_items\n      field: headline\n    output: headlines\n\n  - id: format_headlines\n    op: format_output\n    params:\n      input: headlines\n      format: json\n    output: formatted_headlines",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_gaia_005.py::test_parses_and_type_checks": true,
+            "test_wf_gaia_005.py::test_passes_taint_analysis": true,
+            "test_wf_gaia_005.py::test_has_fetch_and_extract": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1035,
+          "output_tokens": 134
+        }
+      ],
+      "complexity": 1,
+      "domain": "general_ai",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1035,
+      "total_output_tokens": 134
+    },
+    {
+      "task_id": "wf_agent_001",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.6199883334338665,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: config_file_validation\nsteps:\n  - id: step_read_config\n    op: read_database\n    params:\n      table: configuration_files\n      query: \"SELECT * FROM configuration_files WHERE active = true\"\n    output: raw_config\n\n  - id: step_validate_config\n    op: validate_schema\n    params:\n      input: raw_config\n      schema: expected_config_schema\n    output: validated_config\n\n  - id: step_check_validation_result\n    op: apply_rule\n    params:\n      rule: \"validated_config.valid == true\"\n      input_ref: validated_config\n    output: validation_decision\n\n  - id: step_route_on_failure\n    op: route_to_step\n    params:\n      condition: \"validation_decision == false\"\n      target_step: step_terminate_failure\n\n  - id: step_log_success\n    op: log_audit\n    params:\n      input: validated_config\n      message: \"Configuration validated successfully and is ready for use.\"\n    output: audit_log_success\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: \"success\"\n      message: \"Configuration file validated. Service may proceed.\"\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"Configuration file failed schema validation. Service must not proceed.\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_001.py::test_parses_and_type_checks": true,
+            "test_wf_agent_001.py::test_passes_taint_analysis": true,
+            "test_wf_agent_001.py::test_has_validate": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1024,
+          "output_tokens": 345
+        }
+      ],
+      "complexity": 1,
+      "domain": "agent_tasks",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1024,
+      "total_output_tokens": 345
+    },
+    {
+      "task_id": "wf_tool_012",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.5786080844700336,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: multi_api_orchestration_with_retry\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_operator\"\n    output: auth_result\n\n  - id: step_call_primary_api\n    op: fetch_api\n    params:\n      endpoint: \"/api/primary/operation\"\n    output: raw_primary_response\n\n  - id: step_retry_primary_api\n    op: retry_step\n    params:\n      step_ref: step_call_primary_api\n      max_retries: 3\n      backoff: \"exponential\"\n    output: retry_result\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      source_step: step_retry_primary_api\n      error_strategy: \"classify\"\n    output: error_classification\n\n  - id: step_evaluate_error\n    op: apply_rule\n    params:\n      rule: \"error_classification.recoverable == false\"\n      input_ref: error_classification\n    output: is_unrecoverable\n\n  - id: step_route_to_fallback\n    op: route_to_step\n    params:\n      condition: \"is_unrecoverable == true\"\n      target_step: step_call_fallback_api\n      fallback_step: step_validate_primary_response\n\n  - id: step_call_fallback_api\n    op: fetch_api\n    params:\n      endpoint: \"/api/fallback/operation\"\n    output: raw_fallback_response\n\n  - id: step_validate_fallback_response\n    op: validate_schema\n    params:\n      input: raw_fallback_response\n      schema: api_response_schema\n    output: validated_fallback_response\n\n  - id: step_validate_primary_response\n    op: validate_schema\n    params:\n      input: raw_primary_response\n      schema: api_response_schema\n    output: validated_primary_response\n\n  - id: step_transform_response\n    op: transform_json\n    params:\n      input: validated_primary_response\n      mapping:\n        fallback_input: validated_fallback_response\n      strategy: \"coalesce_primary_or_fallback\"\n    output: transformed_response\n\n  - id: step_write_result\n    op: write_database\n    params:\n      input: transformed_response\n      table: api_operation_results\n    output: write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: transformed_response\n      message: \"Multi-API orchestration completed\"\n      metadata:\n        retry_outcome: retry_result\n        error_info: error_classification\n\n  - id: step_notify_operator\n    op: notify_user\n    params:\n      input: transformed_response\n      recipient: \"api_operator\"\n      template: \"multi_api_operation_complete\"\n\n  - id: step_terminate\n    op: terminate_workflow\n    params:\n      status: \"completed\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_012.py::test_parses_and_type_checks": true,
+            "test_wf_tool_012.py::test_passes_taint_analysis": true,
+            "test_wf_tool_012.py::test_retry_before_route": true,
+            "test_wf_tool_012.py::test_has_error_handling": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1080,
+          "output_tokens": 732
+        }
+      ],
+      "complexity": 4,
+      "domain": "api_integration",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1080,
+      "total_output_tokens": 732
+    },
+    {
+      "task_id": "wf_web_015",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.665455499663949,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: full_ecommerce_pipeline\nsteps:\n  - id: step_search_catalog\n    op: fetch_api\n    params:\n      endpoint: \"/api/catalog/search\"\n    output: raw_search_results\n\n  - id: step_authenticate_shopper\n    op: authenticate_user\n    params:\n      role: \"shopper\"\n    output: auth_result\n\n  - id: step_filter_search_results\n    op: filter_records\n    params:\n      input: raw_search_results\n      condition: \"product_available == true\"\n    output: filtered_products\n\n  - id: step_validate_cart\n    op: validate_schema\n    params:\n      input: filtered_products\n      schema: checkout_schema\n    output: validated_cart\n\n  - id: step_process_order\n    op: write_database\n    params:\n      input: validated_cart\n      table: orders\n    output: order_record\n\n  - id: step_fulfill_order\n    op: call_subworkflow\n    params:\n      workflow_id: fulfillment_workflow\n      order: order_record\n    output: raw_fulfillment_result\n\n  - id: step_extract_fulfillment_status\n    op: extract_field\n    params:\n      input: raw_fulfillment_result\n      field: \"fulfillment_status\"\n    output: fulfillment_status\n\n  - id: step_notify_customer\n    op: notify_user\n    params:\n      input: fulfillment_status\n      template: \"order_fulfilled\"\n      channel: \"email\"\n    output: notification_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: fulfillment_status\n      event: \"purchase_completed\"\n    output: audit_log_result",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_015.py::test_parses_and_type_checks": true,
+            "test_wf_web_015.py::test_passes_taint_analysis": true,
+            "test_wf_web_015.py::test_auth_before_process": true,
+            "test_wf_web_015.py::test_has_fulfillment_and_audit": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1141,
+          "output_tokens": 436
+        }
+      ],
+      "complexity": 5,
+      "domain": "web_automation",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1141,
+      "total_output_tokens": 436
+    },
+    {
+      "task_id": "wf_web_005",
+      "condition": "no_repair",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 0.5589716657996178,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: forum_comment_posting_with_moderator_alert\nsteps:\n  - id: fetch_comment_payload\n    op: fetch_api\n    params:\n      endpoint: \"/api/forum/comments/submitted\"\n    output: raw_comment\n\n  - id: validate_comment\n    op: validate_schema\n    params:\n      input: raw_comment\n      schema: comment_schema\n    output: validated_comment\n\n  - id: authenticate_posting_user\n    op: authenticate_user\n    params:\n      role: \"forum_user\"\n    output: auth_result\n\n  - id: publish_comment\n    op: write_database\n    params:\n      input: validated_comment\n      table: forum_comments\n    output: publish_response\n\n  - id: extract_publish_status\n    op: extract_field\n    params:\n      input: publish_response\n      field: \"status\"\n    output: publish_status\n\n  - id: notify_moderation_team\n    op: notify_user\n    params:\n      input: publish_status\n      recipient: \"moderation_team\"\n      message: \"A new forum comment has been posted and requires review.\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_005.py::test_parses_and_type_checks": true,
+            "test_wf_web_005.py::test_passes_taint_analysis": true,
+            "test_wf_web_005.py::test_auth_before_publish": false
+          },
+          "failure_category": "test_failure",
+          "success": false,
+          "input_tokens": 1098,
+          "output_tokens": 277
+        }
+      ],
+      "complexity": 2,
+      "domain": "web_automation",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1098,
+      "total_output_tokens": 277
+    },
+    {
+      "task_id": "wf_agent_002",
+      "condition": "no_repair",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 1,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "type_error",
+      "synthesis_time_seconds": 0.0017612501978874207,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: database_summary_query\nsteps:\n  - id: step_read_table\n    op: read_database\n    params:\n      table: status_records\n    output: raw_records\n\n  - id: step_validate_records\n    op: validate_schema\n    params:\n      input: raw_records\n      schema: status_records_schema\n    output: validated_records\n\n  - id: step_aggregate_summary\n    op: aggregate_data\n    params:\n      input: validated_records\n      group_by: status\n      summarise:\n        - field: id\n          function: count\n    output: summary_result\n\n  - id: step_format_summary\n    op: format_output\n    params:\n      input: summary_result\n      format: json\n    output: formatted_summary\n\n  - id: step_log_query\n    op: log_audit\n    params:\n      input: formatted_summary\n      action: database_summary_query\n      message: \"Status check summary generated successfully\"",
+          "dsl_type_errors": [
+            "Step 'step_format_summary': op 'format_output' requires input of type 'records' but 'summary_result' has type 'record'. Make sure the step producing 'summary_result' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+          ],
+          "dsl_taint_violations": [],
+          "test_results": {},
+          "failure_category": "type_error",
+          "success": false,
+          "input_tokens": 1024,
+          "output_tokens": 240
+        }
+      ],
+      "complexity": 1,
+      "domain": "agent_tasks",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1024,
+      "total_output_tokens": 240
+    },
+    {
+      "task_id": "wf_agent_006",
+      "condition": "no_repair",
+      "success": false,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": false,
+        "3": false,
+        "5": false,
+        "10": false
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "test_failure",
+      "synthesis_time_seconds": 0.7609306247904897,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: knowledge_base_ranked_search\nsteps:\n  - id: fetch_candidates\n    op: read_database\n    params:\n      table: knowledge_base\n      query: \"SELECT * FROM knowledge_base ORDER BY relevance_score DESC\"\n    output: raw_candidates\n\n  - id: validate_candidates\n    op: validate_schema\n    params:\n      input: raw_candidates\n      schema: knowledge_base_entry_schema\n    output: validated_candidates\n\n  - id: filter_by_relevance\n    op: filter_records\n    params:\n      input: validated_candidates\n      condition: \"relevance_score >= relevance_threshold\"\n    output: relevant_results\n\n  - id: format_ranked_results\n    op: format_output\n    params:\n      input: relevant_results\n      format: json\n      order_by: \"relevance_score DESC\"\n    output: ranked_results",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_agent_006.py::test_parses_and_type_checks": true,
+            "test_wf_agent_006.py::test_passes_taint_analysis": true,
+            "test_wf_agent_006.py::test_has_fetch_and_filter": false
+          },
+          "failure_category": "test_failure",
+          "success": false,
+          "input_tokens": 1037,
+          "output_tokens": 217
+        }
+      ],
+      "complexity": 2,
+      "domain": "agent_tasks",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1037,
+      "total_output_tokens": 217
+    },
+    {
+      "task_id": "wf_web_011",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.7308441242203116,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: low_stock_inventory_alert\nsteps:\n  - id: fetch_stock_level\n    op: fetch_api\n    params:\n      endpoint: \"/api/inventory/current_stock\"\n    output: raw_stock_data\n\n  - id: validate_stock_data\n    op: validate_schema\n    params:\n      input: raw_stock_data\n      schema: inventory_schema\n    output: validated_stock_data\n\n  - id: apply_low_stock_rule\n    op: apply_rule\n    params:\n      input: validated_stock_data\n      rule: \"stock_quantity < low_stock_threshold\"\n    output: low_stock_result\n\n  - id: check_low_stock\n    op: route_to_step\n    params:\n      condition: \"low_stock_result.is_low_stock == true\"\n      target: notify_inventory_team\n      fallback: end_workflow\n\n  - id: notify_inventory_team\n    op: notify_user\n    params:\n      input: validated_stock_data\n      recipient: \"inventory_team\"\n      message: \"Low stock alert: product stock has fallen below the threshold.\"\n    output: notification_result\n\n  - id: end_workflow\n    op: terminate_workflow\n    params:\n      status: \"completed\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_web_011.py::test_parses_and_type_checks": true,
+            "test_wf_web_011.py::test_passes_taint_analysis": true,
+            "test_wf_web_011.py::test_threshold_before_notify": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1073,
+          "output_tokens": 310
+        }
+      ],
+      "complexity": 3,
+      "domain": "web_automation",
+      "has_security_constraint": false,
+      "error_message": "",
+      "total_input_tokens": 1073,
+      "total_output_tokens": 310
+    },
+    {
+      "task_id": "wf_tool_014",
+      "condition": "no_repair",
+      "success": true,
+      "attempts_used": 1,
+      "pass_at_k": {
+        "1": true,
+        "3": true,
+        "5": true,
+        "10": true
+      },
+      "dsl_type_errors": 0,
+      "dsl_taint_violations": 0,
+      "output_errors": 0,
+      "failure_category": "success",
+      "synthesis_time_seconds": 0.7725313743576407,
+      "attempt_history": [
+        {
+          "attempt_number": 0,
+          "llm_sketch": "workflow_id: real_time_classified_data_pipeline\nsteps:\n  - id: ingest_event\n    op: fetch_api\n    params:\n      endpoint: \"/api/realtime/events/incoming\"\n    output: raw_event\n\n  - id: validate_event\n    op: validate_schema\n    params:\n      input: raw_event\n      schema: realtime_event_schema\n    output: validated_event\n\n  - id: transform_event\n    op: transform_json\n    params:\n      input: validated_event\n      mapping: internal_representation_mapping\n    output: transformed_event\n\n  - id: classify_event\n    op: apply_rule\n    params:\n      input: transformed_event\n      rule: classification_rule\n    output: classification_result\n\n  - id: extract_category\n    op: extract_field\n    params:\n      input: classification_result\n      field: category\n    output: event_category\n\n  - id: route_event\n    op: route_to_step\n    params:\n      condition_field: event_category\n      routes:\n        critical: store_critical_event\n        standard: store_standard_event\n        low_priority: store_low_priority_event\n      default: store_standard_event\n\n  - id: authenticate_pipeline_writer\n    op: authenticate_user\n    params:\n      role: pipeline_writer\n    output: auth_result\n\n  - id: store_critical_event\n    op: write_database\n    params:\n      input: transformed_event\n      table: critical_events\n    output: write_result_critical\n\n  - id: store_standard_event\n    op: write_database\n    params:\n      input: transformed_event\n      table: standard_events\n    output: write_result_standard\n\n  - id: store_low_priority_event\n    op: write_database\n    params:\n      input: transformed_event\n      table: low_priority_events\n    output: write_result_low\n\n  - id: format_audit_entry\n    op: format_output\n    params:\n      input: transformed_event\n      format: audit_log_format\n      metadata:\n        classification: event_category\n        auth: auth_result\n    output: audit_entry\n\n  - id: log_pipeline_run\n    op: log_audit\n    params:\n      input: audit_entry\n      action: pipeline_event_processed\n      details: \"Real-time classified data pipeline run completed\"",
+          "dsl_type_errors": [],
+          "dsl_taint_violations": [],
+          "test_results": {
+            "test_wf_tool_014.py::test_parses_and_type_checks": true,
+            "test_wf_tool_014.py::test_passes_taint_analysis": true,
+            "test_wf_tool_014.py::test_classify_before_route": true,
+            "test_wf_tool_014.py::test_has_audit_log": true
+          },
+          "failure_category": "success",
+          "success": true,
+          "input_tokens": 1127,
+          "output_tokens": 581
+        }
+      ],
+      "complexity": 4,
+      "domain": "api_integration",
+      "has_security_constraint": true,
+      "error_message": "",
+      "total_input_tokens": 1127,
+      "total_output_tokens": 581
+    }
+  ],
+  "total_input_tokens": 64533,
+  "total_output_tokens": 24417,
+  "estimated_cost_usd": 0.93309
+}

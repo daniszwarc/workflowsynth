@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_tool_002",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.9771032920107245,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: currency_conversion_logging\nsteps:\n  - id: step_fetch_conversion\n    op: fetch_api\n    params:\n      endpoint: \"/api/currency/convert\"\n      query_params:\n        source_amount: \"{{request.source_amount}}\"\n        source_currency: \"{{request.source_currency}}\"\n        target_currency: \"{{request.target_currency}}\"\n    output: raw_conversion_response\n\n  - id: step_extract_converted_amount\n    op: extract_field\n    params:\n      input: raw_conversion_response\n      field: \"converted_amount\"\n    output: converted_amount\n\n  - id: step_log_conversion\n    op: log_audit\n    params:\n      input: converted_amount\n      event: \"currency_conversion\"\n      details:\n        source_amount: \"{{request.source_amount}}\"\n        source_currency: \"{{request.source_currency}}\"\n        target_currency: \"{{request.target_currency}}\"\n    output: audit_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_002.py::test_parses_and_type_checks": true,
+        "test_wf_tool_002.py::test_passes_taint_analysis": true,
+        "test_wf_tool_002.py::test_has_fetch_and_log": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1045,
+      "output_tokens": 248
+    }
+  ],
+  "complexity": 1,
+  "domain": "api_integration",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1045,
+  "total_output_tokens": 248
+}

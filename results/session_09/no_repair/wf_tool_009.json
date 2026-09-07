@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_tool_009",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6691661663353443,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: parallel_api_fan_out_with_merge\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"api_consumer\"\n    output: auth_result\n\n  - id: step_parallel_fetch\n    op: parallel_execute\n    params:\n      steps:\n        - step_fetch_endpoint_a\n        - step_fetch_endpoint_b\n        - step_fetch_endpoint_c\n\n  - id: step_fetch_endpoint_a\n    op: fetch_api\n    params:\n      endpoint: \"/api/endpoint_a\"\n    output: raw_data_a\n\n  - id: step_fetch_endpoint_b\n    op: fetch_api\n    params:\n      endpoint: \"/api/endpoint_b\"\n    output: raw_data_b\n\n  - id: step_fetch_endpoint_c\n    op: fetch_api\n    params:\n      endpoint: \"/api/endpoint_c\"\n    output: raw_data_c\n\n  - id: step_validate_a\n    op: validate_schema\n    params:\n      input: raw_data_a\n      schema: endpoint_a_schema\n    output: validated_data_a\n\n  - id: step_validate_b\n    op: validate_schema\n    params:\n      input: raw_data_b\n      schema: endpoint_b_schema\n    output: validated_data_b\n\n  - id: step_validate_c\n    op: validate_schema\n    params:\n      input: raw_data_c\n      schema: endpoint_c_schema\n    output: validated_data_c\n\n  - id: step_merge_ab\n    op: merge_datasets\n    params:\n      input: validated_data_a\n      secondary: validated_data_b\n      key: \"id\"\n    output: merged_ab\n\n  - id: step_merge_abc\n    op: merge_datasets\n    params:\n      input: merged_ab\n      secondary: validated_data_c\n      key: \"id\"\n    output: merged_dataset\n\n  - id: step_format_output\n    op: format_output\n    params:\n      input: merged_dataset\n      format: \"json\"\n    output: final_output\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: final_output\n      message: \"Parallel fan-out merge completed successfully\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_009.py::test_parses_and_type_checks": true,
+        "test_wf_tool_009.py::test_passes_taint_analysis": true,
+        "test_wf_tool_009.py::test_has_parallel_and_merge": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1072,
+      "output_tokens": 572
+    }
+  ],
+  "complexity": 3,
+  "domain": "api_integration",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1072,
+  "total_output_tokens": 572
+}

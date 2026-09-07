@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_agent_012",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6237738328054547,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: multi_agent_delegation_and_synthesis\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"task_delegator\"\n    output: auth_result\n\n  - id: step_fetch_task\n    op: fetch_api\n    params:\n      endpoint: \"/api/tasks/incoming\"\n    output: raw_task\n\n  - id: step_validate_task\n    op: validate_schema\n    params:\n      input: raw_task\n      schema: complex_task_schema\n    output: validated_task\n\n  - id: step_classify_task\n    op: apply_rule\n    params:\n      rule: \"classify_task_to_subworkflow\"\n      input: validated_task\n    output: classification_result\n\n  - id: step_extract_subworkflow_id\n    op: extract_field\n    params:\n      input: classification_result\n      field: \"subworkflow_id\"\n    output: target_subworkflow_id\n\n  - id: step_delegate_to_subworkflow\n    op: call_subworkflow\n    params:\n      workflow_id_ref: target_subworkflow_id\n      task: validated_task\n    output: raw_subworkflow_result\n\n  - id: step_validate_subworkflow_result\n    op: validate_schema\n    params:\n      input: raw_subworkflow_result\n      schema: subworkflow_result_schema\n    output: validated_subworkflow_result\n\n  - id: step_merge_results\n    op: merge_datasets\n    params:\n      input: validated_subworkflow_result\n      secondary_input: validated_task\n      key: \"task_id\"\n    output: merged_result\n\n  - id: step_format_final_answer\n    op: format_output\n    params:\n      input: merged_result\n      format: \"json\"\n      template: \"synthesised_answer\"\n    output: final_answer\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: final_answer\n      action: \"task_delegation_completed\"\n\n  - id: step_notify_requester\n    op: notify_user\n    params:\n      input: final_answer\n      message: \"Your task has been processed and the synthesised answer is ready.\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_012.py::test_parses_and_type_checks": true,
+        "test_wf_agent_012.py::test_passes_taint_analysis": true,
+        "test_wf_agent_012.py::test_delegate_before_synthesize": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1095,
+      "output_tokens": 557
+    }
+  ],
+  "complexity": 4,
+  "domain": "agent_tasks",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1095,
+  "total_output_tokens": 557
+}

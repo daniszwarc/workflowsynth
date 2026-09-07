@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_agent_003",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6171850403770804,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: knowledge_graph_node_field_extraction\nsteps:\n  - id: fetch_kg_node\n    op: fetch_api\n    params:\n      endpoint: \"/api/knowledge-graph/node\"\n    output: raw_node\n\n  - id: extract_requested_fields\n    op: extract_field\n    params:\n      input: raw_node\n      fields: requested_fields\n    output: extracted_fields\n\n  - id: format_response\n    op: format_output\n    params:\n      input: extracted_fields\n      format: json\n    output: formatted_response",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_003.py::test_parses_and_type_checks": true,
+        "test_wf_agent_003.py::test_passes_taint_analysis": true,
+        "test_wf_agent_003.py::test_has_fetch_and_extract": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1031,
+      "output_tokens": 140
+    }
+  ],
+  "complexity": 1,
+  "domain": "agent_tasks",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1031,
+  "total_output_tokens": 140
+}

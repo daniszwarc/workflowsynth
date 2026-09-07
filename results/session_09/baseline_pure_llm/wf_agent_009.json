@@ -1,0 +1,39 @@
+{
+  "task_id": "wf_agent_009",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 4,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 5.630710583180189,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: knowledge_retrieval_and_response_formatting\n\nsteps:\n  - id: fetch_user_query\n    op: fetch_input\n    params:\n      source: user_request\n    output: user_query\n\n  - id: embed_query\n    op: transform_to_embedding\n    params:\n      input: \"{{fetch_user_query.output.user_query}}\"\n      model: text-embedding\n    output: query_embedding\n\n  - id: search_knowledge_base\n    op: vector_search\n    params:\n      embedding: \"{{embed_query.output.query_embedding}}\"\n      index: knowledge_base\n      top_k: 5\n    output: search_results\n\n  - id: merge_with_context\n    op: merge_data\n    params:\n      search_results: \"{{search_knowledge_base.output.search_results}}\"\n      context_sources:\n        - user_profile\n        - session_history\n    output: merged_results\n\n  - id: format_response\n    op: format_output\n    params:\n      merged_data: \"{{merge_with_context.output.merged_results}}\"\n      template: knowledge_answer\n      format: structured_response\n    output: final_response",
+      "dsl_type_errors": [
+        "Step 'fetch_user_query': unknown op 'fetch_input'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'embed_query': unknown op 'transform_to_embedding'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'search_knowledge_base': unknown op 'vector_search'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'merge_with_context': unknown op 'merge_data'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "agent_tasks",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 242,
+  "total_output_tokens": 297
+}

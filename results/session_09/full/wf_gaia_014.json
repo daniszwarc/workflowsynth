@@ -1,0 +1,42 @@
+{
+  "task_id": "wf_gaia_014",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.7184275407344103,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: secured_multi_source_data_pipeline\nsteps:\n  - id: step_authenticate_pipeline\n    op: authenticate_user\n    params:\n      role: \"pipeline_service\"\n    output: auth_result\n\n  - id: step_fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/sensitive-source/one\"\n    output: raw_source_one\n\n  - id: step_fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/sensitive-source/two\"\n    output: raw_source_two\n\n  - id: step_filter_source_one\n    op: filter_records\n    params:\n      input: raw_source_one\n      condition: \"record IS NOT NULL\"\n    output: clean_source_one\n\n  - id: step_filter_source_two\n    op: filter_records\n    params:\n      input: raw_source_two\n      condition: \"record IS NOT NULL\"\n    output: clean_source_two\n\n  - id: step_merge_datasets\n    op: merge_datasets\n    params:\n      input: clean_source_one\n      secondary_input: clean_source_two\n      key: \"record_id\"\n    output: merged_dataset\n\n  - id: step_validate_merged\n    op: validate_schema\n    params:\n      input: merged_dataset\n      schema: \"sensitive_data_schema\"\n    output: validated_dataset\n\n  - id: step_extract_sensitive_fields\n    op: extract_field\n    params:\n      input: validated_dataset\n      field: \"sensitive_fields\"\n    output: sensitive_fields\n\n  - id: step_encrypt_sensitive\n    op: encrypt_field\n    params:\n      input: sensitive_fields\n      algorithm: \"AES-256\"\n    output: encrypted_dataset\n\n  - id: step_write_database\n    op: write_database\n    params:\n      input: encrypted_dataset\n      table: \"secured_sensitive_data\"\n    output: write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: write_result\n      action: \"persisted_encrypted_sensitive_data\"\n      details: \"Encrypted merged dataset written to secured_sensitive_data table\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_014.py::test_parses_and_type_checks": true,
+        "test_wf_gaia_014.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_014.py::test_auth_before_store": true,
+        "test_wf_gaia_014.py::test_encrypt_before_store": true,
+        "test_wf_gaia_014.py::test_log_after_store": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1138,
+      "output_tokens": 548
+    }
+  ],
+  "complexity": 4,
+  "domain": "general_ai",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1138,
+  "total_output_tokens": 548
+}

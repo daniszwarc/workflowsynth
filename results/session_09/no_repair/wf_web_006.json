@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_web_006",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6600064160302281,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: article_publishing_workflow\nsteps:\n  - id: fetch_article_draft\n    op: fetch_api\n    params:\n      endpoint: \"/api/cms/articles/draft\"\n    output: raw_article_draft\n\n  - id: validate_article_draft\n    op: validate_schema\n    params:\n      input: raw_article_draft\n      schema: article_schema\n    output: validated_article\n\n  - id: authenticate_publishing_service\n    op: authenticate_user\n    params:\n      role: \"publishing_service\"\n    output: auth_result\n\n  - id: publish_article\n    op: call_webhook\n    params:\n      input: validated_article\n      url: \"/api/cms/articles/publish\"\n      method: \"POST\"\n    output: publish_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_006.py::test_parses_and_type_checks": true,
+        "test_wf_web_006.py::test_passes_taint_analysis": true,
+        "test_wf_web_006.py::test_auth_before_publish": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1048,
+      "output_tokens": 192
+    }
+  ],
+  "complexity": 2,
+  "domain": "web_automation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1048,
+  "total_output_tokens": 192
+}

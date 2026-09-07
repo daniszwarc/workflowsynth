@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_web_010",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 6,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 6.114234708249569,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: user_registration\nsteps:\n  - id: fetch_registration_payload\n    op: fetch\n    params:\n      source: registration_form\n      trigger: form_submission\n    output: registration_payload\n\n  - id: validate_payload\n    op: validate\n    params:\n      input: \"{{ fetch_registration_payload.output.registration_payload }}\"\n      schema: registration_schema\n    output: validated_payload\n\n  - id: check_duplicate_email\n    op: duplicate_check\n    params:\n      email: \"{{ validate_payload.output.validated_payload.email }}\"\n      rule: duplicate_check_rule\n    output: duplicate_check_result\n\n  - id: authenticate_service\n    op: authenticate\n    params:\n      service: registration_service\n      depends_on:\n        - check_duplicate_email\n    output: auth_token\n\n  - id: create_account\n    op: create_account\n    params:\n      payload: \"{{ validate_payload.output.validated_payload }}\"\n      auth_token: \"{{ authenticate_service.output.auth_token }}\"\n      depends_on:\n        - check_duplicate_email\n        - authenticate_service\n    output: new_account\n\n  - id: send_welcome_email\n    op: send_email\n    params:\n      template: welcome_email\n      recipient: \"{{ create_account.output.new_account.email }}\"\n      account_details: \"{{ create_account.output.new_account }}\"\n      depends_on:\n        - create_account",
+      "dsl_type_errors": [
+        "Step 'fetch_registration_payload': unknown op 'fetch'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'validate_payload': unknown op 'validate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'check_duplicate_email': unknown op 'duplicate_check'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'authenticate_service': unknown op 'authenticate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'create_account': unknown op 'create_account'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'send_welcome_email': unknown op 'send_email'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "web_automation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 248,
+  "total_output_tokens": 366
+}

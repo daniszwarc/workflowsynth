@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_tool_002",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 3,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 4.848721333779395,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: currency_conversion_logging\nsteps:\n  - id: call_conversion_api\n    op: api_call\n    params:\n      service: currency_conversion\n      method: POST\n      body:\n        source_amount: \"{{ trigger.source_amount }}\"\n        source_currency: \"{{ trigger.source_currency }}\"\n        target_currency: \"{{ trigger.target_currency }}\"\n    output: conversion_response\n\n  - id: extract_converted_amount\n    op: transform\n    params:\n      source: \"{{ conversion_response }}\"\n      expression: \"conversion_response.body.converted_amount\"\n    output: converted_amount\n\n  - id: log_conversion_result\n    op: log\n    params:\n      level: info\n      destination: audit_log\n      message: \"Currency conversion completed\"\n      details:\n        source_amount: \"{{ trigger.source_amount }}\"\n        source_currency: \"{{ trigger.source_currency }}\"\n        target_currency: \"{{ trigger.target_currency }}\"\n        converted_amount: \"{{ converted_amount }}\"\n        timestamp: \"{{ now() }}\"\n        request_id: \"{{ trigger.request_id }}\"",
+      "dsl_type_errors": [
+        "Step 'call_conversion_api': unknown op 'api_call'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'extract_converted_amount': unknown op 'transform'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'log_conversion_result': unknown op 'log'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 1,
+  "domain": "api_integration",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 196,
+  "total_output_tokens": 283
+}

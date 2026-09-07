@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_agent_010",
+  "condition": "baseline_pure_llm",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 3,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "parse_error",
+  "synthesis_time_seconds": 5.862408916465938,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: config-driven-conditional-execution\n\nsteps:\n  - id: read_job_configuration\n    op: config/read\n    params:\n      source: job_config_store\n      refresh: true\n    output: job_config\n\n  - id: apply_configuration_rule\n    op: rule/evaluate\n    params:\n      rule_definition: \"{{ job_config.rule }}\"\n      input_data: \"{{ trigger.input }}\"\n    output: rule_result\n\n  - id: route_execution\n    op: branch/conditional\n    params:\n      condition_value: \"{{ rule_result.selected_branch }}\"\n      branches:\n        branch_a:\n          - id: execute_branch_a\n            op: action/execute\n            params:\n              action: \"{{ job_config.branches.branch_a.action }}\"\n              parameters: \"{{ job_config.branches.branch_a.parameters }}\"\n            output: branch_a_result\n        branch_b:\n          - id: execute_branch_b\n            op: action/execute\n            params:\n              action: \"{{ job_config.branches.branch_b.action }}\"\n              parameters: \"{{ job_config.branches.branch_b.parameters }}\"\n            output: branch_b_result\n        default:\n          - id: execute_default_branch\n            op: action/execute\n            params:\n              action: \"{{ job_config.branches.default.action }}\"\n              parameters: \"{{ job_config.branches.default.parameters }}\"\n            output: default_branch_result\n    output: execution_result",
+      "dsl_type_errors": [
+        "Step 'read_job_configuration': unknown op 'config/read'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'apply_configuration_rule': unknown op 'rule/evaluate'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary.",
+        "Step 'route_execution': unknown op 'branch/conditional'. Valid ops are: ['aggregate_data', 'apply_rule', 'authenticate_user', 'call_subworkflow', 'call_webhook', 'encrypt_field', 'extract_field', 'fetch_api', 'filter_records', 'format_output', 'handle_error', 'log_audit', 'loop_records', 'merge_datasets', 'notify_user', 'parallel_execute', 'read_database', 'retry_step', 'route_to_step', 'send_to_queue', 'terminate_workflow', 'transform_json', 'validate_schema', 'wait_for_condition', 'write_database']. Use only operations from the WorkflowSynth DSL vocabulary."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "parse_error",
+      "success": false
+    }
+  ],
+  "complexity": 3,
+  "domain": "agent_tasks",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 216,
+  "total_output_tokens": 378
+}

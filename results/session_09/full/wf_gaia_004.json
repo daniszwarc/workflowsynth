@@ -1,0 +1,41 @@
+{
+  "task_id": "wf_gaia_004",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.6078978329896927,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: input_form_validation_and_storage\nsteps:\n  - id: fetch_form_submission\n    op: fetch_api\n    params:\n      endpoint: \"/api/intake/form-submission\"\n    output: raw_form_data\n\n  - id: validate_form_data\n    op: validate_schema\n    params:\n      input: raw_form_data\n      schema: intake_form_schema\n    output: validated_form_data\n\n  - id: authenticate_intake_service\n    op: authenticate_user\n    params:\n      role: \"intake_service\"\n    output: auth_result\n\n  - id: store_validated_form\n    op: write_database\n    params:\n      input: validated_form_data\n      table: intake_submissions\n    output: write_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_gaia_004.py::test_parses_and_type_checks": true,
+        "test_wf_gaia_004.py::test_passes_taint_analysis": true,
+        "test_wf_gaia_004.py::test_has_validation_before_store": true,
+        "test_wf_gaia_004.py::test_has_auth_before_store": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1052,
+      "output_tokens": 191
+    }
+  ],
+  "complexity": 1,
+  "domain": "general_ai",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1052,
+  "total_output_tokens": 191
+}

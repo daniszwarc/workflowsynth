@@ -1,0 +1,182 @@
+{
+  "task_id": "wf_web_008",
+  "condition": "full",
+  "success": false,
+  "attempts_used": 10,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "test_failure",
+  "synthesis_time_seconds": 67.5111446660012,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: ecommerce_checkout_workflow\nsteps:\n  - id: step_fetch_cart\n    op: fetch_api\n    params:\n      endpoint: \"/api/cart/contents\"\n    output: raw_cart\n\n  - id: step_validate_cart\n    op: validate_schema\n    params:\n      input: raw_cart\n      schema: checkout_schema\n    output: validated_cart\n\n  - id: step_apply_promo\n    op: apply_rule\n    params:\n      input: validated_cart\n      rule: promo_code_rule\n    output: cart_with_promo\n\n  - id: step_authenticate_shopper\n    op: authenticate_user\n    params:\n      role: \"shopper\"\n    output: auth_result\n\n  - id: step_transform_order\n    op: transform_json\n    params:\n      input: cart_with_promo\n      mapping:\n        include_auth: auth_result\n        format: order_payload\n    output: order_payload\n\n  - id: step_process_order\n    op: call_webhook\n    params:\n      input: order_payload\n      url: \"/payments/process\"\n    output: raw_order_result\n\n  - id: step_validate_order_result\n    op: validate_schema\n    params:\n      input: raw_order_result\n      schema: order_result_schema\n    output: validated_order_result\n\n  - id: step_notify_customer\n    op: notify_user\n    params:\n      input: validated_order_result\n      template: order_confirmation\n      channel: email\n\n  - id: step_log_order\n    op: log_audit\n    params:\n      input: validated_order_result\n      event: \"order_placed\"\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: step_terminate_failure\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"Checkout workflow encountered an error\"",
+      "dsl_type_errors": [
+        "Step 'step_transform_order': op 'transform_json' requires input of type 'records' but 'cart_with_promo' has type 'boolean'. Make sure the step producing 'cart_with_promo' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1103,
+      "output_tokens": 491
+    },
+    {
+      "attempt_number": 1,
+      "llm_sketch": "workflow_id: ecommerce_checkout_workflow\nsteps:\n  - id: step_fetch_cart\n    op: fetch_api\n    params:\n      endpoint: \"/api/cart/contents\"\n    output: raw_cart\n\n  - id: step_validate_cart\n    op: validate_schema\n    params:\n      input: raw_cart\n      schema: checkout_schema\n    output: validated_cart\n\n  - id: step_apply_promo\n    op: apply_rule\n    params:\n      input: validated_cart\n      rule: promo_code_rule\n    output: promo_result\n\n  - id: step_route_promo\n    op: route_to_step\n    params:\n      condition: promo_result\n      true_step: step_filter_promo_cart\n      false_step: step_authenticate_shopper\n\n  - id: step_filter_promo_cart\n    op: filter_records\n    params:\n      input: validated_cart\n      condition: \"apply_promo_discount\"\n    output: promo_adjusted_cart\n\n  - id: step_authenticate_shopper\n    op: authenticate_user\n    params:\n      role: \"shopper\"\n    output: auth_result\n\n  - id: step_merge_cart\n    op: merge_datasets\n    params:\n      input: validated_cart\n      secondary: promo_adjusted_cart\n      key: \"cart_id\"\n    output: final_cart\n\n  - id: step_transform_order\n    op: transform_json\n    params:\n      input: final_cart\n      mapping:\n        include_auth: auth_result\n        format: order_payload\n    output: order_payload\n\n  - id: step_process_order\n    op: call_webhook\n    params:\n      input: order_payload\n      url: \"/payments/process\"\n    output: raw_order_result\n\n  - id: step_validate_order_result\n    op: validate_schema\n    params:\n      input: raw_order_result\n      schema: order_result_schema\n    output: validated_order_result\n\n  - id: step_notify_customer\n    op: notify_user\n    params:\n      input: validated_order_result\n      template: order_confirmation\n      channel: email\n\n  - id: step_log_order\n    op: log_audit\n    params:\n      input: validated_order_result\n      event: \"order_placed\"\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: step_terminate_failure\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"Checkout workflow encountered an error\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_008.py::test_parses_and_type_checks": true,
+        "test_wf_web_008.py::test_passes_taint_analysis": true,
+        "test_wf_web_008.py::test_validate_before_promo": true,
+        "test_wf_web_008.py::test_auth_before_process": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1746,
+      "output_tokens": 651
+    },
+    {
+      "attempt_number": 2,
+      "llm_sketch": "workflow_id: ecommerce_checkout_workflow\nsteps:\n  - id: step_fetch_cart\n    op: fetch_api\n    params:\n      endpoint: \"/api/cart/contents\"\n    output: raw_cart\n\n  - id: step_validate_cart\n    op: validate_schema\n    params:\n      input: raw_cart\n      schema: checkout_schema\n    output: validated_cart\n\n  - id: step_apply_promo\n    op: apply_rule\n    params:\n      input: validated_cart\n      rule: promo_code_rule\n    output: promo_result\n\n  - id: step_authenticate_shopper\n    op: authenticate_user\n    params:\n      role: \"shopper\"\n    output: auth_result\n\n  - id: step_route_promo\n    op: route_to_step\n    params:\n      condition: promo_result\n      true_step: step_transform_promo_cart\n      false_step: step_transform_order\n\n  - id: step_transform_promo_cart\n    op: transform_json\n    params:\n      input: validated_cart\n      mapping:\n        apply_discount: promo_result\n    output: promo_adjusted_cart\n\n  - id: step_transform_order\n    op: transform_json\n    params:\n      input: validated_cart\n      mapping:\n        format: order_payload\n    output: order_payload\n\n  - id: step_process_order\n    op: call_webhook\n    params:\n      input: order_payload\n      url: \"/payments/process\"\n    output: raw_order_result\n\n  - id: step_validate_order_result\n    op: validate_schema\n    params:\n      input: raw_order_result\n      schema: order_result_schema\n    output: validated_order_result\n\n  - id: step_notify_customer\n    op: notify_user\n    params:\n      input: validated_order_result\n      template: order_confirmation\n      channel: email\n\n  - id: step_log_order\n    op: log_audit\n    params:\n      input: validated_order_result\n      event: \"order_placed\"\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: step_terminate_failure\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"Checkout workflow encountered an error\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_008.py::test_parses_and_type_checks": true,
+        "test_wf_web_008.py::test_passes_taint_analysis": true,
+        "test_wf_web_008.py::test_validate_before_promo": true,
+        "test_wf_web_008.py::test_auth_before_process": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1836,
+      "output_tokens": 589
+    },
+    {
+      "attempt_number": 3,
+      "llm_sketch": "workflow_id: ecommerce_checkout_workflow\nsteps:\n  - id: step_fetch_cart\n    op: fetch_api\n    params:\n      endpoint: \"/api/cart/contents\"\n    output: raw_cart\n\n  - id: step_validate_cart\n    op: validate_schema\n    params:\n      input: raw_cart\n      schema: checkout_schema\n    output: validated_cart\n\n  - id: step_apply_promo\n    op: apply_rule\n    params:\n      input: validated_cart\n      rule: promo_code_rule\n    output: promo_result\n\n  - id: step_authenticate_shopper\n    op: authenticate_user\n    params:\n      role: \"shopper\"\n    output: auth_result\n\n  - id: step_route_promo\n    op: route_to_step\n    params:\n      condition: promo_result\n      true_step: step_transform_promo_cart\n      false_step: step_transform_order\n\n  - id: step_transform_promo_cart\n    op: transform_json\n    params:\n      input: validated_cart\n      mapping:\n        apply_discount: promo_result\n    output: promo_adjusted_cart\n\n  - id: step_transform_order_from_promo\n    op: transform_json\n    params:\n      input: promo_adjusted_cart\n      mapping:\n        format: order_payload\n    output: order_payload_promo\n\n  - id: step_transform_order\n    op: transform_json\n    params:\n      input: validated_cart\n      mapping:\n        format: order_payload\n    output: order_payload\n\n  - id: step_process_order\n    op: call_webhook\n    params:\n      input: order_payload\n      url: \"/payments/process\"\n    output: raw_order_result\n\n  - id: step_validate_order_result\n    op: validate_schema\n    params:\n      input: raw_order_result\n      schema: order_result_schema\n    output: validated_order_result\n\n  - id: step_notify_customer\n    op: notify_user\n    params:\n      input: validated_order_result\n      template: order_confirmation\n      channel: email\n\n  - id: step_log_order\n    op: log_audit\n    params:\n      input: validated_order_result\n      event: \"order_placed\"\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: step_terminate_failure\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"Checkout workflow encountered an error\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_008.py::test_parses_and_type_checks": true,
+        "test_wf_web_008.py::test_passes_taint_analysis": true,
+        "test_wf_web_008.py::test_validate_before_promo": true,
+        "test_wf_web_008.py::test_auth_before_process": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1774,
+      "output_tokens": 646
+    },
+    {
+      "attempt_number": 4,
+      "llm_sketch": "workflow_id: ecommerce_checkout_workflow\nsteps:\n  - id: step_fetch_cart\n    op: fetch_api\n    params:\n      endpoint: \"/api/cart/contents\"\n    output: raw_cart\n\n  - id: step_validate_cart\n    op: validate_schema\n    params:\n      input: raw_cart\n      schema: checkout_schema\n    output: validated_cart\n\n  - id: step_apply_promo\n    op: apply_rule\n    params:\n      input: validated_cart\n      rule: promo_code_rule\n    output: promo_result\n\n  - id: step_authenticate_shopper\n    op: authenticate_user\n    params:\n      role: \"shopper\"\n    output: auth_result\n\n  - id: step_route_promo\n    op: route_to_step\n    params:\n      condition: promo_result\n      true_step: step_transform_promo_cart\n      false_step: step_transform_order\n\n  - id: step_transform_promo_cart\n    op: transform_json\n    params:\n      input: validated_cart\n      mapping:\n        apply_discount: promo_result\n    output: promo_adjusted_cart\n\n  - id: step_transform_order_from_promo\n    op: transform_json\n    params:\n      input: promo_adjusted_cart\n      mapping:\n        format: order_payload\n    output: order_payload_promo\n\n  - id: step_transform_order\n    op: transform_json\n    params:\n      input: validated_cart\n      mapping:\n        format: order_payload\n    output: order_payload\n\n  - id: step_process_order_promo\n    op: call_webhook\n    params:\n      input: order_payload_promo\n      url: \"/payments/process\"\n    output: raw_order_result_promo\n\n  - id: step_process_order\n    op: call_webhook\n    params:\n      input: order_payload\n      url: \"/payments/process\"\n    output: raw_order_result\n\n  - id: step_validate_order_result_promo\n    op: validate_schema\n    params:\n      input: raw_order_result_promo\n      schema: order_result_schema\n    output: validated_order_result_promo\n\n  - id: step_validate_order_result\n    op: validate_schema\n    params:\n      input: raw_order_result\n      schema: order_result_schema\n    output: validated_order_result\n\n  - id: step_notify_customer\n    op: notify_user\n    params:\n      input: validated_order_result\n      template: order_confirmation\n      channel: email\n\n  - id: step_log_order\n    op: log_audit\n    params:\n      input: validated_order_result\n      event: \"order_placed\"\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: step_terminate_failure\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"Checkout workflow encountered an error\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_008.py::test_parses_and_type_checks": true,
+        "test_wf_web_008.py::test_passes_taint_analysis": true,
+        "test_wf_web_008.py::test_validate_before_promo": true,
+        "test_wf_web_008.py::test_auth_before_process": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1831,
+      "output_tokens": 760
+    },
+    {
+      "attempt_number": 5,
+      "llm_sketch": "workflow_id: ecommerce_checkout_workflow\nsteps:\n  - id: step_fetch_cart\n    op: fetch_api\n    params:\n      endpoint: \"/api/cart/contents\"\n    output: raw_cart\n\n  - id: step_validate_cart\n    op: validate_schema\n    params:\n      input: raw_cart\n      schema: checkout_schema\n    output: validated_cart\n\n  - id: step_apply_promo\n    op: apply_rule\n    params:\n      input: validated_cart\n      rule: promo_code_rule\n    output: promo_result\n\n  - id: step_authenticate_shopper\n    op: authenticate_user\n    params:\n      role: \"shopper\"\n    output: auth_result\n\n  - id: step_route_promo\n    op: route_to_step\n    params:\n      condition: promo_result\n      true_step: step_transform_promo_cart\n      false_step: step_transform_order\n\n  - id: step_transform_promo_cart\n    op: transform_json\n    params:\n      input: validated_cart\n      mapping:\n        apply_discount: promo_result\n    output: promo_adjusted_cart\n\n  - id: step_transform_order_from_promo\n    op: transform_json\n    params:\n      input: promo_adjusted_cart\n      mapping:\n        format: order_payload\n    output: order_payload_promo\n\n  - id: step_transform_order\n    op: transform_json\n    params:\n      input: validated_cart\n      mapping:\n        format: order_payload\n    output: order_payload\n\n  - id: step_process_order_promo\n    op: call_webhook\n    params:\n      input: order_payload_promo\n      url: \"/payments/process\"\n    output: raw_order_result_promo\n\n  - id: step_process_order\n    op: call_webhook\n    params:\n      input: order_payload\n      url: \"/payments/process\"\n    output: raw_order_result\n\n  - id: step_validate_order_result_promo\n    op: validate_schema\n    params:\n      input: raw_order_result_promo\n      schema: order_result_schema\n    output: validated_order_result_promo\n\n  - id: step_validate_order_result\n    op: validate_schema\n    params:\n      input: raw_order_result\n      schema: order_result_schema\n    output: validated_order_result\n\n  - id: step_notify_customer_promo\n    op: notify_user\n    params:\n      input: validated_order_result_promo\n      template: order_confirmation\n      channel: email\n\n  - id: step_notify_customer\n    op: notify_user\n    params:\n      input: validated_order_result\n      template: order_confirmation\n      channel: email\n\n  - id: step_log_order_promo\n    op: log_audit\n    params:\n      input: validated_order_result_promo\n      event: \"order_placed\"\n\n  - id: step_log_order\n    op: log_audit\n    params:\n      input: validated_order_result\n      event: \"order_placed\"\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: step_terminate_failure\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"Checkout workflow encountered an error\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_008.py::test_parses_and_type_checks": true,
+        "test_wf_web_008.py::test_passes_taint_analysis": true,
+        "test_wf_web_008.py::test_validate_before_promo": true,
+        "test_wf_web_008.py::test_auth_before_process": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1945,
+      "output_tokens": 853
+    },
+    {
+      "attempt_number": 6,
+      "llm_sketch": "workflow_id: ecommerce_checkout_workflow\nsteps:\n  - id: step_fetch_cart\n    op: fetch_api\n    params:\n      endpoint: \"/api/cart/contents\"\n    output: raw_cart\n\n  - id: step_validate_cart\n    op: validate_schema\n    params:\n      input: raw_cart\n      schema: checkout_schema\n    output: validated_cart\n\n  - id: step_apply_promo\n    op: apply_rule\n    params:\n      input: validated_cart\n      rule: promo_code_rule\n    output: promo_result\n\n  - id: step_authenticate_shopper\n    op: authenticate_user\n    params:\n      role: \"shopper\"\n    output: auth_result\n\n  - id: step_route_promo\n    op: route_to_step\n    params:\n      condition: promo_result\n      true_step: step_transform_promo_cart\n      false_step: step_transform_order\n\n  - id: step_transform_promo_cart\n    op: transform_json\n    params:\n      input: validated_cart\n      mapping:\n        apply_discount: promo_result\n    output: promo_adjusted_cart\n\n  - id: step_transform_order_from_promo\n    op: transform_json\n    params:\n      input: promo_adjusted_cart\n      mapping:\n        format: order_payload\n    output: order_payload_promo\n\n  - id: step_transform_order\n    op: transform_json\n    params:\n      input: validated_cart\n      mapping:\n        format: order_payload\n    output: order_payload\n\n  - id: step_process_order_promo\n    op: call_webhook\n    params:\n      input: order_payload_promo\n      url: \"/payments/process\"\n    output: raw_order_result_promo\n\n  - id: step_process_order\n    op: call_webhook\n    params:\n      input: order_payload\n      url: \"/payments/process\"\n    output: raw_order_result\n\n  - id: step_validate_order_result_promo\n    op: validate_schema\n    params:\n      input: raw_order_result_promo\n      schema: order_result_schema\n    output: validated_order_result_promo\n\n  - id: step_validate_order_result\n    op: validate_schema\n    params:\n      input: raw_order_result\n      schema: order_result_schema\n    output: validated_order_result\n\n  - id: step_notify_customer_promo\n    op: notify_user\n    params:\n      input: validated_order_result_promo\n      template: order_confirmation\n      channel: email\n\n  - id: step_notify_customer\n    op: notify_user\n    params:\n      input: validated_order_result\n      template: order_confirmation\n      channel: email\n\n  - id: step_log_order_promo\n    op: log_audit\n    params:\n      input: validated_order_result_promo\n      event: \"order_placed\"\n\n  - id: step_log_order\n    op: log_audit\n    params:\n      input: validated_order_result\n      event: \"order_placed\"\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: step_terminate_failure\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"Checkout workflow encountered an error\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_008.py::test_parses_and_type_checks": true,
+        "test_wf_web_008.py::test_passes_taint_analysis": true,
+        "test_wf_web_008.py::test_validate_before_promo": true,
+        "test_wf_web_008.py::test_auth_before_process": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2038,
+      "output_tokens": 853
+    },
+    {
+      "attempt_number": 7,
+      "llm_sketch": "workflow_id: ecommerce_checkout_workflow\nsteps:\n  - id: step_fetch_cart\n    op: fetch_api\n    params:\n      endpoint: \"/api/cart/contents\"\n    output: raw_cart\n\n  - id: step_validate_cart\n    op: validate_schema\n    params:\n      input: raw_cart\n      schema: checkout_schema\n    output: validated_cart\n\n  - id: step_apply_promo\n    op: apply_rule\n    params:\n      input: validated_cart\n      rule: promo_code_rule\n    output: promo_result\n\n  - id: step_authenticate_shopper\n    op: authenticate_user\n    params:\n      role: \"shopper\"\n    output: auth_result\n\n  - id: step_route_promo\n    op: route_to_step\n    params:\n      condition: promo_result\n      true_step: step_transform_promo_cart\n      false_step: step_transform_order\n\n  - id: step_transform_promo_cart\n    op: transform_json\n    params:\n      input: validated_cart\n      mapping:\n        apply_discount: promo_result\n    output: promo_adjusted_cart\n\n  - id: step_transform_order_from_promo\n    op: transform_json\n    params:\n      input: promo_adjusted_cart\n      mapping:\n        format: order_payload\n    output: order_payload_promo\n\n  - id: step_transform_order\n    op: transform_json\n    params:\n      input: validated_cart\n      mapping:\n        format: order_payload\n    output: order_payload\n\n  - id: step_process_order_promo\n    op: call_webhook\n    params:\n      input: order_payload_promo\n      url: \"/payments/process\"\n      auth: auth_result\n    output: raw_order_result_promo\n\n  - id: step_process_order\n    op: call_webhook\n    params:\n      input: order_payload\n      url: \"/payments/process\"\n      auth: auth_result\n    output: raw_order_result\n\n  - id: step_validate_order_result_promo\n    op: validate_schema\n    params:\n      input: raw_order_result_promo\n      schema: order_result_schema\n    output: validated_order_result_promo\n\n  - id: step_validate_order_result\n    op: validate_schema\n    params:\n      input: raw_order_result\n      schema: order_result_schema\n    output: validated_order_result\n\n  - id: step_notify_customer_promo\n    op: notify_user\n    params:\n      input: validated_order_result_promo\n      template: order_confirmation\n      channel: email\n\n  - id: step_notify_customer\n    op: notify_user\n    params:\n      input: validated_order_result\n      template: order_confirmation\n      channel: email\n\n  - id: step_log_order_promo\n    op: log_audit\n    params:\n      input: validated_order_result_promo\n      event: \"order_placed\"\n\n  - id: step_log_order\n    op: log_audit\n    params:\n      input: validated_order_result\n      event: \"order_placed\"\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: step_terminate_failure\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      message: \"Checkout workflow encountered an error\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_008.py::test_parses_and_type_checks": true,
+        "test_wf_web_008.py::test_passes_taint_analysis": true,
+        "test_wf_web_008.py::test_validate_before_promo": true,
+        "test_wf_web_008.py::test_auth_before_process": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 2038,
+      "output_tokens": 867
+    },
+    {
+      "attempt_number": 8,
+      "llm_sketch": "workflow_id: ecommerce_checkout_workflow\nsteps:\n  - id: step_fetch_cart\n    op: fetch_api\n    params:\n      endpoint: \"/api/cart/contents\"\n    output: raw_cart\n\n  - id: step_validate_cart\n    op: validate_schema\n    params:\n      input: raw_cart\n      schema: checkout_schema\n    output: validated_cart\n\n  - id: step_apply_promo\n    op: apply_rule\n    params:\n      input: validated_cart\n      rule: promo_code_rule\n    output: promo_result\n\n  - id: step_transform_order\n    op: transform_json\n    params:\n      input: validated_cart\n      mapping:\n        format: order_payload\n        promo_application: promo_result\n    output: order_payload\n\n  - id: step_authenticate_shopper\n    op: authenticate_user\n    params:\n      role: shopper\n    output: auth_result\n\n  - id: step_process_order\n    op: call_webhook\n    params:\n      input: order_payload\n      url: \"/payments/process\"\n      auth: auth_result\n    output: raw_order_result\n\n  - id: step_validate_order_result\n    op: validate_schema\n    params:\n      input: raw_order_result\n      schema: order_result_schema\n    output: validated_order_result\n\n  - id: step_notify_customer\n    op: notify_user\n    params:\n      input: validated_order_result\n      template: order_confirmation\n      channel: email\n\n  - id: step_log_order\n    op: log_audit\n    params:\n      input: validated_order_result\n      event: order_placed\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: success\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: step_terminate_failure\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: failure\n      message: Checkout workflow encountered an error",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_008.py::test_parses_and_type_checks": true,
+        "test_wf_web_008.py::test_passes_taint_analysis": true,
+        "test_wf_web_008.py::test_validate_before_promo": true,
+        "test_wf_web_008.py::test_auth_before_process": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1710,
+      "output_tokens": 424
+    },
+    {
+      "attempt_number": 9,
+      "llm_sketch": "workflow_id: ecommerce_checkout_workflow\nsteps:\n  - id: step_fetch_cart\n    op: fetch_api\n    params:\n      endpoint: \"/api/cart/contents\"\n    output: raw_cart\n\n  - id: step_validate_cart\n    op: validate_schema\n    params:\n      input: raw_cart\n      schema: checkout_schema\n    output: validated_cart\n\n  - id: step_apply_promo\n    op: apply_rule\n    params:\n      input: validated_cart\n      rule: promo_code_rule\n    output: promo_result\n\n  - id: step_authenticate_shopper\n    op: authenticate_user\n    params:\n      role: shopper\n    output: auth_result\n\n  - id: step_transform_order\n    op: transform_json\n    params:\n      input: validated_cart\n      mapping:\n        format: order_payload\n        promo_application: promo_result\n        authentication: auth_result\n    output: order_payload\n\n  - id: step_process_order\n    op: call_webhook\n    params:\n      input: order_payload\n      url: \"/payments/process\"\n      auth: auth_result\n    output: raw_order_result\n\n  - id: step_validate_order_result\n    op: validate_schema\n    params:\n      input: raw_order_result\n      schema: order_result_schema\n    output: validated_order_result\n\n  - id: step_notify_customer\n    op: notify_user\n    params:\n      input: validated_order_result\n      template: order_confirmation\n      channel: email\n\n  - id: step_log_order\n    op: log_audit\n    params:\n      input: validated_order_result\n      event: order_placed\n\n  - id: step_terminate_success\n    op: terminate_workflow\n    params:\n      status: success\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: step_terminate_failure\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: failure\n      message: Checkout workflow encountered an error",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_008.py::test_parses_and_type_checks": true,
+        "test_wf_web_008.py::test_passes_taint_analysis": true,
+        "test_wf_web_008.py::test_validate_before_promo": true,
+        "test_wf_web_008.py::test_auth_before_process": false
+      },
+      "failure_category": "test_failure",
+      "success": false,
+      "input_tokens": 1434,
+      "output_tokens": 430
+    }
+  ],
+  "complexity": 3,
+  "domain": "web_automation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 17455,
+  "total_output_tokens": 6564
+}

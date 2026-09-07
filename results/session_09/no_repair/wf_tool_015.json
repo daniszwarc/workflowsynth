@@ -1,0 +1,42 @@
+{
+  "task_id": "wf_tool_015",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.638582875020802,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: full_four_source_api_integration\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"integration_service\"\n    output: auth_result\n\n  - id: step_fetch_source_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/one\"\n    output: raw_source_one\n\n  - id: step_fetch_source_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/two\"\n    output: raw_source_two\n\n  - id: step_fetch_source_three\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/three\"\n    output: raw_source_three\n\n  - id: step_fetch_source_four\n    op: fetch_api\n    params:\n      endpoint: \"/api/source/four\"\n    output: raw_source_four\n\n  - id: step_filter_source_one\n    op: filter_records\n    params:\n      input: raw_source_one\n      condition: \"record IS NOT NULL\"\n    output: clean_source_one\n\n  - id: step_filter_source_two\n    op: filter_records\n    params:\n      input: raw_source_two\n      condition: \"record IS NOT NULL\"\n    output: clean_source_two\n\n  - id: step_filter_source_three\n    op: filter_records\n    params:\n      input: raw_source_three\n      condition: \"record IS NOT NULL\"\n    output: clean_source_three\n\n  - id: step_filter_source_four\n    op: filter_records\n    params:\n      input: raw_source_four\n      condition: \"record IS NOT NULL\"\n    output: clean_source_four\n\n  - id: step_merge_one_two\n    op: merge_datasets\n    params:\n      input: clean_source_one\n      secondary: clean_source_two\n      key: \"record_id\"\n    output: merged_one_two\n\n  - id: step_merge_three_four\n    op: merge_datasets\n    params:\n      input: clean_source_three\n      secondary: clean_source_four\n      key: \"record_id\"\n    output: merged_three_four\n\n  - id: step_merge_all\n    op: merge_datasets\n    params:\n      input: merged_one_two\n      secondary: merged_three_four\n      key: \"record_id\"\n    output: merged_result\n\n  - id: step_validate_merged\n    op: validate_schema\n    params:\n      input: merged_result\n      schema: \"integration_schema\"\n    output: validated_result\n\n  - id: step_extract_sensitive\n    op: extract_field\n    params:\n      input: validated_result\n      field: \"sensitive_fields\"\n    output: sensitive_fields\n\n  - id: step_encrypt_sensitive\n    op: encrypt_field\n    params:\n      input: sensitive_fields\n      algorithm: \"AES-256\"\n    output: encrypted_result\n\n  - id: step_transform_for_storage\n    op: transform_json\n    params:\n      input: validated_result\n      mapping:\n        sensitive_fields: encrypted_result\n    output: final_record\n\n  - id: step_write_database\n    op: write_database\n    params:\n      input: final_record\n      table: \"integrated_data\"\n    output: write_result\n\n  - id: step_notify_owner\n    op: notify_user\n    params:\n      input: final_record\n      recipient: \"integration_owner\"\n      message: \"Full four-source integration run completed successfully.\"\n    output: notify_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: final_record\n      event: \"full_four_source_integration_completed\"\n      details:\n        sources: 4\n        write_status: write_result\n        notification_status: notify_result\n    output: audit_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_tool_015.py::test_parses_and_type_checks": true,
+        "test_wf_tool_015.py::test_passes_taint_analysis": true,
+        "test_wf_tool_015.py::test_auth_before_fetches": true,
+        "test_wf_tool_015.py::test_validate_and_encrypt_before_store": true,
+        "test_wf_tool_015.py::test_has_notify_and_audit": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1176,
+      "output_tokens": 966
+    }
+  ],
+  "complexity": 5,
+  "domain": "api_integration",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1176,
+  "total_output_tokens": 966
+}

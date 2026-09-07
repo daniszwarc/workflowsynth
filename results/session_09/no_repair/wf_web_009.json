@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_web_009",
+  "condition": "no_repair",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.634122958406806,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: content_moderation_routing\nsteps:\n  - id: fetch_submitted_post\n    op: fetch_api\n    params:\n      endpoint: \"/api/posts/submitted\"\n    output: raw_post\n\n  - id: validate_post_schema\n    op: validate_schema\n    params:\n      input: raw_post\n      schema: post_schema\n    output: validated_post\n\n  - id: authenticate_moderator\n    op: authenticate_user\n    params:\n      role: \"moderator\"\n    output: auth_result\n\n  - id: classify_post\n    op: apply_rule\n    params:\n      input: validated_post\n      rule: \"moderation_classification\"\n    output: classification_result\n\n  - id: extract_classification\n    op: extract_field\n    params:\n      input: classification_result\n      field: \"decision\"\n    output: decision\n\n  - id: route_post\n    op: route_to_step\n    params:\n      input: decision\n      conditions:\n        - when: \"approved\"\n          goto: send_to_approve_queue\n        - when: \"rejected\"\n          goto: send_to_reject_queue\n\n  - id: send_to_approve_queue\n    op: send_to_queue\n    params:\n      input: validated_post\n      queue: \"approval_queue\"\n    output: approve_queue_result\n\n  - id: log_approval_routing\n    op: log_audit\n    params:\n      input: validated_post\n      message: \"Post routed to approval queue\"\n\n  - id: terminate_approved\n    op: terminate_workflow\n    params:\n      status: \"routed_to_approval\"\n\n  - id: send_to_reject_queue\n    op: send_to_queue\n    params:\n      input: validated_post\n      queue: \"rejection_queue\"\n    output: reject_queue_result\n\n  - id: log_rejection_routing\n    op: log_audit\n    params:\n      input: validated_post\n      message: \"Post routed to rejection queue\"\n\n  - id: terminate_rejected\n    op: terminate_workflow\n    params:\n      status: \"routed_to_rejection\"",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_web_009.py::test_parses_and_type_checks": true,
+        "test_wf_web_009.py::test_passes_taint_analysis": true,
+        "test_wf_web_009.py::test_classify_before_route": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1057,
+      "output_tokens": 523
+    }
+  ],
+  "complexity": 3,
+  "domain": "web_automation",
+  "has_security_constraint": false,
+  "error_message": "",
+  "total_input_tokens": 1057,
+  "total_output_tokens": 523
+}

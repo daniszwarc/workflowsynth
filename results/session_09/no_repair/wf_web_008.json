@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_web_008",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "type_error",
+  "synthesis_time_seconds": 0.002911332994699478,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: ecommerce_checkout_workflow\nsteps:\n  - id: step_fetch_cart\n    op: fetch_api\n    params:\n      endpoint: \"/api/cart/contents\"\n    output: raw_cart\n\n  - id: step_validate_cart\n    op: validate_schema\n    params:\n      input: raw_cart\n      schema: checkout_schema\n    output: validated_cart\n\n  - id: step_apply_promo\n    op: apply_rule\n    params:\n      input: validated_cart\n      rule: promo_code_rule\n    output: cart_with_promo\n\n  - id: step_authenticate_shopper\n    op: authenticate_user\n    params:\n      role: \"shopper\"\n    output: auth_result\n\n  - id: step_transform_order\n    op: transform_json\n    params:\n      input: cart_with_promo\n      mapping:\n        include_auth: auth_result\n        format: order_payload\n    output: order_payload\n\n  - id: step_process_order\n    op: call_webhook\n    params:\n      input: order_payload\n      url: \"/payments/process-order\"\n    output: raw_order_result\n\n  - id: step_validate_order_result\n    op: validate_schema\n    params:\n      input: raw_order_result\n      schema: order_result_schema\n    output: validated_order_result\n\n  - id: step_notify_customer\n    op: notify_user\n    params:\n      input: validated_order_result\n      template: order_confirmation\n      channel: email\n\n  - id: step_log_order\n    op: log_audit\n    params:\n      input: validated_order_result\n      event: \"order_placed\"\n\n  - id: step_handle_error\n    op: handle_error\n    params:\n      on_error: step_terminate_failure\n\n  - id: step_terminate_failure\n    op: terminate_workflow\n    params:\n      status: \"failure\"\n      reason: \"Checkout process encountered an error\"",
+      "dsl_type_errors": [
+        "Step 'step_transform_order': op 'transform_json' requires input of type 'records' but 'cart_with_promo' has type 'boolean'. Make sure the step producing 'cart_with_promo' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1103,
+      "output_tokens": 493
+    }
+  ],
+  "complexity": 3,
+  "domain": "web_automation",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1103,
+  "total_output_tokens": 493
+}

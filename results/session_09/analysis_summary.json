@@ -1,24 +1,24 @@
 {
   "main_results": {
     "full": {
-      "n_tasks": 60,
-      "pass_at_1": 0.48333333333333334,
-      "pass_at_3": 0.7333333333333333,
-      "pass_at_5": 0.7666666666666667,
-      "pass_at_10": 0.8333333333333334,
-      "mean_attempts_successful": 1.94,
-      "security_pass_at_10": 0.8571428571428571,
-      "n_security_tasks": 28
+      "n_tasks": 120,
+      "pass_at_1": 0.6083333333333333,
+      "pass_at_3": 0.8083333333333333,
+      "pass_at_5": 0.85,
+      "pass_at_10": 0.8833333333333333,
+      "mean_attempts_successful": 1.6415094339622642,
+      "security_pass_at_10": 0.9038461538461539,
+      "n_security_tasks": 52
     },
     "no_repair": {
-      "n_tasks": 60,
-      "pass_at_1": 0.5,
-      "pass_at_3": 0.5,
-      "pass_at_5": 0.5,
-      "pass_at_10": 0.5,
+      "n_tasks": 120,
+      "pass_at_1": 0.625,
+      "pass_at_3": 0.625,
+      "pass_at_5": 0.625,
+      "pass_at_10": 0.625,
       "mean_attempts_successful": 1,
-      "security_pass_at_10": 0.4642857142857143,
-      "n_security_tasks": 28
+      "security_pass_at_10": 0.5769230769230769,
+      "n_security_tasks": 52
     },
     "no_verify": {
       "n_tasks": 60,
@@ -41,14 +41,14 @@
       "n_security_tasks": 28
     },
     "baseline_pure_llm": {
-      "n_tasks": 60,
+      "n_tasks": 120,
       "pass_at_1": 0.0,
       "pass_at_3": 0.0,
       "pass_at_5": 0.0,
       "pass_at_10": 0.0,
       "mean_attempts_successful": 0.0,
       "security_pass_at_10": 0.0,
-      "n_security_tasks": 28
+      "n_security_tasks": 52
     },
     "baseline_langchain": {
       "n_tasks": 37,
@@ -63,28 +63,28 @@
   },
   "ablation_comparison": {
     "no_repair": {
-      "pass_at_10": 0.5,
-      "delta_vs_full_pp": -33.333333333333336
+      "pass_at_10": 0.625,
+      "delta_vs_full_pp": -25.83333333333333
     },
     "no_verify": {
       "pass_at_10": 0.7166666666666667,
-      "delta_vs_full_pp": -11.66666666666667
+      "delta_vs_full_pp": -16.666666666666664
     },
     "no_taint": {
       "pass_at_10": 0.85,
-      "delta_vs_full_pp": 1.6666666666666607
+      "delta_vs_full_pp": -3.3333333333333326
     }
   },
   "baseline_comparison": {
     "baseline_pure_llm": {
       "pass_at_10": 0.0,
-      "delta_vs_full_pp": -83.33333333333334,
-      "n_tasks": 60,
+      "delta_vs_full_pp": -88.33333333333333,
+      "n_tasks": 120,
       "partial": false
     },
     "baseline_langchain": {
       "pass_at_10": 0.0,
-      "delta_vs_full_pp": -83.33333333333334,
+      "delta_vs_full_pp": -88.33333333333333,
       "n_tasks": 37,
       "partial": true
     }
@@ -92,49 +92,77 @@
   "by_complexity": {
     "1": {
       "pass_at_10": 1.0,
-      "n_tasks": 8
+      "n_tasks": 22
     },
     "2": {
-      "pass_at_10": 0.8928571428571429,
-      "n_tasks": 28
+      "pass_at_10": 0.9302325581395349,
+      "n_tasks": 43
     },
     "3": {
-      "pass_at_10": 0.8461538461538461,
-      "n_tasks": 13
+      "pass_at_10": 0.7931034482758621,
+      "n_tasks": 29
     },
     "4": {
-      "pass_at_10": 0.5714285714285714,
-      "n_tasks": 7
+      "pass_at_10": 0.8235294117647058,
+      "n_tasks": 17
     },
     "5": {
-      "pass_at_10": 0.5,
-      "n_tasks": 4
+      "pass_at_10": 0.7777777777777778,
+      "n_tasks": 9
     }
   },
   "by_domain": {
-    "manufacturing": {
+    "healthcare_billing": {
       "pass_at_10": 1.0,
       "n_tasks": 4
-    },
-    "enterprise_knowledge": {
-      "pass_at_10": 0.6,
-      "n_tasks": 5
     },
     "insurance_brokerage": {
       "pass_at_10": 0.8888888888888888,
       "n_tasks": 9
     },
+    "clinical_ai": {
+      "pass_at_10": 0.5,
+      "n_tasks": 4
+    },
+    "agent_tasks": {
+      "pass_at_10": 0.9333333333333333,
+      "n_tasks": 15
+    },
     "workers_compensation": {
       "pass_at_10": 1.0,
       "n_tasks": 3
     },
+    "web_automation": {
+      "pass_at_10": 0.9333333333333333,
+      "n_tasks": 15
+    },
+    "api_integration": {
+      "pass_at_10": 1.0,
+      "n_tasks": 15
+    },
+    "health_fitness": {
+      "pass_at_10": 1.0,
+      "n_tasks": 9
+    },
+    "general_ai": {
+      "pass_at_10": 0.8666666666666667,
+      "n_tasks": 15
+    },
+    "enterprise_knowledge": {
+      "pass_at_10": 0.6,
+      "n_tasks": 5
+    },
+    "personal_tool": {
+      "pass_at_10": 0.5,
+      "n_tasks": 4
+    },
+    "manufacturing": {
+      "pass_at_10": 1.0,
+      "n_tasks": 4
+    },
     "community_sports": {
       "pass_at_10": 0.625,
       "n_tasks": 8
-    },
-    "healthcare_billing": {
-      "pass_at_10": 1.0,
-      "n_tasks": 4
     },
     "publishing": {
       "pass_at_10": 1.0,
@@ -143,54 +171,42 @@
     "sports_media": {
       "pass_at_10": 1.0,
       "n_tasks": 4
-    },
-    "personal_tool": {
-      "pass_at_10": 0.5,
-      "n_tasks": 4
-    },
-    "clinical_ai": {
-      "pass_at_10": 0.5,
-      "n_tasks": 4
-    },
-    "health_fitness": {
-      "pass_at_10": 1.0,
-      "n_tasks": 9
     }
   },
   "failure_taxonomy": {
     "per_attempt_bucket": {
       "attempt 1": {
         "taint_violation": 2,
-        "type_error": 20,
-        "test_failure": 6,
-        "success": 29,
+        "type_error": 29,
+        "test_failure": 13,
+        "success": 73,
         "parse_error": 3
       },
       "attempt 2": {
-        "success": 15,
+        "success": 21,
         "parse_error": 3,
-        "type_error": 6,
-        "test_failure": 7
+        "test_failure": 12,
+        "type_error": 11
       },
       "attempt 3+": {
         "parse_error": 32,
-        "success": 6,
-        "type_error": 25,
-        "test_failure": 43
+        "success": 12,
+        "test_failure": 63,
+        "type_error": 40
       }
     },
-    "avg_attempts_before_success": 1.94,
+    "avg_attempts_before_success": 1.6415094339622642,
     "avg_attempts_failed_tasks": 10
   },
   "statistical_tests": {
     "no_repair": {
-      "n": 60,
-      "t_statistic": 5.064797519451639,
-      "p_value": 4.301715534973224e-06,
-      "cohens_d": 0.6538625481582945,
-      "pass_at_10_diff": 0.33333333333333337,
-      "ci_95_low": 0.17554124161704152,
-      "ci_95_high": 0.4911254250496252,
+      "n": 120,
+      "t_statistic": 6.175141897896198,
+      "p_value": 9.493123143678035e-09,
+      "cohens_d": 0.5637107522121685,
+      "pass_at_10_diff": 0.2583333333333333,
+      "ci_95_low": 0.1544012407596,
+      "ci_95_high": 0.3622654259070666,
       "significant": true
     },
     "no_verify": {
@@ -214,13 +230,13 @@
       "significant": false
     },
     "baseline_pure_llm": {
-      "n": 60,
-      "t_statistic": 17.17556403731767,
-      "p_value": 1.2513816846484707e-24,
-      "cohens_d": 2.217355782608345,
-      "pass_at_10_diff": 0.8333333333333334,
-      "ci_95_low": 0.7390345221603191,
-      "ci_95_high": 0.9276321445063477,
+      "n": 120,
+      "t_statistic": 30.016662039607276,
+      "p_value": 2.3607668421324326e-57,
+      "cohens_d": 2.7401338166836546,
+      "pass_at_10_diff": 0.8833333333333333,
+      "ci_95_low": 0.8258961449656316,
+      "ci_95_high": 0.940770521701035,
       "significant": true
     },
     "baseline_langchain": {
@@ -236,14 +252,14 @@
   },
   "cost_summary": {
     "full": {
-      "input_tokens": 440182,
-      "output_tokens": 264427,
-      "cost_usd": 8.811585000000001
+      "input_tokens": 607427,
+      "output_tokens": 324985,
+      "cost_usd": 11.161760000000001
     },
     "no_repair": {
-      "input_tokens": 68370,
-      "output_tokens": 67388,
-      "cost_usd": 2.0265500000000003
+      "input_tokens": 132903,
+      "output_tokens": 91805,
+      "cost_usd": 2.9596400000000003
     },
     "no_verify": {
       "input_tokens": 574210,
@@ -256,9 +272,9 @@
       "cost_usd": 7.79921
     },
     "baseline_pure_llm": {
-      "input_tokens": 17430,
-      "output_tokens": 46446,
-      "cost_usd": 1.2483000000000002
+      "input_tokens": 31023,
+      "output_tokens": 67043,
+      "cost_usd": 1.8311900000000003
     },
     "baseline_langchain": {
       "input_tokens": 0,
@@ -266,9 +282,9 @@
       "cost_usd": 0.0
     },
     "grand_total": {
-      "input_tokens": 1485124,
-      "output_tokens": 934477,
-      "cost_usd": 30.787545
+      "input_tokens": 1730495,
+      "output_tokens": 1040049,
+      "cost_usd": 34.6537
     }
   },
   "notes": {

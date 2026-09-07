@@ -1,0 +1,38 @@
+{
+  "task_id": "wf_tool_013",
+  "condition": "no_repair",
+  "success": false,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": false,
+    "3": false,
+    "5": false,
+    "10": false
+  },
+  "dsl_type_errors": 1,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "type_error",
+  "synthesis_time_seconds": 0.002859959378838539,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: secured_api_aggregation_pipeline\nsteps:\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"aggregation_service\"\n    output: auth_result\n\n  - id: step_fetch_api_one\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_one/data\"\n    output: raw_data_one\n\n  - id: step_fetch_api_two\n    op: fetch_api\n    params:\n      endpoint: \"/api/source_two/data\"\n    output: raw_data_two\n\n  - id: step_validate_data_one\n    op: validate_schema\n    params:\n      input: raw_data_one\n      schema: source_one_schema\n    output: validated_data_one\n\n  - id: step_validate_data_two\n    op: validate_schema\n    params:\n      input: raw_data_two\n      schema: source_two_schema\n    output: validated_data_two\n\n  - id: step_aggregate\n    op: aggregate_data\n    params:\n      input: validated_data_one\n      secondary_input: validated_data_two\n      strategy: \"combine\"\n    output: aggregated_result\n\n  - id: step_extract_sensitive\n    op: extract_field\n    params:\n      input: aggregated_result\n      field: \"sensitive_fields\"\n    output: sensitive_fields\n\n  - id: step_encrypt_sensitive\n    op: encrypt_field\n    params:\n      input: sensitive_fields\n      algorithm: \"AES-256\"\n    output: encrypted_fields\n\n  - id: step_transform_merge\n    op: transform_json\n    params:\n      input: aggregated_result\n      mapping:\n        sensitive_fields: encrypted_fields\n    output: secured_aggregated_result\n\n  - id: step_write_database\n    op: write_database\n    params:\n      input: secured_aggregated_result\n      table: aggregated_data_store\n    output: write_result\n\n  - id: step_log_audit\n    op: log_audit\n    params:\n      input: secured_aggregated_result\n      message: \"Secured aggregated data persisted successfully\"\n    output: audit_log_result",
+      "dsl_type_errors": [
+        "Step 'step_transform_merge': op 'transform_json' requires input of type 'records' but 'aggregated_result' has type 'record'. Make sure the step producing 'aggregated_result' uses an op that outputs a list of records (e.g. fetch_api, filter_records, validate_schema, read_database)."
+      ],
+      "dsl_taint_violations": [],
+      "test_results": {},
+      "failure_category": "type_error",
+      "success": false,
+      "input_tokens": 1115,
+      "output_tokens": 542
+    }
+  ],
+  "complexity": 4,
+  "domain": "api_integration",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1115,
+  "total_output_tokens": 542
+}

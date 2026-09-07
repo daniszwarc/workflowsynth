@@ -1,0 +1,40 @@
+{
+  "task_id": "wf_agent_004",
+  "condition": "full",
+  "success": true,
+  "attempts_used": 1,
+  "pass_at_k": {
+    "1": true,
+    "3": true,
+    "5": true,
+    "10": true
+  },
+  "dsl_type_errors": 0,
+  "dsl_taint_violations": 0,
+  "output_errors": 0,
+  "failure_category": "success",
+  "synthesis_time_seconds": 0.5689765829592943,
+  "attempt_history": [
+    {
+      "attempt_number": 0,
+      "llm_sketch": "workflow_id: database_read_transform_write\nsteps:\n  - id: step_read_source\n    op: read_database\n    params:\n      table: source_table\n    output: raw_records\n\n  - id: step_transform_records\n    op: transform_json\n    params:\n      input: raw_records\n      mapping: target_format\n    output: transformed_records\n\n  - id: step_authenticate\n    op: authenticate_user\n    params:\n      role: \"migration_service\"\n    output: auth_result\n\n  - id: step_write_target\n    op: write_database\n    params:\n      input: transformed_records\n      table: target_table\n    output: write_result",
+      "dsl_type_errors": [],
+      "dsl_taint_violations": [],
+      "test_results": {
+        "test_wf_agent_004.py::test_parses_and_type_checks": true,
+        "test_wf_agent_004.py::test_passes_taint_analysis": true,
+        "test_wf_agent_004.py::test_transform_before_write": true
+      },
+      "failure_category": "success",
+      "success": true,
+      "input_tokens": 1053,
+      "output_tokens": 171
+    }
+  ],
+  "complexity": 2,
+  "domain": "agent_tasks",
+  "has_security_constraint": true,
+  "error_message": "",
+  "total_input_tokens": 1053,
+  "total_output_tokens": 171
+}
