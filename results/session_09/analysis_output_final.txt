@@ -1,0 +1,137 @@
+====================================================================================================
+SESSION 09 -- STATISTICAL ANALYSIS (Dataset A)
+====================================================================================================
+
+  full: 120 valid tasks
+  no_repair: 120 valid tasks
+  no_verify: 120 valid tasks
+  no_taint: 120 valid tasks
+  baseline_pure_llm: 120 valid tasks
+  baseline_langchain: 97 valid tasks (PARTIAL -- infra failures excluded, see below)
+    -> baseline_langchain: 120 files on disk, 23 excluded (Anthropic API billing failure: 'credit balance is too low'), 97 valid
+
+----------------------------------------------------------------------------------------------------
+1. MAIN RESULTS TABLE
+----------------------------------------------------------------------------------------------------
+condition                 n    pass@1    pass@3    pass@5   pass@10   mean_attempts   sec_pass@10  n_sec
+--------------------------------------------------------------------------------------------------------
+full                    120    60.83%    80.83%    85.00%    88.33%            1.64        90.38%     52
+no_repair               120    62.50%    62.50%    62.50%    62.50%            1.00        57.69%     52
+no_verify               120    63.33%    73.33%    74.17%    80.00%            1.81        75.00%     52
+no_taint                120    65.00%    86.67%    88.33%    90.00%            1.50        94.23%     52
+baseline_pure_llm       120     0.00%     0.00%     0.00%     0.00%            0.00         0.00%     52
+baseline_langchain       97     5.15%     5.15%     5.15%     5.15%            1.00         0.00%     44
+
+----------------------------------------------------------------------------------------------------
+2. ABLATION COMPARISON (baseline = full)
+----------------------------------------------------------------------------------------------------
+  no_repair       pass@10=  62.50%  delta vs full:   -25.83pp
+    -> Removing the repair loop -- shows how much the iterative repair mechanism contributes to pass@10.
+  no_verify       pass@10=  80.00%  delta vs full:    -8.33pp
+    -> Removing verification -- shows how much verification-gated retries contribute to pass@10.
+  no_taint        pass@10=  90.00%  delta vs full:    +1.67pp
+    -> Removing taint tracking -- shows how much taint analysis contributes to pass@10.
+
+----------------------------------------------------------------------------------------------------
+3. BASELINE COMPARISON (baseline = full)
+----------------------------------------------------------------------------------------------------
+  baseline_pure_llm    pass@10=   0.00%  delta vs full:   -88.33pp
+    -> Pure LLM synthesis with no DSL scaffolding -- shows the gap closed by the full WorkflowSynth pipeline.
+  baseline_langchain   pass@10=   5.15%  delta vs full:   -83.18pp [PARTIAL: 97/60 valid]
+    -> LangChain agent baseline (PARTIAL, 37/60 valid tasks) -- shows the gap closed vs. an off-the-shelf agent framework.
+
+----------------------------------------------------------------------------------------------------
+4. BY COMPLEXITY (condition=full)
+----------------------------------------------------------------------------------------------------
+  complexity 1: pass@10= 100.00%  (n=22)
+  complexity 2: pass@10=  93.02%  (n=43)
+  complexity 3: pass@10=  79.31%  (n=29)
+  complexity 4: pass@10=  82.35%  (n=17)
+  complexity 5: pass@10=  77.78%  (n=9)
+
+----------------------------------------------------------------------------------------------------
+5. BY DOMAIN (condition=full, sorted descending by pass@10)
+----------------------------------------------------------------------------------------------------
+  healthcare_billing        pass@10= 100.00%  (n=4)
+  publishing                pass@10= 100.00%  (n=6)
+  workers_compensation      pass@10= 100.00%  (n=3)
+  manufacturing             pass@10= 100.00%  (n=4)
+  api_integration           pass@10= 100.00%  (n=15)
+  sports_media              pass@10= 100.00%  (n=4)
+  health_fitness            pass@10= 100.00%  (n=9)
+  agent_tasks               pass@10=  93.33%  (n=15)
+  web_automation            pass@10=  93.33%  (n=15)
+  insurance_brokerage       pass@10=  88.89%  (n=9)
+  general_ai                pass@10=  86.67%  (n=15)
+  community_sports          pass@10=  62.50%  (n=8)
+  enterprise_knowledge      pass@10=  60.00%  (n=5)
+  clinical_ai               pass@10=  50.00%  (n=4)
+  personal_tool             pass@10=  50.00%  (n=4)
+
+----------------------------------------------------------------------------------------------------
+6. FAILURE TAXONOMY (condition=full, from attempt_history)
+----------------------------------------------------------------------------------------------------
+  attempt 1 (n=120):
+      success                73
+      type_error             29
+      test_failure           13
+      parse_error             3
+      taint_violation         2
+    -> most common: success (73)
+  attempt 2 (n=47):
+      success                21
+      test_failure           12
+      type_error             11
+      parse_error             3
+    -> most common: success (21)
+  attempt 3+ (n=147):
+      test_failure           63
+      type_error             40
+      parse_error            32
+      success                12
+    -> most common: test_failure (63)
+
+  Average attempts before success (successful tasks): 1.64
+  Average attempts for failed tasks:                  10.00
+
+----------------------------------------------------------------------------------------------------
+7. STATISTICAL TESTS (paired, vs. full; alpha=0.05)
+----------------------------------------------------------------------------------------------------
+  full vs no_repair (n=120):
+    t=6.1751  p=0.000000  Cohen's d=0.5637
+    pass@10 diff=+25.83pp  95% CI=[15.44pp, 36.23pp]
+    significant at alpha=0.05: Yes
+
+  full vs no_verify (n=120):
+    t=2.2746  p=0.024719  Cohen's d=0.2076
+    pass@10 diff=+8.33pp  95% CI=[-0.84pp, 17.51pp]
+    significant at alpha=0.05: Yes
+
+  full vs no_taint (n=120):
+    t=-0.6309  p=0.529337  Cohen's d=-0.0576
+    pass@10 diff=-1.67pp  95% CI=[-9.53pp, 6.19pp]
+    significant at alpha=0.05: No
+
+  full vs baseline_pure_llm (n=120):
+    t=30.0167  p=0.000000  Cohen's d=2.7401
+    pass@10 diff=+88.33pp  95% CI=[82.59pp, 94.08pp]
+    significant at alpha=0.05: Yes
+
+  full vs baseline_langchain (n=97):
+    t=24.9060  p=0.000000  Cohen's d=2.5288
+    pass@10 diff=+86.60pp  95% CI=[79.57pp, 93.62pp]
+    significant at alpha=0.05: Yes
+
+----------------------------------------------------------------------------------------------------
+8. COST SUMMARY
+----------------------------------------------------------------------------------------------------
+  full                   in=   607,427  out=   324,985  cost=$ 11.1618
+  no_repair              in=   132,903  out=    91,805  cost=$  2.9596
+  no_verify              in=   789,282  out=   392,911  cost=$ 13.7692
+  no_taint               in=   522,677  out=   282,249  cost=$  9.6696
+  baseline_pure_llm      in=    31,023  out=    67,043  cost=$  1.8312
+  baseline_langchain     in=         0  out=         0  cost=$  0.0000  (known token tracking gap -- cost not billed/tracked)
+----------------------------------------------------------------------------------------------------
+  GRAND TOTAL (tracked)  in= 2,083,312  out= 1,158,993  cost=$ 39.3914
+
+Saved: results/session_09/analysis_summary.json
