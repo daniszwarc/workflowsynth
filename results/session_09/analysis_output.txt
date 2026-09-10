@@ -52,13 +52,13 @@ baseline_langchain       97     5.15%     5.15%     5.15%     5.15%            1
 ----------------------------------------------------------------------------------------------------
 5. BY DOMAIN (condition=full, sorted descending by pass@10)
 ----------------------------------------------------------------------------------------------------
-  publishing                pass@10= 100.00%  (n=6)
-  manufacturing             pass@10= 100.00%  (n=4)
-  health_fitness            pass@10= 100.00%  (n=9)
-  sports_media              pass@10= 100.00%  (n=4)
-  workers_compensation      pass@10= 100.00%  (n=3)
   healthcare_billing        pass@10= 100.00%  (n=4)
+  publishing                pass@10= 100.00%  (n=6)
+  workers_compensation      pass@10= 100.00%  (n=3)
+  manufacturing             pass@10= 100.00%  (n=4)
   api_integration           pass@10= 100.00%  (n=15)
+  sports_media              pass@10= 100.00%  (n=4)
+  health_fitness            pass@10= 100.00%  (n=9)
   agent_tasks               pass@10=  93.33%  (n=15)
   web_automation            pass@10=  93.33%  (n=15)
   insurance_brokerage       pass@10=  88.89%  (n=9)
