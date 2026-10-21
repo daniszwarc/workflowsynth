@@ -2,7 +2,7 @@
 
 Returns the appropriate LangChain chat model for a given attempt number.
 
-CONSTRAINT (Critical Constraint 6): Only Claude Opus 4.7 and GPT-5.4
+CONSTRAINT (Critical Constraint 6): Only Claude Opus 4.6 and GPT-5.4
 are approved providers. Do not introduce local models or other providers.
 
 Usage:
@@ -24,7 +24,7 @@ def get_llm(attempt: int):
     """
     Returns the LangChain chat model for the given attempt number.
 
-    Attempts 0-7: Claude Opus 4.7 (primary)
+    Attempts 0-7: Claude Opus 4.6 (primary)
     Attempts 8-9: GPT-5.4 (fallback)
 
     The fallback strategy is deliberate: if Claude has failed 8 times,
@@ -38,7 +38,7 @@ def get_llm(attempt: int):
 
 
 def _get_claude() -> ChatAnthropic:
-    """Returns a Claude Opus 4.7 LangChain client."""
+    """Returns a Claude Opus 4.6 LangChain client."""
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
         raise EnvironmentError(

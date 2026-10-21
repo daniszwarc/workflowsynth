@@ -380,7 +380,7 @@ def classify_failure(attempt_history: list[dict]) -> str:
 def select_model(attempt: int) -> str:
     """
     Returns the LLM model ID for a given attempt number.
-    Attempts 0-7: Claude Opus 4.7 (primary)
+    Attempts 0-7: Claude Opus 4.6 (primary)
     Attempts 8-9: GPT-5.4 (fallback -- different model may find solutions Claude cannot)
 
     CONSTRAINT: Do not change the model selection logic without a journal entry.

@@ -3,6 +3,8 @@
 > **MSc AI Capstone -- Automated Generation of Correct and Secure Enterprise Workflows via LLM-Guided Programme Synthesis and Formal Verification**
 > University of Liverpool . MSc Artificial Intelligence . Jan 2026 - Nov 2026
 
+Repository: https://github.com/daniszwarc/workflowsynth
+
 ---
 
 ## Installation and Quick Start
@@ -106,8 +108,8 @@ Natural Language Specification (SKILL.md format)
     |  - Taint analysis engine      |
     |                               |
     |  Stage 2: Output-level        |
-    |  - n8n JSON validation        |
-    |  - LangChain Python checks    |
+    |  - Generates evidence report  |
+    |  - Attaches it to the output  |
     +---------------+---------------+
                     |
                     v
@@ -163,8 +165,10 @@ The synthesis engine uses a stateful LangGraph pipeline implementing the verify-
 | Verification Module | Custom Python | Deterministic formal methods |
 | n8n Adapter | Python JSON serialiser | n8n is JSON-based |
 | LangChain Adapter | LangChain | Natural fit |
-| Primary LLMs | Claude Opus 4.7 + GPT-5.4 | Swappable via LangChain abstraction |
+| Primary LLMs | Claude Opus 4.6 (attempts 1-8) + GPT-5.4 (attempts 9-10) | Swappable via LangChain abstraction |
 | Testing | pytest | Standard Python testing |
+
+The attempt 9/10 switch to GPT-5.4 is unconditional on attempt number (`select_model`, `src/synthesis/nodes.py:380-390`; `get_llm`, `src/synthesis/llm_client.py:23-37`) -- it is not triggered by Claude errors, timeouts, or rate limits, and it is not a dormant fallback: in the stored `results/session_09/` data, 16 tasks in the `full` condition alone (30, 14, and 0 in `no_verify`, `no_taint`, and `no_repair` respectively) have an attempt with `attempt_number >= 8`, meaning GPT-5.4 actually produced those attempts, including at least one accepted success (`wf_ae_006`, `full`, attempt 9). `baseline_pure_llm` and `baseline_langchain` both call `get_llm(0)` and are single-attempt, so they use Claude Opus 4.6 only and never reach the GPT-5.4 branch.
 
 ---
 
@@ -211,31 +215,56 @@ Design Science Research (Hevner et al., 2004) across four phases:
 **Primary metric:** pass@10 -- proportion of tasks where at least one correct workflow is generated within 10 attempts.
 
 **Baselines (all on identical specs and test suites):**
-- Pure LLM generation (GPT-5.4, no DSL constraint, no verification)
-- LangChain agents
-- Manual implementations
+- `baseline_pure_llm` -- single unconstrained LLM call (Claude Opus 4.6), no DSL constraint, no verification, no repair loop
+- `baseline_langchain` -- a LangChain ReAct agent with tool access, no DSL constraint, no formal verification
 
-**Ablation conditions:**
-- Full WorkflowSynth system
-- No verification
-- No LLM sketches
-- No synthesis search (single attempt)
+**Ablation conditions (all against the `full` condition):**
+- `no_verify` -- verification-gated retries removed
+- `no_repair` -- repair loop removed (single attempt only)
+- `no_taint` -- taint analysis removed from the Stage 1 verify/repair signal (the pytest suite's own taint test still runs, so a real violation still fails the task)
 
 **Statistical analysis:** Paired t-tests, Cohen's d effect sizes, 95% confidence intervals, alpha = 0.05.
 
-**Qualitative evaluation:** Failure mode taxonomy, two case studies (most complex successful synthesis, largest performance gap vs baseline).
+**Qualitative evaluation:** Failure mode taxonomy from `attempt_history` data.
 
-**Security evaluation:** Vulnerability reduction rate across SQL injection, command injection, and data leakage, targeting improvement beyond the 77% ceiling of prompt engineering alone (Aldosari & Aldawsari, 2026).
+**Security evaluation:** `security_pass_at_10` -- pass@10 restricted to tasks with `has_security_constraint: true`, targeting improvement beyond the 77% ceiling of prompt engineering alone (Aldosari & Aldawsari, 2026).
 
 ---
 
 ## Datasets
 
 **Dataset A -- Enterprise Workflows**
-120-150 real enterprise workflow synthesis tasks from 20+ years of professional experience across financial services, healthcare, and manufacturing. Each task: natural language specification (markdown) + reference DSL implementation (YAML) + automated test suite (pytest).
+133 real enterprise workflow synthesis tasks across 11 domains, from 20+ years of professional experience across financial services, healthcare, and manufacturing. Each task: natural language specification (`spec.md`) + reference DSL implementation (`reference_dsl.yaml`, documentation only -- not read by the evaluation code) + automated test suite (pytest). A fixed 60-task stratified sample (`scripts/dataset_a_sample.txt`) is used for the evaluation runs below.
 
 **Dataset B -- Public Benchmarks**
-Four public AI benchmarks adapted to WorkflowSynth DSL: GAIA, WebArena, ToolBench, AgentBench.
+60 tasks adapted from four public AI benchmarks: GAIA, WebArena, ToolLLM, AgentBench (see `datasets/dataset_b/README.md`).
+
+---
+
+## Results
+
+Stored results from the final experiment run are in `results/session_09/` (120 tasks per condition: the 60-task Dataset A sample plus all 60 Dataset B tasks).
+
+| Condition | pass@1 | pass@3 | pass@5 | pass@10 | mean attempts (success) | security_pass@10 |
+|---|---|---|---|---|---|---|
+| full | 60.83% | 80.83% | 85.00% | 88.33% | 1.64 | 90.38% (47/52) |
+| no_repair | 62.50% | 62.50% | 62.50% | 62.50% | 1.00 | 57.69% |
+| no_verify | 63.33% | 73.33% | 74.17% | 80.00% | 1.81 | 75.00% |
+| no_taint | 65.00% | 86.67% | 88.33% | 90.00% | 1.50 | 94.23% (49/52) |
+| baseline_pure_llm | 0% | 0% | 0% | 0% | -- | 0% |
+| baseline_langchain | 5.15% (n=97) | 5.15% | 5.15% | 5.15% | 1.00 | 0% |
+
+The `full` vs. `no_taint` difference is not statistically significant (p = 0.529); taint analysis's contribution is to security, not to pass@10. `baseline_langchain` is evaluated on 97/120 tasks -- the other 23 hit an Anthropic API billing failure during the original run and are excluded as infrastructure failures, not synthesis attempts.
+
+Tracked API cost across all tracked conditions: $39.39 USD. This is an undercount -- `baseline_langchain` has a known token-tracking gap, and the real total spend for the full experiment (including failed/repeated runs) was approximately CA$250.
+
+**Reproducing this analysis (no API key required, no network calls):**
+
+```bash
+python scripts/analyze_results.py
+```
+
+This reads the stored per-task JSON files in `results/session_09/` and reprints the full statistical analysis (the table above, plus by-complexity, by-domain, failure taxonomy, paired t-tests, and cost breakdown), overwriting `results/session_09/analysis_summary.json`.
 
 ---
 
@@ -256,30 +285,18 @@ Four public AI benchmarks adapted to WorkflowSynth DSL: GAIA, WebArena, ToolBenc
 
 ## Implementation Status
 
-| Component | Status | Tests |
-|---|---|---|
-| DSL Layer -- parser, AST, type checker | [x] Complete | 20/20 |
-| Verification Module -- taint analysis | [x] Complete | 12/12 |
-| Synthesis Engine -- LangGraph pipeline | [x] Complete (stubs) | 19/19 |
-| LLM Integration -- real LLM calls | [ ] Session 04 | -- |
-| Integration Layer -- n8n, LangChain adapters | [ ] Session 06 | -- |
-| Dataset A -- enterprise workflow tasks | [ ] Week 34 | -- |
-| Evaluation -- baselines, ablation, metrics | [ ] Week 35 | -- |
+| Component | Status | Unit tests | Test files |
+|---|---|---|---|
+| DSL Layer -- parser, AST, type checker | Complete | 20 | test_parser.py (12) + test_type_checker.py (8) |
+| Verification Module -- taint analysis, evidence report | Complete | 33 | test_taint.py (14) + test_evidence_report.py (19) |
+| Synthesis Engine -- LangGraph pipeline, prompts, LLM client | Complete | 31 | test_pipeline.py (19) + test_prompts.py (12) |
+| Integration Layer -- n8n, LangChain adapters | Complete | 20 | test_integration.py (20) |
+| Evaluation Module -- runner, baselines, metrics, ablation | Complete | 33 | test_evaluation.py (33) |
+| **Total unit tests** | | **137** | `pytest tests/unit --collect-only -q` |
 
-**Total tests passing: 143/143** (137 unit + 6 integration; integration tests require API keys and are skipped otherwise)
+Plus 6 integration tests (`tests/integration/test_pipeline_e2e.py` (4) + `test_pipeline_diagnostic.py` (2)), which require `ANTHROPIC_API_KEY` and are skipped otherwise.
 
----
-
-## University Milestones
-
-| Week | Date | Milestone | Weight | Status |
-|---|---|---|---|---|
-| 8 | 23 Mar 2026 | Proposal Approval | 10% | [x] Approved |
-| 11 | 13 Apr 2026 | Ethical Approval Submission | -- | [x] Submitted |
-| 16 | 18 May 2026 | Specification & Design Report | 10% | [x] Submitted |
-| 28 | 10 Aug 2026 | Poster | 10% | [x] Approved |
-| 36 | 5 Oct 2026 | Draft Submission | -- | [ ] Upcoming |
-| 40 | 2 Nov 2026 | IT Artefact + Video Demo + Dissertation | 70% | [ ] Upcoming |
+**Total tests passing: 143/143** (137 unit + 6 integration)
 
 ---
 
@@ -288,45 +305,40 @@ Four public AI benchmarks adapted to WorkflowSynth DSL: GAIA, WebArena, ToolBenc
 ```
 workflowsynth/
 +-- docs/
-|   +-- sessions/                        # Implementation session notes
-|       +-- session-01-dsl-layer.md
-|       +-- session-02-taint-analysis.md
-|       +-- session-03-langgraph-pipeline.md
-+-- research/
-|   +-- proposal/                        # Approved proposal (v5)
-|   +-- spec_design_report/              # Specification & Design Report
-|   +-- literature/                      # 20 annotated sources
-|   +-- journal/                         # Implementation decision log
+|   +-- sessions/                        # Implementation session notes (01-09)
+|   +-- APPENDIX_D_EXCERPTS.md            # Dissertation code/artefact excerpts
 +-- src/
 |   +-- dsl/
-|   |   +-- __init__.py
 |   |   +-- constants.py                 # 25 VALID_OPS, type signatures
 |   |   +-- ast_nodes.py                 # WorkflowStep, WorkflowAST dataclasses
 |   |   +-- parser.py                    # YAML string -> WorkflowAST
 |   |   +-- type_checker.py              # Type flow + auth rule verification
 |   +-- synthesis/
-|   |   +-- __init__.py
 |   |   +-- state.py                     # WorkflowSynthState TypedDict
 |   |   +-- nodes.py                     # 7 LangGraph nodes
 |   |   +-- pipeline.py                  # Graph definition + compile
+|   |   +-- prompts.py                   # System + repair prompt templates
+|   |   +-- llm_client.py                # Claude/GPT-5.4 client factory
 |   +-- verification/
-|   |   +-- __init__.py
 |   |   +-- taint.py                     # Taint analysis engine
-|   +-- integration/                     # n8n + LangChain adapters (Session 06)
+|   |   +-- evidence_report.py           # Structured evidence report
+|   +-- integration/                     # n8n + LangChain adapters
+|   +-- evaluation/                      # Runner, baselines, metrics, ablation
 +-- datasets/
-|   +-- dataset_a/                       # Enterprise workflow tasks (Week 34)
-|   +-- dataset_b/                       # Adapted public benchmarks
-+-- evaluation/
-|   +-- experiments/                     # Experiment scripts (Week 35)
-|   +-- baselines/                       # Baseline implementations
-|   +-- results/                         # Raw results + statistical analysis
+|   +-- dataset_a/                       # 133 enterprise workflow tasks, 11 domains
+|   +-- dataset_b/                       # 60 adapted public-benchmark tasks
++-- scripts/
+|   +-- synthesize.py                    # Single-spec synthesis CLI
+|   +-- run_evaluation.py                # Evaluation CLI (ablations + baselines)
+|   +-- analyze_results.py               # Statistical analysis of stored results
+|   +-- dataset_a_sample.txt             # The 60-task Dataset A evaluation sample
++-- results/
+|   +-- session_09/                      # Final experiment results (6 conditions)
++-- examples/
+|   +-- invoice_processing.md            # Demo spec for scripts/synthesize.py
 +-- tests/
-    +-- unit/
-    |   +-- test_parser.py               # 12 tests
-    |   +-- test_type_checker.py         # 8 tests
-    |   +-- test_taint.py                # 12 tests
-    |   +-- test_pipeline.py             # 19 tests
-    +-- integration/                     # End-to-end pipeline tests (Session 04)
+    +-- unit/                            # 137 tests, no API calls
+    +-- integration/                     # 6 tests, require ANTHROPIC_API_KEY
 ```
 
 ---
@@ -340,11 +352,5 @@ workflowsynth/
 | **Dissertation Advisor** | Kathleen Kelm |
 | **Dissertation Lead** | Andrea Corradini |
 | **Expected Completion** | 2 November 2026 |
-| **Status** | Build phase in progress -- 143/143 tests passing |
+| **Status** | Implementation and evaluation complete -- 143/143 tests passing |
 
----
-
-## Related Projects
-
-- [Soccer Verdun AI Support](https://github.com/daniszwarc/soccer-verdun-ai) -- production multilingual RAG agent
-- [AlterEco Publishing Pipeline](https://github.com/daniszwarc/altereco) -- production PDF-to-Drupal automation pipeline
