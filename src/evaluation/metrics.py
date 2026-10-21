@@ -1,7 +1,7 @@
-# src/evaluation/metrics.py
-#
-# Metric functions computed over a list of TaskResult objects.
-# All metrics operate on the already-completed results -- no I/O here.
+"""Metric functions computed over a list of TaskResult objects.
+
+All metrics operate on the already-completed results -- no I/O here.
+"""
 
 
 def pass_at_k(results: list, k: int) -> float:

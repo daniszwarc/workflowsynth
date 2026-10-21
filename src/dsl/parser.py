@@ -1,15 +1,15 @@
-# src/dsl/parser.py
-#
-# Main parser for the WorkflowSynth DSL.
-# Converts a YAML string (LLM output) into a typed WorkflowAST.
-#
-# Usage:
-#   from workflowsynth.dsl.parser import parse_workflow
-#   result = parse_workflow(yaml_string)
-#   if result["ok"]:
-#       ast = result["ast"]
-#   else:
-#       errors = result["errors"]  # list of strings for the repair prompt
+"""Main parser for the WorkflowSynth DSL.
+
+Converts a YAML string (LLM output) into a typed WorkflowAST.
+
+Usage:
+    from workflowsynth.dsl.parser import parse_workflow
+    result = parse_workflow(yaml_string)
+    if result["ok"]:
+        ast = result["ast"]
+    else:
+        errors = result["errors"]  # list of strings for the repair prompt
+"""
 
 import yaml
 

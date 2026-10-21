@@ -1,8 +1,7 @@
-# src/evaluation/ablation.py
-#
-# Thin wrapper around EvaluationRunner that makes ablation runs explicit
-# in experiment scripts, rather than constructing EvaluationRunner directly
-# with a condition string.
+"""Thin wrapper around EvaluationRunner that makes ablation runs explicit
+in experiment scripts, rather than constructing EvaluationRunner directly
+with a condition string.
+"""
 
 from .runner import VALID_CONDITIONS, EvaluationRunner, EvaluationSummary
 

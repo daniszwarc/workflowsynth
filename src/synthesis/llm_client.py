@@ -1,15 +1,15 @@
-# src/synthesis/llm_client.py
-#
-# LangChain LLM client factory for WorkflowSynth.
-# Returns the appropriate LangChain chat model for a given attempt number.
-#
-# CONSTRAINT (Critical Constraint 6): Only Claude Opus 4.7 and GPT-5.4
-# are approved providers. Do not introduce local models or other providers.
-#
-# Usage:
-#   from workflowsynth.synthesis.llm_client import get_llm
-#   llm = get_llm(attempt=0)
-#   response = llm.invoke([HumanMessage(content="...")])
+"""LangChain LLM client factory for WorkflowSynth.
+
+Returns the appropriate LangChain chat model for a given attempt number.
+
+CONSTRAINT (Critical Constraint 6): Only Claude Opus 4.7 and GPT-5.4
+are approved providers. Do not introduce local models or other providers.
+
+Usage:
+    from workflowsynth.synthesis.llm_client import get_llm
+    llm = get_llm(attempt=0)
+    response = llm.invoke([HumanMessage(content="...")])
+"""
 
 import os
 

@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-# scripts/synthesize.py
-#
-# Standalone CLI: runs the WorkflowSynth pipeline on a single spec.md file
-# and writes n8n JSON + evidence report output.
-#
-# Usage:
-#   python scripts/synthesize.py examples/invoice_processing.md --out ./output
-#   python scripts/synthesize.py spec.md --out ./output --condition no_taint
+"""Standalone CLI: runs the WorkflowSynth pipeline on a single spec.md file
+and writes n8n JSON + evidence report output.
+
+Usage:
+    python scripts/synthesize.py examples/invoice_processing.md --out ./output
+    python scripts/synthesize.py spec.md --out ./output --condition no_taint
+"""
 
 import argparse
 import json

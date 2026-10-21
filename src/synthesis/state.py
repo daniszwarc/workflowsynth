@@ -1,11 +1,11 @@
-# src/synthesis/state.py
-#
-# WorkflowSynthState: the single state object carried through the LangGraph pipeline.
-# Every node reads from and writes to this object.
-#
-# CONSTRAINT: natural_language_spec is immutable after initialisation.
-# CONSTRAINT: attempt_history is append-only. Never overwrite existing records.
-# CONSTRAINT: max_attempts is always 10. Never change this value.
+"""WorkflowSynthState: the single state object carried through the LangGraph pipeline.
+
+Every node reads from and writes to this object.
+
+CONSTRAINT: natural_language_spec is immutable after initialisation.
+CONSTRAINT: attempt_history is append-only. Never overwrite existing records.
+CONSTRAINT: max_attempts is always 10. Never change this value.
+"""
 
 from typing import Optional, TypedDict
 

@@ -1,5 +1,4 @@
-# src/dsl/__init__.py
-# Public interface of the DSL Layer.
+"""Public interface of the DSL Layer."""
 
 from .ast_nodes import WorkflowAST, WorkflowStep
 from .constants import OP_OUTPUT_TYPES, VALID_OPS

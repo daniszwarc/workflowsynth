@@ -1,5 +1,4 @@
-# src/integration/__init__.py
-# Public interface of the Integration Layer.
+"""Public interface of the Integration Layer."""
 
 from .langchain_adapter import to_langchain_python
 from .n8n_adapter import to_n8n_json

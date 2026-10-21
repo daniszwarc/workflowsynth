@@ -1,9 +1,9 @@
-# src/dsl/ast_nodes.py
-#
-# Internal representation of a WorkflowSynth workflow.
-# The parser converts YAML -> WorkflowAST.
-# The type_checker and taint_analyser operate on WorkflowAST.
-# The adapters (n8n, LangChain) take WorkflowAST as input.
+"""Internal representation of a WorkflowSynth workflow.
+
+The parser converts YAML -> WorkflowAST. The type_checker and
+taint_analyser operate on WorkflowAST. The adapters (n8n, LangChain)
+take WorkflowAST as input.
+"""
 
 from dataclasses import dataclass, field
 

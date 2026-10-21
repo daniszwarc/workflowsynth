@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
-# scripts/run_evaluation.py
-#
-# CLI entry point for running a WorkflowSynth evaluation experiment.
-#
-# Usage:
-#   python scripts/run_evaluation.py \
-#       --condition full \
-#       --dataset datasets/dataset_a \
-#       --results results/ \
-#       --tasks wf_pb_001 wf_mm_008   # optional: run subset
+"""CLI entry point for running a WorkflowSynth evaluation experiment.
+
+Usage:
+    python scripts/run_evaluation.py \\
+        --condition full \\
+        --dataset datasets/dataset_a \\
+        --results results/ \\
+        --tasks wf_pb_001 wf_mm_008   # optional: run subset
+"""
 
 import argparse
 import json

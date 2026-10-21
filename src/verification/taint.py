@@ -1,17 +1,17 @@
-# src/verification/taint.py
-#
-# Taint analysis engine for WorkflowSynth.
-# Operates on WorkflowAST -- never on raw dicts.
-#
-# Tracks untrusted data (taint) from sources through the workflow.
-# Rejects any workflow where tainted data reaches a critical sink
-# without passing through a sanitiser.
-#
-# Usage:
-#   from workflowsynth.verification.taint import taint_analysis
-#   violations = taint_analysis(ast)
-#   if violations:
-#       # feed violations to repair prompt
+"""Taint analysis engine for WorkflowSynth.
+
+Operates on WorkflowAST -- never on raw dicts.
+
+Tracks untrusted data (taint) from sources through the workflow. Rejects
+any workflow where tainted data reaches a critical sink without passing
+through a sanitiser.
+
+Usage:
+    from workflowsynth.verification.taint import taint_analysis
+    violations = taint_analysis(ast)
+    if violations:
+        # feed violations to repair prompt
+"""
 
 from dataclasses import dataclass
 

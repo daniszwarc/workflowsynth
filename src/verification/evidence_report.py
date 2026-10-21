@@ -1,17 +1,16 @@
-# src/verification/evidence_report.py
-#
-# Evidence report for WorkflowSynth verified workflows.
-#
-# Implements Architectural Decision 5: compliance-aware verification output.
-# The system never delivers a binary pass/fail. It delivers a structured
-# report that explicitly states what was verified, what was not checked,
-# and what requires human review before deployment.
-#
-# Implements open-samd Pattern 1: communicating verification as a reduction
-# of risk rather than a guarantee of correctness.
-#
-# Every verified workflow output must carry this report.
-# CONSTRAINT (Critical Constraint 8): Never deliver a workflow without it.
+"""Evidence report for WorkflowSynth verified workflows.
+
+Implements Architectural Decision 5: compliance-aware verification output.
+The system never delivers a binary pass/fail. It delivers a structured
+report that explicitly states what was verified, what was not checked,
+and what requires human review before deployment.
+
+Implements open-samd Pattern 1: communicating verification as a reduction
+of risk rather than a guarantee of correctness.
+
+Every verified workflow output must carry this report.
+CONSTRAINT (Critical Constraint 8): Never deliver a workflow without it.
+"""
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone

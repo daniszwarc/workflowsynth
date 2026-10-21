@@ -1,12 +1,12 @@
-# src/synthesis/pipeline.py
-#
-# LangGraph graph definition for the WorkflowSynth synthesis pipeline.
-# Defines nodes, edges, conditional routing, and compiles the graph.
-#
-# Usage:
-#   from workflowsynth.synthesis.pipeline import build_pipeline, run_synthesis
-#   pipeline = build_pipeline()
-#   final_state = run_synthesis(pipeline, "When an invoice arrives, validate and store it.")
+"""LangGraph graph definition for the WorkflowSynth synthesis pipeline.
+
+Defines nodes, edges, conditional routing, and compiles the graph.
+
+Usage:
+    from workflowsynth.synthesis.pipeline import build_pipeline, run_synthesis
+    pipeline = build_pipeline()
+    final_state = run_synthesis(pipeline, "When an invoice arrives, validate and store it.")
+"""
 
 from langgraph.graph import END, StateGraph
 

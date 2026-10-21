@@ -1,16 +1,16 @@
-# src/synthesis/nodes.py
-#
-# The 8 LangGraph nodes of the WorkflowSynth synthesis pipeline.
-# Each node takes WorkflowSynthState and returns a partial state update.
-#
-# LangGraph merges partial updates into the full state automatically --
-# nodes only need to return the fields they modify.
-#
-# STUB NOTES (Session 03):
-#   - translate_to_dsl and repair_with_llm stub the LLM call.
-#     Real LLM integration is Session 04.
-#   - translate_output and verify_output are stubs.
-#     Real adapters are Session 06.
+"""The 7 LangGraph nodes of the WorkflowSynth synthesis pipeline.
+
+Each node takes WorkflowSynthState and returns a partial state update.
+
+LangGraph merges partial updates into the full state automatically --
+nodes only need to return the fields they modify.
+
+STUB NOTES (Session 03):
+    - translate_to_dsl and repair_with_llm stub the LLM call.
+      Real LLM integration is Session 04.
+    - translate_output and verify_output are stubs.
+      Real adapters are Session 06.
+"""
 
 from langchain_core.messages import HumanMessage, SystemMessage
 

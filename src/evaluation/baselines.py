@@ -1,8 +1,8 @@
-# src/evaluation/baselines.py
-#
-# Baseline runners compared against full WorkflowSynth. Both produce the
-# same TaskResult schema as EvaluationRunner so metrics.py works unchanged
-# across baselines and the main system.
+"""Baseline runners compared against full WorkflowSynth.
+
+Both produce the same TaskResult schema as EvaluationRunner so
+metrics.py works unchanged across baselines and the main system.
+"""
 
 import json
 import time

@@ -1,14 +1,15 @@
-# src/evaluation/runner.py
-#
-# The evaluation experiment runner. Drives WorkflowSynth (or an ablated
-# variant of it) against Dataset A tasks, records per-attempt state, and
-# persists results to disk immediately after each task completes.
-#
-# CONSTRAINT: attempt_history is append-only -- every attempt (successful
-# or not) is appended once and never rewritten.
-# CONSTRAINT: results are written to results/{condition}/{task_id}.json
-# immediately after run_single() completes -- a crash mid-run must not
-# lose already-completed results.
+"""The evaluation experiment runner.
+
+Drives WorkflowSynth (or an ablated variant of it) against Dataset A
+tasks, records per-attempt state, and persists results to disk
+immediately after each task completes.
+
+CONSTRAINT: attempt_history is append-only -- every attempt (successful
+or not) is appended once and never rewritten.
+CONSTRAINT: results are written to results/{condition}/{task_id}.json
+immediately after run_single() completes -- a crash mid-run must not
+lose already-completed results.
+"""
 
 from __future__ import annotations
 

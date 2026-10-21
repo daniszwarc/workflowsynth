@@ -1,19 +1,18 @@
-# src/integration/langchain_adapter.py
-#
-# Translates a verified WorkflowAST to executable LangChain Python code.
-#
-# The generated code is a Python module with:
-#   - A module-level docstring containing the evidence report
-#   - Imports for required LangChain components
-#   - A run_workflow() function implementing the steps in order
-#   - Inline comments mapping each step back to its DSL op and ID
-#
-# The evidence report is embedded as a module docstring so it is
-# visible to any engineer who opens the generated file (Critical Constraint 8).
-#
-# Usage:
-#   from workflowsynth.integration.langchain_adapter import to_langchain_python
-#   python_code = to_langchain_python(ast, evidence_report)
+"""Translates a verified WorkflowAST to executable LangChain Python code.
+
+The generated code is a Python module with:
+    - A module-level docstring containing the evidence report
+    - Imports for required LangChain components
+    - A run_workflow() function implementing the steps in order
+    - Inline comments mapping each step back to its DSL op and ID
+
+The evidence report is embedded as a module docstring so it is
+visible to any engineer who opens the generated file (Critical Constraint 8).
+
+Usage:
+    from workflowsynth.integration.langchain_adapter import to_langchain_python
+    python_code = to_langchain_python(ast, evidence_report)
+"""
 
 from ..dsl.ast_nodes import WorkflowAST, WorkflowStep
 from ..verification.evidence_report import EvidenceReport

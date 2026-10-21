@@ -1,11 +1,11 @@
-# src/dsl/constants.py
-#
-# Official WorkflowSynth DSL vocabulary.
-# These 25 operators are the only permitted vocabulary.
-# No component may accept an op that is not listed here.
-#
-# CONSTRAINT: changing this vocabulary requires updating type_checker.py,
-# taint.py, and all Dataset A test suites. Log it in the Implementation Journal.
+"""Official WorkflowSynth DSL vocabulary.
+
+These 25 operators are the only permitted vocabulary. No component may
+accept an op that is not listed here.
+
+CONSTRAINT: changing this vocabulary requires updating type_checker.py,
+taint.py, and all Dataset A test suites. Log it in the Implementation Journal.
+"""
 
 # --- The 25 valid operators ---------------------------------------------------
 

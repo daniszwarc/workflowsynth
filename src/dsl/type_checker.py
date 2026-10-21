@@ -1,13 +1,13 @@
-# src/dsl/type_checker.py
-#
-# Type safety checker for WorkflowSynth.
-# Operates on WorkflowAST -- never on raw dicts.
-#
-# Verifies:
-#   1. Type flow between steps (output -> input compatibility)
-#   2. Security rule: authenticate_user precedes write_database and call_webhook
-#
-# Returns a list of structured errors for the repair prompt.
+"""Type safety checker for WorkflowSynth.
+
+Operates on WorkflowAST -- never on raw dicts.
+
+Verifies:
+    1. Type flow between steps (output -> input compatibility)
+    2. Security rule: authenticate_user precedes write_database and call_webhook
+
+Returns a list of structured errors for the repair prompt.
+"""
 
 from .ast_nodes import WorkflowAST, WorkflowStep
 from .constants import OP_OUTPUT_TYPES, OPS_REQUIRING_AUTH, OPS_REQUIRING_INPUT

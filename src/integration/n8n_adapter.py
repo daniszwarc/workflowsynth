@@ -1,17 +1,16 @@
-# src/integration/n8n_adapter.py
-#
-# Translates a verified WorkflowAST to an n8n-compatible JSON workflow.
-#
-# n8n is a visual workflow automation platform. Workflows are JSON objects
-# containing nodes (operations) and connections (data flow between nodes).
-# Each WorkflowAST step maps to one n8n node.
-#
-# The evidence report is embedded in the workflow metadata so it cannot
-# be separated from the workflow during deployment (Critical Constraint 8).
-#
-# Usage:
-#   from workflowsynth.integration.n8n_adapter import to_n8n_json
-#   n8n_workflow = to_n8n_json(ast, evidence_report)
+"""Translates a verified WorkflowAST to an n8n-compatible JSON workflow.
+
+n8n is a visual workflow automation platform. Workflows are JSON objects
+containing nodes (operations) and connections (data flow between nodes).
+Each WorkflowAST step maps to one n8n node.
+
+The evidence report is embedded in the workflow metadata so it cannot
+be separated from the workflow during deployment (Critical Constraint 8).
+
+Usage:
+    from workflowsynth.integration.n8n_adapter import to_n8n_json
+    n8n_workflow = to_n8n_json(ast, evidence_report)
+"""
 
 import json
 

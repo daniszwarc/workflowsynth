@@ -1,14 +1,13 @@
-# src/synthesis/prompts.py
-#
-# Prompt templates for WorkflowSynth LLM calls.
-#
-# Two prompts:
-#   SYSTEM_PROMPT      -- the base system prompt for all LLM calls
-#   build_repair_prompt -- builds a dynamic repair prompt from attempt errors
-#
-# The system prompt is the most critical component of the synthesis engine.
-# Any change to it must be logged in the Implementation Journal and tested
-# against a representative sample of Dataset A before committing.
+"""Prompt templates for WorkflowSynth LLM calls.
+
+Two prompts:
+    SYSTEM_PROMPT       -- the base system prompt for all LLM calls
+    build_repair_prompt -- builds a dynamic repair prompt from attempt errors
+
+The system prompt is the most critical component of the synthesis engine.
+Any change to it must be logged in the Implementation Journal and tested
+against a representative sample of Dataset A before committing.
+"""
 
 SYSTEM_PROMPT = """You are WorkflowSynth, an AI system that generates enterprise workflow \
 specifications in a formal YAML DSL.
