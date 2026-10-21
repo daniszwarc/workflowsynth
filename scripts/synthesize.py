@@ -33,6 +33,7 @@ VALID_CONDITIONS = ("full", "no_taint", "no_verify", "no_repair")
 
 
 def parse_args() -> argparse.Namespace:
+    """Parses CLI arguments: spec_file, --out, --condition, --format."""
     parser = argparse.ArgumentParser(
         description="Run the WorkflowSynth pipeline on a single spec.md file."
     )
@@ -67,6 +68,19 @@ def parse_args() -> argparse.Namespace:
 
 
 def make_verify_dsl(condition: str):
+    """
+    Builds a condition-aware verify_dsl node for the given ablation
+    condition (see the module comment above for why this exists).
+
+    Args:
+        condition: One of VALID_CONDITIONS ("full", "no_taint",
+            "no_repair", "no_verify").
+
+    Returns:
+        A verify_dsl(state) -> dict function suitable for use as a
+        LangGraph node.
+    """
+
     def verify_dsl(state):
         yaml_string = state["llm_sketch"]
         parse_result = parse_workflow(yaml_string)
@@ -147,6 +161,7 @@ def build_condition_pipeline(condition: str):
 
 
 def _classify(state: dict) -> str:
+    """Classifies the current pipeline state into a failure category for progress output."""
     if state["dsl_type_errors"] and any("YAML" in e for e in state["dsl_type_errors"]):
         return "parse_error"
     if state["dsl_type_errors"]:
@@ -159,6 +174,7 @@ def _classify(state: dict) -> str:
 
 
 def _progress_line(attempt_num: int, max_attempts: int, state: dict) -> str:
+    """Formats a one-line human-readable progress message for the current attempt."""
     verification_passed = state["dsl_verification_passed"]
     tests_passed = all(state["test_results"].values()) if state["test_results"] else False
 
@@ -184,6 +200,22 @@ def _progress_line(attempt_num: int, max_attempts: int, state: dict) -> str:
 
 
 def run(spec_file: str, out_dir: str, condition: str, output_format: str = "n8n") -> int:
+    """
+    Runs the WorkflowSynth pipeline on a single spec.md file, printing
+    per-attempt progress, and writes the output (n8n JSON or LangChain
+    Python) plus an evidence report to out_dir on success.
+
+    Args:
+        spec_file: Path to a spec.md file.
+        out_dir: Directory to write outputs into.
+        condition: Ablation condition ("full", "no_taint", "no_repair",
+            "no_verify").
+        output_format: "n8n" or "langchain".
+
+    Returns:
+        0 on successful synthesis, 1 on failure (including an unhandled
+        API error).
+    """
     spec_path = Path(spec_file)
     natural_language_spec = spec_path.read_text()
 
@@ -256,6 +288,7 @@ def run(spec_file: str, out_dir: str, condition: str, output_format: str = "n8n"
 
 
 def main() -> None:
+    """CLI entry point: parses args, runs the pipeline once, exits with its status code."""
     args = parse_args()
     exit_code = run(args.spec_file, args.out, args.condition, args.format)
     sys.exit(exit_code)

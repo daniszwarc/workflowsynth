@@ -39,6 +39,7 @@ INFRA_ERROR_SIGNATURE = "credit balance is too low"
 
 
 def is_infra_failure(record: dict) -> bool:
+    """True if a record's failure was an infra error (billing), not a real synthesis attempt."""
     if record.get("failure_category") != "agent_error":
         return False
     for attempt in record.get("attempt_history", []):
@@ -49,6 +50,7 @@ def is_infra_failure(record: dict) -> bool:
 
 
 def load_condition(condition: str) -> list[dict]:
+    """Loads all per-task result JSON files for a condition, excluding infra failures."""
     files = sorted(glob.glob(str(RESULTS_DIR / condition / "*.json")))
     records = []
     for f in files:
@@ -61,6 +63,7 @@ def load_condition(condition: str) -> list[dict]:
 
 
 def pass_at_k(records: list[dict], k: int) -> float:
+    """Fraction of records where pass_at_k[str(k)] is True."""
     if not records:
         return 0.0
     hits = sum(1 for r in records if r.get("pass_at_k", {}).get(str(k), False))
@@ -68,11 +71,13 @@ def pass_at_k(records: list[dict], k: int) -> float:
 
 
 def mean_attempts_successful(records: list[dict]) -> float:
+    """Mean attempts_used across successful records only (0.0 if none succeeded)."""
     successes = [r["attempts_used"] for r in records if r.get("success")]
     return statistics.mean(successes) if successes else 0.0
 
 
 def security_pass_at_10(records: list[dict]) -> tuple[float, int]:
+    """pass@10 restricted to security-constrained tasks, plus the count of such tasks."""
     sec = [r for r in records if r.get("has_security_constraint")]
     if not sec:
         return 0.0, 0
@@ -80,6 +85,7 @@ def security_pass_at_10(records: list[dict]) -> tuple[float, int]:
 
 
 def cohens_d_paired(a: list[float], b: list[float]) -> float:
+    """Cohen's d for paired samples: mean difference over the standard deviation of differences."""
     diffs = [x - y for x, y in zip(a, b)]
     if len(diffs) < 2:
         return 0.0
@@ -101,12 +107,14 @@ def wilson_or_normal_ci_diff(
 
 
 def build_task_map(records: list[dict]) -> dict[str, dict]:
+    """Indexes records by task_id for cross-condition lookups."""
     return {r["task_id"]: r for r in records}
 
 
 def paired_success_vectors(
     full_map: dict[str, dict], other_map: dict[str, dict]
 ) -> tuple[list[int], list[int]]:
+    """Builds aligned 0/1 success vectors for task ids present in both conditions."""
     common_ids = [tid for tid in full_map if tid in other_map]
     full_vec = [1 if full_map[tid].get("success") else 0 for tid in common_ids]
     other_vec = [1 if other_map[tid].get("success") else 0 for tid in common_ids]
@@ -114,6 +122,7 @@ def paired_success_vectors(
 
 
 def token_cost(records: list[dict]) -> tuple[int, int, float]:
+    """Sums input/output tokens across records and estimates USD cost at the configured rates."""
     total_in = sum(r.get("total_input_tokens", 0) for r in records)
     total_out = sum(r.get("total_output_tokens", 0) for r in records)
     cost = total_in / 1e6 * INPUT_PRICE_PER_M + total_out / 1e6 * OUTPUT_PRICE_PER_M
@@ -121,15 +130,19 @@ def token_cost(records: list[dict]) -> tuple[int, int, float]:
 
 
 def fmt_pct(x: float) -> str:
+    """Formats a 0..1 fraction as a percentage string, e.g. 0.8833 -> '88.33%'."""
     return f"{x * 100:.2f}%"
 
 
 def fmt_pp(x: float) -> str:
+    """Formats a signed 0..1 fraction as percentage points, e.g. 0.0833 -> '+8.33pp'."""
     sign = "+" if x >= 0 else ""
     return f"{sign}{x * 100:.2f}pp"
 
 
 def main() -> None:
+    """Loads all six conditions' results, prints the full analysis report, and
+    saves it to results/session_09/analysis_summary.json."""
     data = {c: load_condition(c) for c in CONDITIONS}
     task_maps = {c: build_task_map(recs) for c, recs in data.items()}
 

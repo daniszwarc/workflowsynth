@@ -47,6 +47,19 @@ class PureLLMBaseline:
         self._out_dir.mkdir(parents=True, exist_ok=True)
 
     def run_single(self, task_id: str, spec_text: str = None) -> TaskResult:
+        """
+        Runs one task through a single unconstrained LLM call and tests the
+        raw YAML output against the task's pytest suite.
+
+        Args:
+            task_id: The dataset task id (e.g. "wf_mm_008").
+            spec_text: Optional override for the task's spec.md content.
+                Defaults to reading it from disk.
+
+        Returns:
+            A TaskResult for this task, also persisted to
+            {results_dir}/{condition}/{task_id}.json.
+        """
         start = time.monotonic()
         meta = self.index.get(task_id, {})
 
@@ -134,6 +147,7 @@ class SingleAttemptBaseline:
         self._runner = EvaluationRunner(dataset_path, results_dir, condition="no_repair")
 
     def run_single(self, task_id: str, spec_text: str = None) -> TaskResult:
+        """Delegates to EvaluationRunner.run_single under the no_repair condition."""
         return self._runner.run_single(task_id)
 
 
@@ -251,6 +265,19 @@ class LangChainAgentBaseline:
         return ""
 
     def run_single(self, task_id: str, spec_text: str = None) -> TaskResult:
+        """
+        Runs one task through the LangChain ReAct agent and tests its raw
+        YAML output against the task's pytest suite.
+
+        Args:
+            task_id: The dataset task id (e.g. "wf_mm_008").
+            spec_text: Optional override for the task's spec.md content.
+                Defaults to reading it from disk.
+
+        Returns:
+            A TaskResult for this task, also persisted to
+            {results_dir}/{condition}/{task_id}.json.
+        """
         start = time.monotonic()
         meta = self.index.get(task_id, {})
 

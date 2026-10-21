@@ -42,6 +42,7 @@ _BASELINE_CLASSES = {
 
 
 def parse_args() -> argparse.Namespace:
+    """Parses CLI arguments for the evaluation run (condition, dataset, results dir, etc.)."""
     parser = argparse.ArgumentParser(description="Run a WorkflowSynth evaluation experiment.")
     parser.add_argument(
         "--condition",
@@ -80,6 +81,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def _build_summary(condition: str, results: list) -> EvaluationSummary:
+    """Aggregates a list of per-task results into an EvaluationSummary for this condition."""
     total_input_tokens = sum(r.total_input_tokens for r in results)
     total_output_tokens = sum(r.total_output_tokens for r in results)
     return EvaluationSummary(
@@ -136,6 +138,7 @@ def _run_baseline(
 
 
 def main() -> None:
+    """CLI entry point: dispatches to a baseline or the EvaluationRunner and prints the summary."""
     args = parse_args()
 
     if args.condition in BASELINE_CONDITIONS:
