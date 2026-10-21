@@ -493,10 +493,61 @@ outside the verification module's scope (business logic correctness,
 platform-specific runtime security), and what remains the deploying
 engineer's responsibility — the mechanism that avoids the "disclaimer trap."
 
-*(Note: `wf_btp_004` was selected for this appendix, in preference to
-`wf_btp_003` or `wf_mm_008` cited elsewhere in the dissertation, because its
-reference DSL passes verification cleanly end-to-end, producing a
-self-consistent evidence report fragment suitable for direct quotation.)*
+### D.5.4 Why `wf_btp_003` and `wf_mm_008` were not used here
+
+`wf_btp_003` and `wf_mm_008` are the task ids cited elsewhere in the
+dissertation, so they were checked first. Both were found unsuitable for this
+appendix, for two different reasons established by direct investigation
+(read-only; no API calls, no writes to `results/`):
+
+**Why their reference DSLs fail the current taint rule.** Running
+`taint_analysis()` on each `reference_dsl.yaml` directly finds:
+
+- `wf_btp_003`: step `search_raw_documents` (`op: read_database`, a
+  `TAINT_SOURCE`) taints `validated_context` via step
+  `merge_and_validate_context` (`op: merge_datasets`). `merge_datasets` is
+  **not** in `TAINT_SANITISERS` despite the step's id implying validation —
+  it is a plain propagator, so the taint passes straight through to step
+  `generate_response` (`op: call_webhook`, a `TAINT_SINK`), producing one
+  violation.
+- `wf_mm_008`: step `download_pdf` (`op: fetch_api`, a source) feeds directly
+  into `extract_text` (`op: call_webhook`), which is simultaneously a
+  `TAINT_SOURCE` and a `TAINT_SINK` in the current vocabulary — so an
+  unsanitised call into it is flagged. Separately, `structure_via_ai`
+  (`op: call_webhook`, a source) taints two downstream sinks,
+  `write_markdown` (`op: write_database`) and `commit_and_push`
+  (`op: log_audit`), neither of which passes through a sanitiser
+  (`validate_schema`, `encrypt_field`, `transform_json`, `filter_records`,
+  or `extract_field`) first.
+
+In both cases the reference author's step names ("validate", "structure")
+describe the intended business behaviour, but the actual `op` used
+(`merge_datasets`, `call_webhook`) is not one the taint analyser treats as a
+sanitiser. This is a property of the hand-written reference files, not of
+the live system under test.
+
+**Whether the evaluation uses the reference DSLs.** It does not. A
+repository-wide search (`grep -rn "reference_dsl" src/ scripts/`) returns no
+matches: `EvaluationRunner` and the baselines read only `index.yaml`,
+`spec.md`, and the `tests/test_*.py` pytest suite for each task
+(`src/evaluation/runner.py`, line ~662 and `_load_index`). `reference_dsl.yaml`
+is documentation only — a human-authored "what a correct answer looks like"
+artefact for readers of the dataset, consulted by no code path in
+`pass_at_k`, `security_pass_at_10`, or any other reported metric. The two
+violations above therefore have no bearing on the reported pass@10 or
+security_pass@10 figures.
+
+**Why the stored `wf_mm_008` result could not be substituted either.**
+`results/session_09/full/wf_mm_008.json` (inspected read-only) shows
+`"success": false` with `attempts_used: 10` — the task never passed under
+the `full` condition. It also fails under `no_repair`, `no_verify`, and
+`no_taint`; its last attempt's failure is a parse error (`Step at index 41
+(id='route'): missing required field 'op'`), unrelated to taint at all.
+There is no "winning attempt-3 DSL" for `wf_mm_008` anywhere in the stored
+results to substitute in. `wf_btp_004` is kept for this appendix because,
+among the tasks checked, it is the one whose reference DSL both parses and
+passes the current taint and type rules cleanly, giving a self-consistent,
+directly-quotable evidence report.
 
 ---
 
@@ -555,9 +606,12 @@ python scripts/synthesize.py examples/invoice_processing.md --out ./output
 
 ### D.6.3 Test count and commit hash
 
-- **Total tests: 143** (137 unit tests, no network calls, run on every commit;
-  6 integration tests requiring `ANTHROPIC_API_KEY`, skipped otherwise).
+- **Total: 143 tests (137 unit, 6 integration requiring an API key).**
+- Chapter 5 results were produced at commit
+  `4452079af68ea87ec0c8ae9ac17a3f8afa6c0a73` (2026-09-07); later commits
+  changed documentation and code style only (tests and analysis output
+  verified unchanged).
 - **Commit hash (HEAD at time of writing this appendix):**
-  `7df40b16eec93b3b3df703c834257fe2555a2bef`
+  `87c65dd96fc1abc598f42f17f081fad2636b9529`
 - **Suggested tag for the submission snapshot:** `v1.0-submission`
   (not yet created — pending confirmation).
