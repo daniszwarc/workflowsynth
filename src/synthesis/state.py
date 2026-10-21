@@ -11,6 +11,11 @@ from typing import Optional, TypedDict
 
 
 class WorkflowSynthState(TypedDict):
+    """The full pipeline state threaded through every LangGraph node.
+
+    See the module docstring for the invariants that apply to its fields.
+    """
+
     # Input -- immutable after initialisation
     natural_language_spec: str
 

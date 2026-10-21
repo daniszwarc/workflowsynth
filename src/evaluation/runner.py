@@ -56,6 +56,12 @@ PYTEST_TIMEOUT_SECONDS = 60
 
 @dataclass
 class TaskResult:
+    """The outcome of running one dataset task through a condition or baseline.
+
+    Persisted as JSON to results/{condition}/{task_id}.json immediately
+    after the task completes.
+    """
+
     task_id: str
     condition: str
     success: bool
@@ -77,6 +83,8 @@ class TaskResult:
 
 @dataclass
 class EvaluationSummary:
+    """Aggregate metrics across all TaskResults for one condition."""
+
     condition: str
     total_tasks: int
     pass_at_1: float
@@ -299,6 +307,7 @@ class EvaluationRunner:
 
     @property
     def task_ids(self) -> list:
+        """All task ids in this dataset's index.yaml, in load order."""
         return list(self.index.keys())
 
     # -- Public API ------------------------------------------------------------
