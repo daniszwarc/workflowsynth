@@ -7,7 +7,7 @@
 # CONSTRAINT: attempt_history is append-only. Never overwrite existing records.
 # CONSTRAINT: max_attempts is always 10. Never change this value.
 
-from typing import TypedDict, Optional
+from typing import Optional, TypedDict
 
 
 class WorkflowSynthState(TypedDict):

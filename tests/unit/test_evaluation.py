@@ -13,16 +13,16 @@ import textwrap
 
 import pytest
 
-from workflowsynth.evaluation.runner import EvaluationRunner, TaskResult, EvaluationSummary
 from workflowsynth.evaluation.baselines import LangChainAgentBaseline
 from workflowsynth.evaluation.metrics import (
-    pass_at_k,
-    mean_attempts,
-    security_pass_rate,
     by_complexity,
     by_domain,
+    mean_attempts,
+    pass_at_k,
+    security_pass_rate,
     summary_table,
 )
+from workflowsynth.evaluation.runner import EvaluationRunner, TaskResult
 
 
 def make_result(**overrides) -> TaskResult:

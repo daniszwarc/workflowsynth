@@ -8,18 +8,19 @@
 #   pipeline = build_pipeline()
 #   final_state = run_synthesis(pipeline, "When an invoice arrives, validate and store it.")
 
-from langgraph.graph import StateGraph, END
-from .state import WorkflowSynthState, initial_state
+from langgraph.graph import END, StateGraph
+
 from .nodes import (
+    check_pass_or_repair,
+    record_failure,
+    repair_with_llm,
+    run_tests,
+    translate_output,
     translate_to_dsl,
     verify_dsl,
-    run_tests,
-    check_pass_or_repair,
-    repair_with_llm,
-    translate_output,
     verify_output,
-    record_failure,
 )
+from .state import WorkflowSynthState, initial_state
 
 
 def build_pipeline():

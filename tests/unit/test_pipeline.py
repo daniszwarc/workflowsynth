@@ -7,19 +7,18 @@
 # routing logic of check_pass_or_repair directly.
 # Integration tests with the full pipeline are in tests/integration/.
 
-import pytest
-from unittest.mock import patch, MagicMock
-from workflowsynth.synthesis.state import WorkflowSynthState, initial_state
-from workflowsynth.synthesis.nodes import (
-    verify_dsl,
-    run_tests,
-    check_pass_or_repair,
-    repair_with_llm,
-    record_failure,
-    classify_failure,
-    select_model,
-)
+from unittest.mock import MagicMock, patch
 
+from workflowsynth.synthesis.nodes import (
+    check_pass_or_repair,
+    classify_failure,
+    record_failure,
+    repair_with_llm,
+    run_tests,
+    select_model,
+    verify_dsl,
+)
+from workflowsynth.synthesis.state import initial_state
 
 # --- initial_state -----------------------------------------------------------
 

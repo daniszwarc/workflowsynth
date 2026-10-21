@@ -14,9 +14,9 @@
 #   n8n_workflow = to_n8n_json(ast, evidence_report)
 
 import json
+
 from ..dsl.ast_nodes import WorkflowAST, WorkflowStep
 from ..verification.evidence_report import EvidenceReport
-
 
 # --- n8n node type mapping ---------------------------------------------------
 #

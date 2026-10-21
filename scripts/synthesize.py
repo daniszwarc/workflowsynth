@@ -13,21 +13,21 @@ import json
 import sys
 from pathlib import Path
 
-from langgraph.graph import StateGraph, END
+from langgraph.graph import END, StateGraph
 
-from workflowsynth.synthesis.pipeline import build_pipeline
-from workflowsynth.synthesis.state import initial_state
-from workflowsynth.synthesis.nodes import (
-    translate_to_dsl,
-    run_tests,
-    check_pass_or_repair,
-    repair_with_llm,
-    translate_output,
-    verify_output,
-    record_failure,
-)
 from workflowsynth.dsl.parser import parse_workflow
 from workflowsynth.dsl.type_checker import type_check
+from workflowsynth.synthesis.nodes import (
+    check_pass_or_repair,
+    record_failure,
+    repair_with_llm,
+    run_tests,
+    translate_output,
+    translate_to_dsl,
+    verify_output,
+)
+from workflowsynth.synthesis.pipeline import build_pipeline
+from workflowsynth.synthesis.state import initial_state
 from workflowsynth.verification.taint import taint_analysis
 
 VALID_CONDITIONS = ("full", "no_taint", "no_verify", "no_repair")

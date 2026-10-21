@@ -10,7 +10,7 @@
 # Returns a list of structured errors for the repair prompt.
 
 from .ast_nodes import WorkflowAST, WorkflowStep
-from .constants import OP_OUTPUT_TYPES, OPS_REQUIRING_INPUT, OPS_REQUIRING_AUTH
+from .constants import OP_OUTPUT_TYPES, OPS_REQUIRING_AUTH, OPS_REQUIRING_INPUT
 
 
 def type_check(ast: WorkflowAST) -> list[str]:

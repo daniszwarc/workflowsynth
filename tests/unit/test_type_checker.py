@@ -1,6 +1,5 @@
 # tests/unit/test_type_checker.py
 
-import pytest
 from workflowsynth.dsl.parser import parse_workflow
 from workflowsynth.dsl.type_checker import type_check
 

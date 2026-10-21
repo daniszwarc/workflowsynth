@@ -2,11 +2,9 @@
 #
 # Unit tests for the evidence report generator.
 
-import pytest
 from workflowsynth.dsl.parser import parse_workflow
 from workflowsynth.verification.evidence_report import (
     generate_evidence_report,
-    EvidenceReport,
 )
 
 

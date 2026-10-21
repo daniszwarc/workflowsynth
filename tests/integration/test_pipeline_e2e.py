@@ -6,8 +6,9 @@
 # Run with: pytest tests/integration/ -v
 # Do NOT include in the standard unit test run (pytest tests/unit/).
 
-import pytest
 import os
+
+import pytest
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -19,7 +20,6 @@ pytestmark = pytest.mark.skipif(
 )
 
 from workflowsynth.synthesis.pipeline import build_pipeline, run_synthesis
-
 
 # --- Test spec: simple invoice approval workflow ----------------------------
 # This is the simplest possible real-world workflow.

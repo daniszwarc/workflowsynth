@@ -3,9 +3,8 @@
 # Unit tests for the taint analysis engine.
 # Each test covers a specific data flow scenario.
 
-import pytest
 from workflowsynth.dsl.parser import parse_workflow
-from workflowsynth.verification.taint import taint_analysis, TaintViolation
+from workflowsynth.verification.taint import taint_analysis
 
 
 def _parse(yaml_string: str):

@@ -18,19 +18,19 @@ import sys
 import tempfile
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Optional
 
 import anthropic
 import yaml
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from ..dsl.parser import parse_workflow
 from ..dsl.type_checker import type_check
-from ..verification.taint import taint_analysis
 from ..synthesis.llm_client import get_llm
 from ..synthesis.prompts import SYSTEM_PROMPT, build_repair_prompt
+from ..verification.taint import taint_analysis
 
 VALID_CONDITIONS = ("full", "no_taint", "no_repair", "no_verify")
 
@@ -281,11 +281,19 @@ class EvaluationRunner:
 
     def _build_summary(self, results: list) -> EvaluationSummary:
         from .metrics import (
-            pass_at_k as _pass_at_k,
-            mean_attempts as _mean_attempts,
-            security_pass_rate as _security_pass_rate,
             by_complexity as _by_complexity,
+        )
+        from .metrics import (
             by_domain as _by_domain,
+        )
+        from .metrics import (
+            mean_attempts as _mean_attempts,
+        )
+        from .metrics import (
+            pass_at_k as _pass_at_k,
+        )
+        from .metrics import (
+            security_pass_rate as _security_pass_rate,
         )
 
         total_input_tokens = sum(r.total_input_tokens for r in results)
@@ -731,10 +739,9 @@ class EvaluationRunner:
         Runs the integration layer (n8n + LangChain adapters) against the
         winning candidate and counts errors raised during translation.
         """
-        from ..dsl.ast_nodes import WorkflowAST, WorkflowStep
-        from ..verification.evidence_report import generate_evidence_report
-        from ..integration.n8n_adapter import to_n8n_json
         from ..integration.langchain_adapter import to_langchain_python
+        from ..integration.n8n_adapter import to_n8n_json
+        from ..verification.evidence_report import generate_evidence_report
 
         parse_result = parse_workflow(final_record["llm_sketch"])
         if not parse_result["ok"]:

@@ -1,8 +1,6 @@
 # tests/unit/test_parser.py
 
-import pytest
 from workflowsynth.dsl.parser import parse_workflow
-
 
 # --- Valid YAML --------------------------------------------------------------
 

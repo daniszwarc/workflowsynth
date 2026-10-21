@@ -8,8 +8,9 @@
 #
 # Run with: pytest tests/integration/test_pipeline_diagnostic.py -v -s
 
-import os
 import json
+import os
+
 import pytest
 from dotenv import load_dotenv
 
@@ -71,7 +72,7 @@ def _print_state(spec_name: str, state: dict):
             print(f"    failure_category : {record['failure_category']}")
             print(f"    type_errors      : {record['dsl_type_errors']}")
             print(f"    taint_violations : {record['dsl_taint_violations']}")
-            print(f"    yaml_sketch      :")
+            print("    yaml_sketch      :")
             for line in record["llm_sketch"].splitlines():
                 print(f"      {line}")
     print(sep)

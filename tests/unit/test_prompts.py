@@ -3,10 +3,8 @@
 # Tests for WorkflowSynth prompt construction.
 # No API keys required -- tests prompt content and structure only.
 
-import pytest
-from workflowsynth.synthesis.prompts import SYSTEM_PROMPT, build_repair_prompt
 from workflowsynth.dsl.constants import VALID_OPS
-
+from workflowsynth.synthesis.prompts import SYSTEM_PROMPT, build_repair_prompt
 
 # --- System prompt -----------------------------------------------------------
 

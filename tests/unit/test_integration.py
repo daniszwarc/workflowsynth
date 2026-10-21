@@ -2,11 +2,10 @@
 #
 # Unit tests for the n8n and LangChain integration adapters.
 
-import pytest
 from workflowsynth.dsl.parser import parse_workflow
-from workflowsynth.verification.evidence_report import generate_evidence_report
-from workflowsynth.integration.n8n_adapter import to_n8n_json, to_n8n_json_string
 from workflowsynth.integration.langchain_adapter import to_langchain_python
+from workflowsynth.integration.n8n_adapter import to_n8n_json, to_n8n_json_string
+from workflowsynth.verification.evidence_report import generate_evidence_report
 
 
 def _parse(yaml_string: str):

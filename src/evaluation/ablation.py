@@ -4,7 +4,7 @@
 # in experiment scripts, rather than constructing EvaluationRunner directly
 # with a condition string.
 
-from .runner import EvaluationRunner, EvaluationSummary, VALID_CONDITIONS
+from .runner import VALID_CONDITIONS, EvaluationRunner, EvaluationSummary
 
 
 def run_ablation(

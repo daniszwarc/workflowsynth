@@ -153,7 +153,8 @@ def main() -> None:
         excluded = raw_count - len(data["baseline_langchain"])
         p(
             f"    -> baseline_langchain: {raw_count} files on disk, {excluded} excluded "
-            f"(Anthropic API billing failure: '{INFRA_ERROR_SIGNATURE}'), {len(data['baseline_langchain'])} valid"
+            f"(Anthropic API billing failure: '{INFRA_ERROR_SIGNATURE}'), "
+            f"{len(data['baseline_langchain'])} valid"
         )
     p()
 
@@ -163,7 +164,10 @@ def main() -> None:
     p("-" * 100)
     p("1. MAIN RESULTS TABLE")
     p("-" * 100)
-    header = f"{'condition':<22}{'n':>5}{'pass@1':>10}{'pass@3':>10}{'pass@5':>10}{'pass@10':>10}{'mean_attempts':>16}{'sec_pass@10':>14}{'n_sec':>7}"
+    header = (
+        f"{'condition':<22}{'n':>5}{'pass@1':>10}{'pass@3':>10}{'pass@5':>10}{'pass@10':>10}"
+        f"{'mean_attempts':>16}{'sec_pass@10':>14}{'n_sec':>7}"
+    )
     p(header)
     p("-" * len(header))
 
@@ -197,16 +201,26 @@ def main() -> None:
     p("-" * 100)
     ablation = {}
     ablation_notes = {
-        "no_repair": "Removing the repair loop -- shows how much the iterative repair mechanism contributes to pass@10.",
-        "no_verify": "Removing verification -- shows how much verification-gated retries contribute to pass@10.",
-        "no_taint": "Removing taint tracking -- shows how much taint analysis contributes to pass@10.",
+        "no_repair": (
+            "Removing the repair loop -- shows how much the iterative repair "
+            "mechanism contributes to pass@10."
+        ),
+        "no_verify": (
+            "Removing verification -- shows how much verification-gated "
+            "retries contribute to pass@10."
+        ),
+        "no_taint": (
+            "Removing taint tracking -- shows how much taint analysis "
+            "contributes to pass@10."
+        ),
     }
     full_pass10 = main_results["full"]["pass_at_10"]
     for c in ["no_repair", "no_verify", "no_taint"]:
         delta = main_results[c]["pass_at_10"] - full_pass10
         ablation[c] = {"pass_at_10": main_results[c]["pass_at_10"], "delta_vs_full_pp": delta * 100}
         p(
-            f"  {c:<15} pass@10={fmt_pct(main_results[c]['pass_at_10']):>8}  delta vs full: {fmt_pp(delta):>10}"
+            f"  {c:<15} pass@10={fmt_pct(main_results[c]['pass_at_10']):>8}  "
+            f"delta vs full: {fmt_pp(delta):>10}"
         )
         p(f"    -> {ablation_notes[c]}")
     p()
@@ -219,8 +233,14 @@ def main() -> None:
     p("-" * 100)
     baseline_comp = {}
     baseline_notes = {
-        "baseline_pure_llm": "Pure LLM synthesis with no DSL scaffolding -- shows the gap closed by the full WorkflowSynth pipeline.",
-        "baseline_langchain": "LangChain agent baseline (PARTIAL, 37/60 valid tasks) -- shows the gap closed vs. an off-the-shelf agent framework.",
+        "baseline_pure_llm": (
+            "Pure LLM synthesis with no DSL scaffolding -- shows the gap "
+            "closed by the full WorkflowSynth pipeline."
+        ),
+        "baseline_langchain": (
+            "LangChain agent baseline (PARTIAL, 37/60 valid tasks) -- shows "
+            "the gap closed vs. an off-the-shelf agent framework."
+        ),
     }
     for c in ["baseline_pure_llm", "baseline_langchain"]:
         delta = main_results[c]["pass_at_10"] - full_pass10
@@ -236,7 +256,8 @@ def main() -> None:
             else ""
         )
         p(
-            f"  {c:<20} pass@10={fmt_pct(main_results[c]['pass_at_10']):>8}  delta vs full: {fmt_pp(delta):>10}{partial_tag}"
+            f"  {c:<20} pass@10={fmt_pct(main_results[c]['pass_at_10']):>8}  "
+            f"delta vs full: {fmt_pp(delta):>10}{partial_tag}"
         )
         p(f"    -> {baseline_notes[c]}")
     p()
@@ -378,7 +399,8 @@ def main() -> None:
         p(f"  {c:<22} in={total_in:>10,}  out={total_out:>10,}  cost=${cost:>8.4f}{note}")
     p("-" * 100)
     p(
-        f"  {'GRAND TOTAL (tracked)':<22} in={grand_in:>10,}  out={grand_out:>10,}  cost=${grand_cost:>8.4f}"
+        f"  {'GRAND TOTAL (tracked)':<22} in={grand_in:>10,}  out={grand_out:>10,}  "
+        f"cost=${grand_cost:>8.4f}"
     )
     cost_summary["grand_total"] = {
         "input_tokens": grand_in,

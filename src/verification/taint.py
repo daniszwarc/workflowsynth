@@ -14,8 +14,8 @@
 #       # feed violations to repair prompt
 
 from dataclasses import dataclass
-from ..dsl.ast_nodes import WorkflowAST, WorkflowStep
 
+from ..dsl.ast_nodes import WorkflowAST, WorkflowStep
 
 # --- Vocabulary definitions --------------------------------------------------
 #

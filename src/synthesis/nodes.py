@@ -12,21 +12,18 @@
 #   - translate_output and verify_output are stubs.
 #     Real adapters are Session 06.
 
-import subprocess
-import tempfile
-import json
-from langchain_core.messages import SystemMessage, HumanMessage
-from .state import WorkflowSynthState
+from langchain_core.messages import HumanMessage, SystemMessage
+
+from ..dsl.ast_nodes import WorkflowAST, WorkflowStep
 from ..dsl.parser import parse_workflow
 from ..dsl.type_checker import type_check
-from ..dsl.ast_nodes import WorkflowAST, WorkflowStep
-from ..verification.taint import taint_analysis
-from ..verification.evidence_report import generate_evidence_report
-from ..integration.n8n_adapter import to_n8n_json
 from ..integration.langchain_adapter import to_langchain_python
+from ..integration.n8n_adapter import to_n8n_json
+from ..verification.evidence_report import generate_evidence_report
+from ..verification.taint import taint_analysis
 from .llm_client import get_llm
 from .prompts import SYSTEM_PROMPT, build_repair_prompt
-
+from .state import WorkflowSynthState
 
 # --- Node 1: translate_to_dsl ------------------------------------------------
 
