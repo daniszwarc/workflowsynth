@@ -176,6 +176,19 @@ def test_langchain_contains_all_ops():
         assert step.op in result
 
 
+def test_langchain_components_cover_every_valid_op():
+    """
+    LANGCHAIN_COMPONENTS must map every op in VALID_OPS, so the
+    '# TODO: implement' fallback in _build_step can never surface in
+    generated output for a verified workflow (whose ops are always a
+    subset of VALID_OPS). Guards against future vocabulary drift.
+    """
+    from workflowsynth.dsl.constants import VALID_OPS
+    from workflowsynth.integration.langchain_adapter import LANGCHAIN_COMPONENTS
+
+    assert set(LANGCHAIN_COMPONENTS.keys()) == VALID_OPS
+
+
 def test_langchain_imports_requests_when_fetch_api():
     ast = _parse(FULL_YAML)
     result = to_langchain_python(ast, _report(ast))
