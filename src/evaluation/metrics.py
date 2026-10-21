@@ -37,19 +37,13 @@ def security_pass_rate(results: list) -> float:
 def by_complexity(results: list) -> dict:
     """pass@10 rate broken down by complexity level."""
     levels = sorted({r.complexity for r in results})
-    return {
-        level: pass_at_k([r for r in results if r.complexity == level], 10)
-        for level in levels
-    }
+    return {level: pass_at_k([r for r in results if r.complexity == level], 10) for level in levels}
 
 
 def by_domain(results: list) -> dict:
     """pass@10 rate broken down by domain."""
     domains = sorted({r.domain for r in results})
-    return {
-        domain: pass_at_k([r for r in results if r.domain == domain], 10)
-        for domain in domains
-    }
+    return {domain: pass_at_k([r for r in results if r.domain == domain], 10) for domain in domains}
 
 
 def summary_table(results: list) -> str:

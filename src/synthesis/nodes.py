@@ -30,6 +30,7 @@ from .prompts import SYSTEM_PROMPT, build_repair_prompt
 
 # --- Node 1: translate_to_dsl ------------------------------------------------
 
+
 def translate_to_dsl(state: WorkflowSynthState) -> dict:
     """
     Calls the LLM to translate the natural language spec into a YAML DSL candidate.
@@ -55,6 +56,7 @@ def translate_to_dsl(state: WorkflowSynthState) -> dict:
 
 
 # --- Node 2: verify_dsl ------------------------------------------------------
+
 
 def verify_dsl(state: WorkflowSynthState) -> dict:
     """
@@ -120,6 +122,7 @@ def verify_dsl(state: WorkflowSynthState) -> dict:
 
 # --- Node 3: run_tests -------------------------------------------------------
 
+
 def run_tests(state: WorkflowSynthState) -> dict:
     """
     Executes the pytest test suite for the current workflow spec against
@@ -141,6 +144,7 @@ def run_tests(state: WorkflowSynthState) -> dict:
 
 
 # --- Node 4: check_pass_or_repair --------------------------------------------
+
 
 def check_pass_or_repair(state: WorkflowSynthState) -> str:
     """
@@ -167,6 +171,7 @@ def check_pass_or_repair(state: WorkflowSynthState) -> str:
 
 
 # --- Node 5: repair_with_llm -------------------------------------------------
+
 
 def repair_with_llm(state: WorkflowSynthState) -> dict:
     """
@@ -227,6 +232,7 @@ def repair_with_llm(state: WorkflowSynthState) -> dict:
 
 # --- Node 6: translate_output ------------------------------------------------
 
+
 def translate_output(state: WorkflowSynthState) -> dict:
     """
     Translates the verified dsl_candidate to n8n JSON and LangChain Python.
@@ -256,6 +262,7 @@ def translate_output(state: WorkflowSynthState) -> dict:
 
 # --- Node 7: verify_output ---------------------------------------------------
 
+
 def verify_output(state: WorkflowSynthState) -> dict:
     """
     Stage 2 verification: security checks on the translated outputs.
@@ -283,9 +290,8 @@ def verify_output(state: WorkflowSynthState) -> dict:
         **report.to_dict(),
     }
     langchain_with_report = (
-        (state.get("final_langchain_python") or "") +
-        f"\n\n# Evidence Report\n# {report.summary().replace(chr(10), chr(10) + '# ')}"
-    )
+        state.get("final_langchain_python") or ""
+    ) + f"\n\n# Evidence Report\n# {report.summary().replace(chr(10), chr(10) + '# ')}"
 
     return {
         "output_verification_passed": True,
@@ -315,6 +321,7 @@ def _reconstruct_ast(dsl_candidate: dict) -> WorkflowAST:
 
 # --- Node 8: record_failure --------------------------------------------------
 
+
 def record_failure(state: WorkflowSynthState) -> dict:
     """
     Called when all attempts are exhausted.
@@ -343,6 +350,7 @@ def record_failure(state: WorkflowSynthState) -> dict:
 
 # --- Helper functions --------------------------------------------------------
 
+
 def _classify_attempt(state: WorkflowSynthState) -> str:
     """Classifies the failure category for a single attempt."""
     if state["dsl_type_errors"] and any("YAML" in e for e in state["dsl_type_errors"]):
@@ -367,6 +375,7 @@ def classify_failure(attempt_history: list[dict]) -> str:
         return "max_attempts_exceeded"
 
     from collections import Counter
+
     categories = [a.get("failure_category", "max_attempts_exceeded") for a in attempt_history]
     return Counter(categories).most_common(1)[0][0]
 

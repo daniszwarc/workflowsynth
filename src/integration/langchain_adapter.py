@@ -25,35 +25,33 @@ from ..verification.evidence_report import EvidenceReport
 
 LANGCHAIN_COMPONENTS: dict[str, str] = {
     # Data Operations
-    "fetch_api":       "requests.get",
-    "filter_records":  "list comprehension",
-    "transform_json":  "dict transformation",
+    "fetch_api": "requests.get",
+    "filter_records": "list comprehension",
+    "transform_json": "dict transformation",
     "validate_schema": "pydantic.BaseModel",
-    "aggregate_data":  "itertools.groupby",
-    "merge_datasets":  "dict merge",
-    "extract_field":   "dict.get",
-    "format_output":   "json.dumps",
-
+    "aggregate_data": "itertools.groupby",
+    "merge_datasets": "dict merge",
+    "extract_field": "dict.get",
+    "format_output": "json.dumps",
     # Control Flow
-    "route_to_step":      "if/elif branching",
-    "apply_rule":         "business rule function",
-    "loop_records":       "for loop",
-    "parallel_execute":   "asyncio.gather",
+    "route_to_step": "if/elif branching",
+    "apply_rule": "business rule function",
+    "loop_records": "for loop",
+    "parallel_execute": "asyncio.gather",
     "wait_for_condition": "asyncio.wait_for",
-    "handle_error":       "try/except",
-    "retry_step":         "tenacity.retry",
+    "handle_error": "try/except",
+    "retry_step": "tenacity.retry",
     "terminate_workflow": "return/raise",
-
     # Integration Operations
-    "send_to_queue":     "pika / aio_pika",
-    "log_audit":         "logging.getLogger",
-    "notify_user":       "smtplib / sendgrid",
-    "call_webhook":      "requests.post",
-    "read_database":     "sqlalchemy.select",
-    "write_database":    "sqlalchemy.insert",
+    "send_to_queue": "pika / aio_pika",
+    "log_audit": "logging.getLogger",
+    "notify_user": "smtplib / sendgrid",
+    "call_webhook": "requests.post",
+    "read_database": "sqlalchemy.select",
+    "write_database": "sqlalchemy.insert",
     "authenticate_user": "auth middleware",
-    "encrypt_field":     "cryptography.fernet",
-    "call_subworkflow":  "function call",
+    "encrypt_field": "cryptography.fernet",
+    "call_subworkflow": "function call",
 }
 
 
@@ -90,6 +88,7 @@ def to_langchain_python(ast: WorkflowAST, evidence_report: EvidenceReport) -> st
 
 
 # --- Section builders --------------------------------------------------------
+
 
 def _build_module_docstring(evidence_report: EvidenceReport) -> list[str]:
     """Builds the module docstring containing the evidence report."""
@@ -179,14 +178,9 @@ def _build_step(step: WorkflowStep) -> list[str]:
 
     # Generate a stub implementation with the output variable
     if step.output:
-        lines.append(
-            f"    {step.output} = _execute_{step.op}("
-            f"context, state, {repr(step.params)})"
-        )
+        lines.append(f"    {step.output} = _execute_{step.op}(context, state, {repr(step.params)})")
         lines.append(f"    state['{step.output}'] = {step.output}")
     else:
-        lines.append(
-            f"    _execute_{step.op}(context, state, {repr(step.params)})"
-        )
+        lines.append(f"    _execute_{step.op}(context, state, {repr(step.params)})")
 
     return lines

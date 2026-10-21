@@ -25,6 +25,7 @@ class WorkflowStep:
                 Other steps can reference this name in params.input.
                 May be None if the step produces no output.
     """
+
     id: str
     op: str
     params: dict = field(default_factory=dict)
@@ -41,6 +42,7 @@ class WorkflowAST:
         steps:       ordered list of WorkflowStep.
                      Order matters -- it defines the execution sequence.
     """
+
     workflow_id: str
     steps: list[WorkflowStep] = field(default_factory=list)
 
@@ -54,8 +56,4 @@ class WorkflowAST:
         Useful for the type_checker when verifying that params.input
         references an existing output.
         """
-        return {
-            s.output: s.op
-            for s in self.steps
-            if s.output is not None
-        }
+        return {s.output: s.op for s in self.steps if s.output is not None}

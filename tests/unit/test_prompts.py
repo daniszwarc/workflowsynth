@@ -10,10 +10,12 @@ from workflowsynth.dsl.constants import VALID_OPS
 
 # --- System prompt -----------------------------------------------------------
 
+
 def test_system_prompt_contains_all_25_ops():
     """All 25 VALID_OPS must appear in the system prompt."""
     missing = [op for op in VALID_OPS if op not in SYSTEM_PROMPT]
     assert missing == [], f"Ops missing from system prompt: {missing}"
+
 
 def test_system_prompt_contains_hard_constraints():
     """Key constraint keywords must appear in the system prompt."""
@@ -22,11 +24,13 @@ def test_system_prompt_contains_hard_constraints():
     assert "untrusted" in SYSTEM_PROMPT
     assert "ONLY valid YAML" in SYSTEM_PROMPT
 
+
 def test_system_prompt_contains_example():
     """The system prompt must contain a concrete YAML example."""
     assert "workflow_id:" in SYSTEM_PROMPT
     assert "steps:" in SYSTEM_PROMPT
     assert "op:" in SYSTEM_PROMPT
+
 
 def test_system_prompt_no_markdown_fences():
     """
@@ -40,6 +44,7 @@ def test_system_prompt_no_markdown_fences():
 
 # --- Repair prompt -----------------------------------------------------------
 
+
 def test_repair_prompt_includes_original_spec():
     prompt = build_repair_prompt(
         original_spec="When an invoice arrives, validate and store it.",
@@ -52,6 +57,7 @@ def test_repair_prompt_includes_original_spec():
     )
     assert "When an invoice arrives, validate and store it." in prompt
 
+
 def test_repair_prompt_includes_failing_yaml():
     prompt = build_repair_prompt(
         original_spec="spec",
@@ -63,6 +69,7 @@ def test_repair_prompt_includes_failing_yaml():
         max_attempts=10,
     )
     assert "workflow_id: t\nsteps: []" in prompt
+
 
 def test_repair_prompt_includes_type_errors():
     errors = ["Step 's1': missing required param 'input'."]
@@ -78,6 +85,7 @@ def test_repair_prompt_includes_type_errors():
     assert errors[0] in prompt
     assert "Type / structure errors" in prompt
 
+
 def test_repair_prompt_includes_taint_violations():
     violations = ["Step 's2': tainted variable 'raw' reached a sink."]
     prompt = build_repair_prompt(
@@ -92,6 +100,7 @@ def test_repair_prompt_includes_taint_violations():
     assert violations[0] in prompt
     assert "Security violations" in prompt
 
+
 def test_repair_prompt_includes_attempt_count():
     prompt = build_repair_prompt(
         original_spec="spec",
@@ -103,6 +112,7 @@ def test_repair_prompt_includes_attempt_count():
         max_attempts=10,
     )
     assert "4 of 10" in prompt  # attempt_number + 1
+
 
 def test_repair_prompt_no_section_for_empty_errors():
     """If there are no taint violations, that section must not appear."""
@@ -117,6 +127,7 @@ def test_repair_prompt_no_section_for_empty_errors():
     )
     assert "Security violations" not in prompt
 
+
 def test_repair_prompt_ends_with_yaml_instruction():
     """Repair prompt must always end with the YAML-only instruction."""
     prompt = build_repair_prompt(
@@ -129,6 +140,7 @@ def test_repair_prompt_ends_with_yaml_instruction():
         max_attempts=10,
     )
     assert prompt.strip().endswith("Respond with ONLY valid YAML. No prose, no markdown fences.")
+
 
 def test_repair_prompt_includes_failed_tests_only():
     """Only failed tests appear in the repair prompt, not passing ones."""

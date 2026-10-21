@@ -19,7 +19,6 @@ VALID_OPS: set[str] = {
     "merge_datasets",
     "extract_field",
     "format_output",
-
     # Control Flow (8)
     "route_to_step",
     "apply_rule",
@@ -29,7 +28,6 @@ VALID_OPS: set[str] = {
     "handle_error",
     "retry_step",
     "terminate_workflow",
-
     # Integration Operations (9)
     "send_to_queue",
     "log_audit",
@@ -59,35 +57,33 @@ VALID_OPS: set[str] = {
 
 OP_OUTPUT_TYPES: dict[str, str] = {
     # Data Operations
-    "fetch_api":       "records",
-    "filter_records":  "records",
-    "transform_json":  "records",
+    "fetch_api": "records",
+    "filter_records": "records",
+    "transform_json": "records",
     "validate_schema": "records",
-    "aggregate_data":  "record",
-    "merge_datasets":  "records",
-    "extract_field":   "any",
-    "format_output":   "string",
-
+    "aggregate_data": "record",
+    "merge_datasets": "records",
+    "extract_field": "any",
+    "format_output": "string",
     # Control Flow
-    "route_to_step":      "none",
-    "apply_rule":         "boolean",
-    "loop_records":       "none",
-    "parallel_execute":   "none",
+    "route_to_step": "none",
+    "apply_rule": "boolean",
+    "loop_records": "none",
+    "parallel_execute": "none",
     "wait_for_condition": "none",
-    "handle_error":       "none",
-    "retry_step":         "none",
+    "handle_error": "none",
+    "retry_step": "none",
     "terminate_workflow": "none",
-
     # Integration Operations
-    "send_to_queue":     "none",
-    "log_audit":         "none",
-    "notify_user":       "none",
-    "call_webhook":      "any",
-    "read_database":     "records",
-    "write_database":    "none",
+    "send_to_queue": "none",
+    "log_audit": "none",
+    "notify_user": "none",
+    "call_webhook": "any",
+    "read_database": "records",
+    "write_database": "none",
     "authenticate_user": "auth_token",
-    "encrypt_field":     "string",
-    "call_subworkflow":  "any",
+    "encrypt_field": "string",
+    "call_subworkflow": "any",
 }
 
 # --- Operators that require an input param ------------------------------------

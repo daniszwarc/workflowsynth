@@ -66,6 +66,7 @@ def parse_args() -> argparse.Namespace:
 # this mirrors runner.py's _verify() filtering (no_verify: skip both,
 # no_taint: type check only) inside a drop-in replacement for nodes.verify_dsl.
 
+
 def make_verify_dsl(condition: str):
     def verify_dsl(state):
         yaml_string = state["llm_sketch"]
@@ -93,8 +94,7 @@ def make_verify_dsl(condition: str):
         dsl_candidate = {
             "workflow_id": ast.workflow_id,
             "steps": [
-                {"id": s.id, "op": s.op, "params": s.params, "output": s.output}
-                for s in ast.steps
+                {"id": s.id, "op": s.op, "params": s.params, "output": s.output} for s in ast.steps
             ],
         }
 
@@ -238,7 +238,9 @@ def run(spec_file: str, out_dir: str, condition: str, output_format: str = "n8n"
             workflow_path.write_text(json.dumps(workflow_json, indent=2))
 
         attempts_used = full_state["repair_attempt"] + 1
-        print(f"\n✓ Synthesis successful in {attempts_used} attempt{'s' if attempts_used != 1 else ''}")
+        print(
+            f"\n✓ Synthesis successful in {attempts_used} attempt{'s' if attempts_used != 1 else ''}"
+        )
         print(f"Output: {workflow_path}")
         print(f"Evidence report: {evidence_path}")
         return 0
@@ -248,9 +250,7 @@ def run(spec_file: str, out_dir: str, condition: str, output_format: str = "n8n"
     category = full_state.get("failure_category", "unknown")
     reason = full_state.get("failure_reason", "")
     error_detail = (
-        last_attempt.get("dsl_type_errors")
-        or last_attempt.get("dsl_taint_violations")
-        or [reason]
+        last_attempt.get("dsl_type_errors") or last_attempt.get("dsl_taint_violations") or [reason]
     )
     print(f"\n✗ Synthesis failed after {attempts_used} attempt{'s' if attempts_used != 1 else ''}")
     print(f"Last error: {category} -- {error_detail[0] if error_detail else reason}")

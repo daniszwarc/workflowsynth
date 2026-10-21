@@ -14,6 +14,7 @@ def _parse_and_check(yaml_string: str) -> list[str]:
 
 # --- Valid workflows ---------------------------------------------------------
 
+
 def test_valid_type_flow():
     """fetch_api -> validate_schema: records -> records. Should pass."""
     yaml = """
@@ -45,6 +46,7 @@ steps:
 
 
 # --- Input errors ------------------------------------------------------------
+
 
 def test_missing_input_param():
     """validate_schema without params.input should fail."""
@@ -96,6 +98,7 @@ steps:
 
 # --- Type mismatch errors ----------------------------------------------------
 
+
 def test_type_mismatch_string_into_records_op():
     """
     encrypt_field outputs 'string'.
@@ -123,6 +126,7 @@ steps:
 
 
 # --- Authentication rule errors ----------------------------------------------
+
 
 def test_write_database_without_auth():
     """write_database without a preceding authenticate_user should fail."""

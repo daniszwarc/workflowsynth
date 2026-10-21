@@ -28,6 +28,7 @@ def type_check(ast: WorkflowAST) -> list[str]:
 
 # --- Check 1: type flow ------------------------------------------------------
 
+
 def _check_type_flow(ast: WorkflowAST) -> list[str]:
     """
     Verifies that every params.input reference points to an output declared
@@ -51,10 +52,7 @@ def _check_type_flow(ast: WorkflowAST) -> list[str]:
     return errors
 
 
-def _check_step_input(
-    step: WorkflowStep,
-    available_outputs: dict[str, str]
-) -> list[str]:
+def _check_step_input(step: WorkflowStep, available_outputs: dict[str, str]) -> list[str]:
     """Validates the input reference for a single step."""
     errors = []
 
@@ -100,8 +98,11 @@ def _check_type_compatibility(op: str, input_type: str, input_var: str) -> str |
     """
     # Operators that require a list of records as input
     REQUIRE_RECORDS = {
-        "filter_records", "transform_json", "validate_schema",
-        "aggregate_data", "format_output",
+        "filter_records",
+        "transform_json",
+        "validate_schema",
+        "aggregate_data",
+        "format_output",
     }
     # Operators that require a string as input
     REQUIRE_STRING = {
@@ -119,14 +120,14 @@ def _check_type_compatibility(op: str, input_type: str, input_var: str) -> str |
 
     if op in REQUIRE_STRING and input_type not in ("string", "any"):
         return (
-            f"op '{op}' requires input of type 'string' "
-            f"but '{input_var}' has type '{input_type}'."
+            f"op '{op}' requires input of type 'string' but '{input_var}' has type '{input_type}'."
         )
 
     return None
 
 
 # --- Check 2: authentication rule --------------------------------------------
+
 
 def _check_auth_rule(ast: WorkflowAST) -> list[str]:
     """

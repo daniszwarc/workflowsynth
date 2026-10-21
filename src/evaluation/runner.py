@@ -52,6 +52,7 @@ PYTEST_TIMEOUT_SECONDS = 60
 
 # --- Dataclasses --------------------------------------------------------------
 
+
 @dataclass
 class TaskResult:
     task_id: str
@@ -105,11 +106,12 @@ def _estimate_cost_usd(total_input_tokens: int, total_output_tokens: int) -> flo
 
 # --- Pytest execution helper ---------------------------------------------------
 
+
 class TestTimeoutError(Exception):
     """Raised when a task's pytest suite exceeds PYTEST_TIMEOUT_SECONDS."""
 
 
-_CONFTEST_TEMPLATE = '''
+_CONFTEST_TEMPLATE = """
 import json
 import pytest
 
@@ -135,10 +137,12 @@ def pytest_runtest_logreport(report):
 def pytest_sessionfinish(session, exitstatus):
     with open(_RESULTS_PATH, "w") as f:
         json.dump(_results, f)
-'''
+"""
 
 
-def run_pytest_suite(test_file: Path, candidate_yaml: str, timeout: int = PYTEST_TIMEOUT_SECONDS) -> dict:
+def run_pytest_suite(
+    test_file: Path, candidate_yaml: str, timeout: int = PYTEST_TIMEOUT_SECONDS
+) -> dict:
     """
     Runs a Dataset A task's pytest suite against a candidate YAML string.
 
@@ -185,6 +189,7 @@ def run_pytest_suite(test_file: Path, candidate_yaml: str, timeout: int = PYTEST
 
 # --- EvaluationRunner -----------------------------------------------------------
 
+
 class EvaluationRunner:
     """
     Runs WorkflowSynth (or an ablated variant) against Dataset A tasks.
@@ -198,8 +203,13 @@ class EvaluationRunner:
                        runs -- output must be valid YAML.
     """
 
-    def __init__(self, dataset_path: str, results_dir: str, condition: str = "full",
-                 budget_limit_usd: Optional[float] = None):
+    def __init__(
+        self,
+        dataset_path: str,
+        results_dir: str,
+        condition: str = "full",
+        budget_limit_usd: Optional[float] = None,
+    ):
         if condition not in VALID_CONDITIONS:
             raise ValueError(f"Unknown condition {condition!r}. Must be one of {VALID_CONDITIONS}.")
 
@@ -241,7 +251,9 @@ class EvaluationRunner:
 
     # -- Public API ------------------------------------------------------------
 
-    def run_dataset(self, max_workers: int = 1, task_ids: Optional[list] = None) -> EvaluationSummary:
+    def run_dataset(
+        self, max_workers: int = 1, task_ids: Optional[list] = None
+    ) -> EvaluationSummary:
         """
         Runs every task in `task_ids` (or the whole dataset if omitted),
         persisting each TaskResult immediately, then returns an
@@ -324,7 +336,9 @@ class EvaluationRunner:
                 f"Budget limit: ${self.budget_limit_usd:.2f} USD (80% reached)\n"
                 f"Progress: {tasks_done}/{tasks_total} tasks ({pct:.1f}%)\n"
                 f"Continue? [Y/n]: ",
-                file=sys.stderr, end="", flush=True,
+                file=sys.stderr,
+                end="",
+                flush=True,
             )
             answer = input().strip().lower()
             if answer == "n":
@@ -397,8 +411,7 @@ class EvaluationRunner:
         client = anthropic.Anthropic()
 
         first_attempt_payloads = [
-            (task_id, *self._build_synthesis_messages(self._read_spec(task_id)))
-            for task_id in ids
+            (task_id, *self._build_synthesis_messages(self._read_spec(task_id))) for task_id in ids
         ]
 
         batch = client.messages.batches.create(
@@ -441,7 +454,9 @@ class EvaluationRunner:
                     first_attempt_tokens=(input_tokens, output_tokens),
                 )
             else:
-                error_message = getattr(getattr(result.result, "error", None), "error_message", str(result.result.type))
+                error_message = getattr(
+                    getattr(result.result, "error", None), "error_message", str(result.result.type)
+                )
                 task_result = self._make_error_result(task_id=task_id, error_message=error_message)
 
             self._persist_result(task_result)
@@ -635,7 +650,9 @@ class EvaluationRunner:
             max_attempts=max_attempts,
         )
         llm = get_llm(attempt_number + 1)
-        return self._invoke_and_capture_usage(llm, SYSTEM_PROMPT, [{"role": "user", "content": repair_prompt}])
+        return self._invoke_and_capture_usage(
+            llm, SYSTEM_PROMPT, [{"role": "user", "content": repair_prompt}]
+        )
 
     def _verify(self, ast) -> tuple:
         """Returns (type_errors, taint_violations) according to self.condition."""
@@ -752,7 +769,9 @@ class EvaluationRunner:
 
         from collections import Counter
 
-        categories = [a["failure_category"] for a in attempt_history if a["failure_category"] != "success"]
+        categories = [
+            a["failure_category"] for a in attempt_history if a["failure_category"] != "success"
+        ]
         if not categories:
             return "test_failure"
         return Counter(categories).most_common(1)[0][0]

@@ -28,7 +28,7 @@ CONDITIONS = [
 ]
 BASELINE_CONDITION = "full"
 K_VALUES = [1, 3, 5, 10]
-INPUT_PRICE_PER_M = 5.0   # USD per 1M input tokens (matches run_full_experiment.sh check_spend)
+INPUT_PRICE_PER_M = 5.0  # USD per 1M input tokens (matches run_full_experiment.sh check_spend)
 OUTPUT_PRICE_PER_M = 25.0  # USD per 1M output tokens
 ALPHA = 0.05
 
@@ -89,7 +89,9 @@ def cohens_d_paired(a: list[float], b: list[float]) -> float:
     return statistics.mean(diffs) / sd
 
 
-def wilson_or_normal_ci_diff(p1: float, n1: int, p2: float, n2: int, alpha: float = ALPHA) -> tuple[float, float]:
+def wilson_or_normal_ci_diff(
+    p1: float, n1: int, p2: float, n2: int, alpha: float = ALPHA
+) -> tuple[float, float]:
     """Normal-approximation 95% CI on the difference of two proportions (paired-friendly enough
     for reporting pass@10 deltas; n1 == n2 in all comparisons here since tasks are the same set)."""
     z = stats.norm.ppf(1 - alpha / 2)
@@ -102,7 +104,9 @@ def build_task_map(records: list[dict]) -> dict[str, dict]:
     return {r["task_id"]: r for r in records}
 
 
-def paired_success_vectors(full_map: dict[str, dict], other_map: dict[str, dict]) -> tuple[list[int], list[int]]:
+def paired_success_vectors(
+    full_map: dict[str, dict], other_map: dict[str, dict]
+) -> tuple[list[int], list[int]]:
     common_ids = [tid for tid in full_map if tid in other_map]
     full_vec = [1 if full_map[tid].get("success") else 0 for tid in common_ids]
     other_vec = [1 if other_map[tid].get("success") else 0 for tid in common_ids]
@@ -140,13 +144,17 @@ def main() -> None:
     p("=" * 100)
     p()
     for c in CONDITIONS:
-        note = " (PARTIAL -- infra failures excluded, see below)" if c == "baseline_langchain" else ""
+        note = (
+            " (PARTIAL -- infra failures excluded, see below)" if c == "baseline_langchain" else ""
+        )
         p(f"  {c}: {len(data[c])} valid tasks{note}")
     if "baseline_langchain" in data:
         raw_count = len(glob.glob(str(RESULTS_DIR / "baseline_langchain" / "*.json")))
         excluded = raw_count - len(data["baseline_langchain"])
-        p(f"    -> baseline_langchain: {raw_count} files on disk, {excluded} excluded "
-          f"(Anthropic API billing failure: '{INFRA_ERROR_SIGNATURE}'), {len(data['baseline_langchain'])} valid")
+        p(
+            f"    -> baseline_langchain: {raw_count} files on disk, {excluded} excluded "
+            f"(Anthropic API billing failure: '{INFRA_ERROR_SIGNATURE}'), {len(data['baseline_langchain'])} valid"
+        )
     p()
 
     # ------------------------------------------------------------------
@@ -175,8 +183,10 @@ def main() -> None:
             "security_pass_at_10": sp10,
             "n_security_tasks": n_sec,
         }
-        p(f"{c:<22}{len(recs):>5}{fmt_pct(pk[1]):>10}{fmt_pct(pk[3]):>10}{fmt_pct(pk[5]):>10}"
-          f"{fmt_pct(pk[10]):>10}{ma:>16.2f}{fmt_pct(sp10):>14}{n_sec:>7}")
+        p(
+            f"{c:<22}{len(recs):>5}{fmt_pct(pk[1]):>10}{fmt_pct(pk[3]):>10}{fmt_pct(pk[5]):>10}"
+            f"{fmt_pct(pk[10]):>10}{ma:>16.2f}{fmt_pct(sp10):>14}{n_sec:>7}"
+        )
     p()
 
     # ------------------------------------------------------------------
@@ -195,7 +205,9 @@ def main() -> None:
     for c in ["no_repair", "no_verify", "no_taint"]:
         delta = main_results[c]["pass_at_10"] - full_pass10
         ablation[c] = {"pass_at_10": main_results[c]["pass_at_10"], "delta_vs_full_pp": delta * 100}
-        p(f"  {c:<15} pass@10={fmt_pct(main_results[c]['pass_at_10']):>8}  delta vs full: {fmt_pp(delta):>10}")
+        p(
+            f"  {c:<15} pass@10={fmt_pct(main_results[c]['pass_at_10']):>8}  delta vs full: {fmt_pp(delta):>10}"
+        )
         p(f"    -> {ablation_notes[c]}")
     p()
 
@@ -218,8 +230,14 @@ def main() -> None:
             "n_tasks": main_results[c]["n_tasks"],
             "partial": c == "baseline_langchain",
         }
-        partial_tag = f" [PARTIAL: {main_results[c]['n_tasks']}/60 valid]" if c == "baseline_langchain" else ""
-        p(f"  {c:<20} pass@10={fmt_pct(main_results[c]['pass_at_10']):>8}  delta vs full: {fmt_pp(delta):>10}{partial_tag}")
+        partial_tag = (
+            f" [PARTIAL: {main_results[c]['n_tasks']}/60 valid]"
+            if c == "baseline_langchain"
+            else ""
+        )
+        p(
+            f"  {c:<20} pass@10={fmt_pct(main_results[c]['pass_at_10']):>8}  delta vs full: {fmt_pp(delta):>10}{partial_tag}"
+        )
         p(f"    -> {baseline_notes[c]}")
     p()
 
@@ -282,7 +300,9 @@ def main() -> None:
 
     avg_attempts_success = mean_attempts_successful(full_recs)
     failed_recs = [r for r in full_recs if not r.get("success")]
-    avg_attempts_failed = statistics.mean([r["attempts_used"] for r in failed_recs]) if failed_recs else 0.0
+    avg_attempts_failed = (
+        statistics.mean([r["attempts_used"] for r in failed_recs]) if failed_recs else 0.0
+    )
     p()
     p(f"  Average attempts before success (successful tasks): {avg_attempts_success:.2f}")
     p(f"  Average attempts for failed tasks:                  {avg_attempts_failed:.2f}")
@@ -350,11 +370,21 @@ def main() -> None:
         grand_in += total_in
         grand_out += total_out
         grand_cost += cost
-        note = "  (known token tracking gap -- cost not billed/tracked)" if c == "baseline_langchain" else ""
+        note = (
+            "  (known token tracking gap -- cost not billed/tracked)"
+            if c == "baseline_langchain"
+            else ""
+        )
         p(f"  {c:<22} in={total_in:>10,}  out={total_out:>10,}  cost=${cost:>8.4f}{note}")
     p("-" * 100)
-    p(f"  {'GRAND TOTAL (tracked)':<22} in={grand_in:>10,}  out={grand_out:>10,}  cost=${grand_cost:>8.4f}")
-    cost_summary["grand_total"] = {"input_tokens": grand_in, "output_tokens": grand_out, "cost_usd": grand_cost}
+    p(
+        f"  {'GRAND TOTAL (tracked)':<22} in={grand_in:>10,}  out={grand_out:>10,}  cost=${grand_cost:>8.4f}"
+    )
+    cost_summary["grand_total"] = {
+        "input_tokens": grand_in,
+        "output_tokens": grand_out,
+        "cost_usd": grand_cost,
+    }
     p()
 
     # ------------------------------------------------------------------
@@ -371,7 +401,7 @@ def main() -> None:
         "cost_summary": cost_summary,
         "notes": {
             "baseline_langchain": f"37/60 valid tasks; {23} excluded due to Anthropic API billing "
-                                   f"failure ('{INFRA_ERROR_SIGNATURE}'), not real synthesis attempts.",
+            f"failure ('{INFRA_ERROR_SIGNATURE}'), not real synthesis attempts.",
         },
     }
     out_path = RESULTS_DIR / "analysis_summary.json"

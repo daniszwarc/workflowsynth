@@ -29,35 +29,33 @@ from ..verification.evidence_report import EvidenceReport
 
 N8N_NODE_TYPES: dict[str, str] = {
     # Data Operations
-    "fetch_api":       "n8n-nodes-base.httpRequest",
-    "filter_records":  "n8n-nodes-base.filter",
-    "transform_json":  "n8n-nodes-base.set",
+    "fetch_api": "n8n-nodes-base.httpRequest",
+    "filter_records": "n8n-nodes-base.filter",
+    "transform_json": "n8n-nodes-base.set",
     "validate_schema": "n8n-nodes-base.itemLists",
-    "aggregate_data":  "n8n-nodes-base.summarize",
-    "merge_datasets":  "n8n-nodes-base.merge",
-    "extract_field":   "n8n-nodes-base.set",
-    "format_output":   "n8n-nodes-base.set",
-
+    "aggregate_data": "n8n-nodes-base.summarize",
+    "merge_datasets": "n8n-nodes-base.merge",
+    "extract_field": "n8n-nodes-base.set",
+    "format_output": "n8n-nodes-base.set",
     # Control Flow
-    "route_to_step":      "n8n-nodes-base.switch",
-    "apply_rule":         "n8n-nodes-base.if",
-    "loop_records":       "n8n-nodes-base.splitInBatches",
-    "parallel_execute":   "n8n-nodes-base.splitInBatches",
+    "route_to_step": "n8n-nodes-base.switch",
+    "apply_rule": "n8n-nodes-base.if",
+    "loop_records": "n8n-nodes-base.splitInBatches",
+    "parallel_execute": "n8n-nodes-base.splitInBatches",
     "wait_for_condition": "n8n-nodes-base.wait",
-    "handle_error":       "n8n-nodes-base.stopAndError",
-    "retry_step":         "n8n-nodes-base.httpRequest",
+    "handle_error": "n8n-nodes-base.stopAndError",
+    "retry_step": "n8n-nodes-base.httpRequest",
     "terminate_workflow": "n8n-nodes-base.noOp",
-
     # Integration Operations
-    "send_to_queue":     "n8n-nodes-base.rabbitmq",
-    "log_audit":         "n8n-nodes-base.set",
-    "notify_user":       "n8n-nodes-base.emailSend",
-    "call_webhook":      "n8n-nodes-base.httpRequest",
-    "read_database":     "n8n-nodes-base.postgres",
-    "write_database":    "n8n-nodes-base.postgres",
+    "send_to_queue": "n8n-nodes-base.rabbitmq",
+    "log_audit": "n8n-nodes-base.set",
+    "notify_user": "n8n-nodes-base.emailSend",
+    "call_webhook": "n8n-nodes-base.httpRequest",
+    "read_database": "n8n-nodes-base.postgres",
+    "write_database": "n8n-nodes-base.postgres",
     "authenticate_user": "n8n-nodes-base.httpRequest",
-    "encrypt_field":     "n8n-nodes-base.crypto",
-    "call_subworkflow":  "n8n-nodes-base.executeWorkflow",
+    "encrypt_field": "n8n-nodes-base.crypto",
+    "call_subworkflow": "n8n-nodes-base.executeWorkflow",
 }
 
 # Grid layout constants for the n8n visual editor
@@ -97,15 +95,13 @@ def to_n8n_json(ast: WorkflowAST, evidence_report: EvidenceReport) -> dict:
         # would need manual adjustment in the n8n editor)
         if i < len(ast.steps) - 1:
             next_step = ast.steps[i + 1]
-            connections[step.id] = {
-                "main": [[{"node": next_step.id, "type": "main", "index": 0}]]
-            }
+            connections[step.id] = {"main": [[{"node": next_step.id, "type": "main", "index": 0}]]}
 
     return {
         "name": ast.workflow_id,
         "nodes": nodes,
         "connections": connections,
-        "active": False,   # always False -- engineer must review before activating
+        "active": False,  # always False -- engineer must review before activating
         "settings": {
             "executionOrder": "v1",
         },

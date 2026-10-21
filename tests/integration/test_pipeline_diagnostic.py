@@ -17,7 +17,7 @@ load_dotenv()
 
 pytestmark = pytest.mark.skipif(
     not os.getenv("ANTHROPIC_API_KEY"),
-    reason="ANTHROPIC_API_KEY not set -- skipping integration tests"
+    reason="ANTHROPIC_API_KEY not set -- skipping integration tests",
 )
 
 from workflowsynth.synthesis.pipeline import build_pipeline, run_synthesis
@@ -54,25 +54,25 @@ def _print_state(spec_name: str, state: dict):
     print(f"failure_reason       : {state['failure_reason']}")
     print()
     print("--- llm_sketch (last attempt) ---")
-    print(state['llm_sketch'])
+    print(state["llm_sketch"])
     print()
     print("--- dsl_candidate ---")
-    print(json.dumps(state['dsl_candidate'], indent=2))
+    print(json.dumps(state["dsl_candidate"], indent=2))
     print()
     print("--- test_results ---")
-    print(json.dumps(state['test_results'], indent=2))
+    print(json.dumps(state["test_results"], indent=2))
     print()
     print("--- attempt_history ---")
-    if not state['attempt_history']:
+    if not state["attempt_history"]:
         print("  (empty -- succeeded on first attempt)")
     else:
-        for record in state['attempt_history']:
+        for record in state["attempt_history"]:
             print(f"  Attempt {record['attempt_number']}:")
             print(f"    failure_category : {record['failure_category']}")
             print(f"    type_errors      : {record['dsl_type_errors']}")
             print(f"    taint_violations : {record['dsl_taint_violations']}")
             print(f"    yaml_sketch      :")
-            for line in record['llm_sketch'].splitlines():
+            for line in record["llm_sketch"].splitlines():
                 print(f"      {line}")
     print(sep)
 

@@ -17,7 +17,12 @@ from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
 
-from workflowsynth.evaluation.runner import EvaluationRunner, VALID_CONDITIONS, EvaluationSummary, _estimate_cost_usd
+from workflowsynth.evaluation.runner import (
+    EvaluationRunner,
+    VALID_CONDITIONS,
+    EvaluationSummary,
+    _estimate_cost_usd,
+)
 from workflowsynth.evaluation.baselines import PureLLMBaseline, LangChainAgentBaseline
 from workflowsynth.evaluation.metrics import (
     summary_table,
@@ -45,7 +50,9 @@ def parse_args() -> argparse.Namespace:
         choices=ALL_CONDITIONS,
         help="Ablation condition or baseline to run.",
     )
-    parser.add_argument("--dataset", required=True, help="Path to the dataset (e.g. datasets/dataset_a).")
+    parser.add_argument(
+        "--dataset", required=True, help="Path to the dataset (e.g. datasets/dataset_a)."
+    )
     parser.add_argument("--results", required=True, help="Directory to write results into.")
     parser.add_argument(
         "--tasks",
@@ -94,13 +101,17 @@ def _build_summary(condition: str, results: list) -> EvaluationSummary:
     )
 
 
-def _run_baseline(condition: str, dataset: str, results_dir: str, task_ids, budget_limit_usd) -> EvaluationSummary:
+def _run_baseline(
+    condition: str, dataset: str, results_dir: str, task_ids, budget_limit_usd
+) -> EvaluationSummary:
     """
     Runs a baseline (no CLI-level batching or repair loop -- single attempt
     per task) with the same 80%%-of-budget warn-and-prompt behavior as
     EvaluationRunner.
     """
-    baseline = _BASELINE_CLASSES[condition](dataset_path=dataset, results_dir=results_dir, condition=condition)
+    baseline = _BASELINE_CLASSES[condition](
+        dataset_path=dataset, results_dir=results_dir, condition=condition
+    )
     ids = task_ids or list(baseline.index.keys())
 
     results = []
@@ -121,7 +132,9 @@ def _run_baseline(condition: str, dataset: str, results_dir: str, task_ids, budg
                 f"Budget limit: ${budget_limit_usd:.2f} USD (80% reached)\n"
                 f"Progress: {len(results)}/{len(ids)} tasks ({pct:.1f}%)\n"
                 f"Continue? [Y/n]: ",
-                file=sys.stderr, end="", flush=True,
+                file=sys.stderr,
+                end="",
+                flush=True,
             )
             answer = input().strip().lower()
             if answer == "n":

@@ -53,6 +53,7 @@ def parse_workflow(yaml_string: str) -> dict:
 
 # --- Step 1: YAML parsing ----------------------------------------------------
 
+
 def _parse_yaml(yaml_string: str) -> dict:
     """
     Converts a YAML string to a Python dict.
@@ -63,21 +64,22 @@ def _parse_yaml(yaml_string: str) -> dict:
     except yaml.YAMLError as e:
         return {
             "ok": False,
-            "errors": [f"YAML syntax error: {str(e)}. "
-                       "The workflow must be valid YAML."]
+            "errors": [f"YAML syntax error: {str(e)}. The workflow must be valid YAML."],
         }
 
     if not isinstance(data, dict):
         return {
             "ok": False,
-            "errors": ["The YAML must parse to a dict at the top level. "
-                       "Expected keys: workflow_id, steps."]
+            "errors": [
+                "The YAML must parse to a dict at the top level. Expected keys: workflow_id, steps."
+            ],
         }
 
     return {"ok": True, "data": data}
 
 
 # --- Step 2: structure validation --------------------------------------------
+
 
 def _validate_structure(raw: dict) -> list[str]:
     """
@@ -127,33 +129,34 @@ def _validate_step(step: dict, index: int, seen_ids: set[str]) -> list[str]:
     elif not isinstance(step["id"], str) or not step["id"].strip():
         errors.append(f"{prefix}: 'id' must be a non-empty string.")
     elif step["id"] in seen_ids:
-        errors.append(f"{prefix}: duplicate step id '{step['id']}'. "
-                      "Step IDs must be unique within the workflow.")
+        errors.append(
+            f"{prefix}: duplicate step id '{step['id']}'. "
+            "Step IDs must be unique within the workflow."
+        )
     else:
         seen_ids.add(step["id"])
 
     # op: required, string (vocabulary checked in _validate_vocabulary)
     if "op" not in step:
-        errors.append(f"{prefix} (id='{step.get('id', '?')}'): "
-                      "missing required field 'op'.")
+        errors.append(f"{prefix} (id='{step.get('id', '?')}'): missing required field 'op'.")
     elif not isinstance(step["op"], str):
-        errors.append(f"{prefix} (id='{step.get('id', '?')}'): "
-                      "'op' must be a string.")
+        errors.append(f"{prefix} (id='{step.get('id', '?')}'): 'op' must be a string.")
 
     # params: optional, but must be a dict if present
     if "params" in step and not isinstance(step["params"], dict):
-        errors.append(f"{prefix} (id='{step.get('id', '?')}'): "
-                      "'params' must be a dict if present.")
+        errors.append(f"{prefix} (id='{step.get('id', '?')}'): 'params' must be a dict if present.")
 
     # output: optional, but must be a string if present
     if "output" in step and not isinstance(step["output"], str):
-        errors.append(f"{prefix} (id='{step.get('id', '?')}'): "
-                      "'output' must be a string if present.")
+        errors.append(
+            f"{prefix} (id='{step.get('id', '?')}'): 'output' must be a string if present."
+        )
 
     return errors
 
 
 # --- Step 3: vocabulary validation -------------------------------------------
+
 
 def _validate_vocabulary(raw: dict) -> list[str]:
     """
@@ -174,6 +177,7 @@ def _validate_vocabulary(raw: dict) -> list[str]:
 
 # --- Step 4: AST construction ------------------------------------------------
 
+
 def _build_ast(raw: dict) -> WorkflowAST:
     """
     Constructs the WorkflowAST from the validated dict.
@@ -181,12 +185,14 @@ def _build_ast(raw: dict) -> WorkflowAST:
     """
     steps = []
     for step_dict in raw["steps"]:
-        steps.append(WorkflowStep(
-            id=step_dict["id"],
-            op=step_dict["op"],
-            params=step_dict.get("params", {}),
-            output=step_dict.get("output"),
-        ))
+        steps.append(
+            WorkflowStep(
+                id=step_dict["id"],
+                op=step_dict["op"],
+                params=step_dict.get("params", {}),
+                output=step_dict.get("output"),
+            )
+        )
 
     return WorkflowAST(
         workflow_id=raw["workflow_id"],

@@ -11,13 +11,12 @@ from typing import TypedDict, Optional
 
 
 class WorkflowSynthState(TypedDict):
-
     # Input -- immutable after initialisation
     natural_language_spec: str
 
     # Synthesis -- current attempt
-    llm_sketch: str                     # raw YAML string from LLM
-    dsl_candidate: dict                 # parsed AST as dict (None if parse failed)
+    llm_sketch: str  # raw YAML string from LLM
+    dsl_candidate: dict  # parsed AST as dict (None if parse failed)
 
     # Verification -- Stage 1 (DSL level)
     dsl_verification_passed: bool
@@ -29,8 +28,8 @@ class WorkflowSynthState(TypedDict):
     output_errors: list[str]
 
     # Loop control
-    repair_attempt: int                 # 0 on first attempt; increments on each failure
-    max_attempts: int                   # Always 10 -- the pass@10 definition
+    repair_attempt: int  # 0 on first attempt; increments on each failure
+    max_attempts: int  # Always 10 -- the pass@10 definition
 
     # Per-attempt history -- append-only, never overwritten
     # Each record: attempt_number, llm_sketch, type_errors, taint_violations,
@@ -38,7 +37,7 @@ class WorkflowSynthState(TypedDict):
     attempt_history: list[dict]
 
     # Test execution results
-    test_results: dict                  # test_id -> True (pass) / False (fail)
+    test_results: dict  # test_id -> True (pass) / False (fail)
 
     # Final outputs (None until synthesis succeeds)
     final_n8n_json: Optional[dict]

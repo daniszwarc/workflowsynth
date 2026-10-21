@@ -48,6 +48,7 @@ def make_result(**overrides) -> TaskResult:
 
 # --- pass_at_k ----------------------------------------------------------------
 
+
 def test_pass_at_k_all_pass():
     results = [make_result(success=True, attempts_used=1) for _ in range(5)]
     assert pass_at_k(results, 1) == 1.0
@@ -85,6 +86,7 @@ def test_pass_at_k_empty_results():
 
 # --- mean_attempts --------------------------------------------------------------
 
+
 def test_mean_attempts_only_over_successes():
     results = [
         make_result(task_id="a", success=True, attempts_used=2),
@@ -100,6 +102,7 @@ def test_mean_attempts_no_successes():
 
 
 # --- security_pass_rate ----------------------------------------------------------
+
 
 def test_security_pass_rate_filters_non_security_tasks():
     results = [
@@ -117,6 +120,7 @@ def test_security_pass_rate_no_security_tasks():
 
 # --- by_complexity ----------------------------------------------------------------
 
+
 def test_by_complexity_breakdown():
     results = [
         make_result(task_id="a", complexity=1, success=True, attempts_used=1),
@@ -133,6 +137,7 @@ def test_by_complexity_empty_results():
 
 # --- by_domain ----------------------------------------------------------------
 
+
 def test_by_domain_breakdown():
     results = [
         make_result(task_id="a", domain="publishing", success=True, attempts_used=1),
@@ -143,6 +148,7 @@ def test_by_domain_breakdown():
 
 
 # --- summary_table ----------------------------------------------------------------
+
 
 def test_summary_table_contains_key_metrics():
     results = [make_result()]
@@ -158,12 +164,18 @@ def test_summary_table_empty_results():
 
 # --- TaskResult JSON round-trip ------------------------------------------------
 
+
 def test_task_result_json_round_trip():
     from dataclasses import asdict
 
     result = make_result(
         attempt_history=[
-            {"attempt_number": 0, "dsl_type_errors": [], "dsl_taint_violations": [], "success": True}
+            {
+                "attempt_number": 0,
+                "dsl_type_errors": [],
+                "dsl_taint_violations": [],
+                "success": True,
+            }
         ]
     )
     serialised = json.dumps(asdict(result))
@@ -183,6 +195,7 @@ def test_task_result_json_round_trip():
 
 
 # --- EvaluationRunner index loading ------------------------------------------------
+
 
 @pytest.fixture
 def fake_dataset(tmp_path):
@@ -218,7 +231,9 @@ def test_evaluation_runner_loads_index_yaml(fake_dataset, tmp_path):
 
 def test_evaluation_runner_creates_condition_results_dir(fake_dataset, tmp_path):
     results_dir = tmp_path / "results"
-    EvaluationRunner(dataset_path=str(fake_dataset), results_dir=str(results_dir), condition="no_taint")
+    EvaluationRunner(
+        dataset_path=str(fake_dataset), results_dir=str(results_dir), condition="no_taint"
+    )
     assert (results_dir / "no_taint").is_dir()
 
 
@@ -233,6 +248,7 @@ def test_evaluation_runner_rejects_unknown_condition(fake_dataset, tmp_path):
 
 # --- run_dataset per-task exception isolation --------------------------------
 
+
 def test_run_dataset_continues_past_task_that_raises(fake_dataset, tmp_path, monkeypatch):
     runner = EvaluationRunner(
         dataset_path=str(fake_dataset),
@@ -243,7 +259,9 @@ def test_run_dataset_continues_past_task_that_raises(fake_dataset, tmp_path, mon
     def fake_run_single(task_id):
         if task_id == "wf_x_001":
             raise RuntimeError("boom")
-        return make_result(task_id=task_id, domain="clinical_ai", complexity=4, has_security_constraint=True)
+        return make_result(
+            task_id=task_id, domain="clinical_ai", complexity=4, has_security_constraint=True
+        )
 
     monkeypatch.setattr(runner, "run_single", fake_run_single)
 
@@ -252,7 +270,9 @@ def test_run_dataset_continues_past_task_that_raises(fake_dataset, tmp_path, mon
     assert summary.total_tasks == 2
 
 
-def test_run_dataset_failed_task_has_error_category_and_message(fake_dataset, tmp_path, monkeypatch):
+def test_run_dataset_failed_task_has_error_category_and_message(
+    fake_dataset, tmp_path, monkeypatch
+):
     runner = EvaluationRunner(
         dataset_path=str(fake_dataset),
         results_dir=str(tmp_path / "results"),
@@ -303,6 +323,7 @@ def test_run_dataset_subsequent_tasks_still_complete_normally(fake_dataset, tmp_
 
 # --- LangChainAgentBaseline ---------------------------------------------------
 
+
 @pytest.fixture
 def fake_task_dataset(tmp_path):
     """A fake dataset with one real task directory (spec.md + always-passing test)."""
@@ -328,7 +349,9 @@ def fake_task_dataset(tmp_path):
     return dataset_dir
 
 
-def test_langchain_agent_baseline_returns_task_result_on_success(fake_task_dataset, tmp_path, monkeypatch):
+def test_langchain_agent_baseline_returns_task_result_on_success(
+    fake_task_dataset, tmp_path, monkeypatch
+):
     baseline = LangChainAgentBaseline(
         dataset_path=str(fake_task_dataset),
         results_dir=str(tmp_path / "results"),
@@ -346,7 +369,9 @@ def test_langchain_agent_baseline_returns_task_result_on_success(fake_task_datas
     assert result.attempts_used == 1
 
 
-def test_langchain_agent_baseline_agent_error_on_invalid_yaml(fake_task_dataset, tmp_path, monkeypatch):
+def test_langchain_agent_baseline_agent_error_on_invalid_yaml(
+    fake_task_dataset, tmp_path, monkeypatch
+):
     baseline = LangChainAgentBaseline(
         dataset_path=str(fake_task_dataset),
         results_dir=str(tmp_path / "results"),
@@ -379,7 +404,9 @@ def test_langchain_agent_baseline_tools_are_callable(fake_task_dataset, tmp_path
     names = {t.name for t in tools}
     assert names == {"search_primitives", "validate_yaml", "read_spec"}
 
-    search_result = next(t for t in tools if t.name == "search_primitives").invoke({"query": "database"})
+    search_result = next(t for t in tools if t.name == "search_primitives").invoke(
+        {"query": "database"}
+    )
     assert isinstance(search_result, str)
     assert "read_database" in search_result and "write_database" in search_result
 
@@ -395,12 +422,15 @@ def test_langchain_agent_baseline_tools_are_callable(fake_task_dataset, tmp_path
     assert isinstance(invalid_validate_result, str)
     assert invalid_validate_result != "valid"
 
-    spec_result = next(t for t in tools if t.name == "read_spec").invoke({"task_id": "wf_agent_test_001"})
+    spec_result = next(t for t in tools if t.name == "read_spec").invoke(
+        {"task_id": "wf_agent_test_001"}
+    )
     assert isinstance(spec_result, str)
     assert "Trivial Task" in spec_result
 
 
 # --- Token usage tracking (Session 09) -----------------------------------------
+
 
 def test_token_usage_in_attempt_record(fake_task_dataset, tmp_path, monkeypatch):
     runner = EvaluationRunner(

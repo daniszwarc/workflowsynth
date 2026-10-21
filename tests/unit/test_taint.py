@@ -17,6 +17,7 @@ def _parse(yaml_string: str):
 
 # --- No violations (safe workflows) -----------------------------------------
 
+
 def test_clean_workflow_no_sources():
     """A workflow with no sources has no tainted data -- no violations."""
     yaml = """
@@ -149,6 +150,7 @@ steps:
 
 
 # --- Violations (unsafe workflows) ------------------------------------------
+
 
 def test_fetch_direct_to_write_database():
     """

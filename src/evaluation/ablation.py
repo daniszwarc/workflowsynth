@@ -19,7 +19,9 @@ def run_ablation(
     condition: one of "full", "no_taint", "no_repair", "no_verify".
     """
     if condition not in VALID_CONDITIONS:
-        raise ValueError(f"Unknown ablation condition {condition!r}. Must be one of {VALID_CONDITIONS}.")
+        raise ValueError(
+            f"Unknown ablation condition {condition!r}. Must be one of {VALID_CONDITIONS}."
+        )
 
     runner = EvaluationRunner(dataset_path, results_dir, condition=condition)
     return runner.run_dataset(task_ids=task_ids)

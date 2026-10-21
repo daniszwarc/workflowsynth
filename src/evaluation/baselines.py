@@ -187,7 +187,9 @@ class LangChainAgentBaseline:
     PureLLMBaseline.
     """
 
-    def __init__(self, dataset_path: str, results_dir: str, condition: str = "langchain_agent_baseline"):
+    def __init__(
+        self, dataset_path: str, results_dir: str, condition: str = "langchain_agent_baseline"
+    ):
         self.dataset_path = Path(dataset_path)
         self.results_dir = Path(results_dir)
         self.condition = condition
@@ -238,9 +240,9 @@ class LangChainAgentBaseline:
         """Runs the agent once and returns its final answer's raw text."""
         llm = get_llm(0)  # same model as WorkflowSynth -- claude-opus-4-6
         agent = create_agent(model=llm, tools=self.make_tools(), system_prompt=_AGENT_SYSTEM_PROMPT)
-        result = agent.invoke({
-            "messages": [HumanMessage(content=f"task_id: {task_id}\n\n{spec_text}")]
-        })
+        result = agent.invoke(
+            {"messages": [HumanMessage(content=f"task_id: {task_id}\n\n{spec_text}")]}
+        )
         for message in reversed(result["messages"]):
             if isinstance(message, AIMessage):
                 text = _extract_text(message.content)

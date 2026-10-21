@@ -15,7 +15,7 @@ load_dotenv()
 # Skip all tests in this file if API keys are not available
 pytestmark = pytest.mark.skipif(
     not os.getenv("ANTHROPIC_API_KEY"),
-    reason="ANTHROPIC_API_KEY not set -- skipping integration tests"
+    reason="ANTHROPIC_API_KEY not set -- skipping integration tests",
 )
 
 from workflowsynth.synthesis.pipeline import build_pipeline, run_synthesis

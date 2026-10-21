@@ -68,7 +68,7 @@ def build_pipeline():
             "pass": "translate_output",
             "repair": "repair_with_llm",
             "record_failure": "record_failure",
-        }
+        },
     )
 
     return graph.compile()

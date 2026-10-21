@@ -41,14 +41,13 @@ def _get_claude() -> ChatAnthropic:
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
         raise EnvironmentError(
-            "ANTHROPIC_API_KEY not set. "
-            "Copy .env.example to .env and add your key."
+            "ANTHROPIC_API_KEY not set. Copy .env.example to .env and add your key."
         )
     return ChatAnthropic(
         model="claude-opus-4-6",
         api_key=api_key,
         max_tokens=2048,
-        temperature=0.2,   # low temperature for deterministic DSL generation
+        temperature=0.2,  # low temperature for deterministic DSL generation
     )
 
 
@@ -57,8 +56,7 @@ def _get_gpt() -> ChatOpenAI:
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         raise EnvironmentError(
-            "OPENAI_API_KEY not set. "
-            "Copy .env.example to .env and add your key."
+            "OPENAI_API_KEY not set. Copy .env.example to .env and add your key."
         )
     return ChatOpenAI(
         model="gpt-5.4-2026-03-05",

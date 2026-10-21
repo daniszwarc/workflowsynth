@@ -37,6 +37,7 @@ class EvidenceReport:
         raw_taint_violations: Taint violations from the final passing attempt
                              (should be empty for a verified report).
     """
+
     workflow_id: str
     generated_at: str
     synthesis_attempts: int
@@ -130,6 +131,7 @@ def generate_evidence_report(
 
 # --- Section builders --------------------------------------------------------
 
+
 def _build_verified_claims(ast: WorkflowAST, test_results: dict) -> list[str]:
     """
     Builds the list of verified claims for this specific workflow.
@@ -158,9 +160,7 @@ def _build_verified_claims(ast: WorkflowAST, test_results: dict) -> list[str]:
     )
 
     # Authentication precedence
-    has_write_or_webhook = any(
-        s.op in {"write_database", "call_webhook"} for s in ast.steps
-    )
+    has_write_or_webhook = any(s.op in {"write_database", "call_webhook"} for s in ast.steps)
     if has_write_or_webhook:
         claims.append(
             "Authentication precedence: every write_database and call_webhook "
@@ -168,7 +168,11 @@ def _build_verified_claims(ast: WorkflowAST, test_results: dict) -> list[str]:
         )
 
     # Taint safety
-    source_ops = [s.op for s in ast.steps if s.op in {"fetch_api", "read_database", "call_webhook", "call_subworkflow"}]
+    source_ops = [
+        s.op
+        for s in ast.steps
+        if s.op in {"fetch_api", "read_database", "call_webhook", "call_subworkflow"}
+    ]
     if source_ops:
         claims.append(
             f"Taint safety: data from external sources "
@@ -180,9 +184,7 @@ def _build_verified_claims(ast: WorkflowAST, test_results: dict) -> list[str]:
     if test_results:
         passed = sum(1 for v in test_results.values() if v)
         total = len(test_results)
-        claims.append(
-            f"Test suite: {passed}/{total} tests pass against this DSL candidate."
-        )
+        claims.append(f"Test suite: {passed}/{total} tests pass against this DSL candidate.")
 
     return claims
 
@@ -202,9 +204,7 @@ def _build_not_checked(ast: WorkflowAST) -> list[str]:
     )
 
     # If there are external calls
-    has_external = any(
-        s.op in {"fetch_api", "call_webhook"} for s in ast.steps
-    )
+    has_external = any(s.op in {"fetch_api", "call_webhook"} for s in ast.steps)
     if has_external:
         not_checked.append(
             "Rate limits and quotas: external API calls are not checked for "
@@ -260,9 +260,7 @@ def _build_engineer_responsibilities(ast: WorkflowAST) -> list[str]:
         )
 
     # If there are external calls
-    has_external = any(
-        s.op in {"fetch_api", "call_webhook"} for s in ast.steps
-    )
+    has_external = any(s.op in {"fetch_api", "call_webhook"} for s in ast.steps)
     if has_external:
         responsibilities.append(
             "Confirm that all external endpoints are authorised and that "

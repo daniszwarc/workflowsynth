@@ -55,6 +55,7 @@ steps:
 
 # --- n8n adapter -------------------------------------------------------------
 
+
 def test_n8n_output_has_required_top_level_keys():
     ast = _parse(FULL_YAML)
     report = _report(ast)
@@ -64,15 +65,18 @@ def test_n8n_output_has_required_top_level_keys():
     assert "connections" in result
     assert "meta" in result
 
+
 def test_n8n_workflow_name_matches_workflow_id():
     ast = _parse(FULL_YAML)
     result = to_n8n_json(ast, _report(ast))
     assert result["name"] == "invoice_approval"
 
+
 def test_n8n_has_one_node_per_step():
     ast = _parse(FULL_YAML)
     result = to_n8n_json(ast, _report(ast))
     assert len(result["nodes"]) == len(ast.steps)
+
 
 def test_n8n_nodes_have_correct_ids():
     ast = _parse(FULL_YAML)
@@ -81,12 +85,14 @@ def test_n8n_nodes_have_correct_ids():
     step_ids = [s.id for s in ast.steps]
     assert node_ids == step_ids
 
+
 def test_n8n_nodes_have_valid_type():
     ast = _parse(FULL_YAML)
     result = to_n8n_json(ast, _report(ast))
     for node in result["nodes"]:
         assert "type" in node
         assert node["type"].startswith("n8n-nodes-base.")
+
 
 def test_n8n_connections_link_sequential_steps():
     ast = _parse(FULL_YAML)
@@ -98,17 +104,20 @@ def test_n8n_connections_link_sequential_steps():
     connection = result["connections"][first_step_id]["main"][0][0]
     assert connection["node"] == second_step_id
 
+
 def test_n8n_last_step_has_no_connection():
     ast = _parse(FULL_YAML)
     result = to_n8n_json(ast, _report(ast))
     last_step_id = ast.steps[-1].id
     assert last_step_id not in result["connections"]
 
+
 def test_n8n_active_is_false():
     """Workflow must not be active by default -- engineer must review first."""
     ast = _parse(FULL_YAML)
     result = to_n8n_json(ast, _report(ast))
     assert result["active"] is False
+
 
 def test_n8n_meta_contains_evidence_report():
     ast = _parse(FULL_YAML)
@@ -120,8 +129,10 @@ def test_n8n_meta_contains_evidence_report():
     assert "not_checked" in er
     assert "engineer_responsibilities" in er
 
+
 def test_n8n_json_string_is_valid_json():
     import json
+
     ast = _parse(FULL_YAML)
     json_string = to_n8n_json_string(ast, _report(ast))
     parsed = json.loads(json_string)
@@ -130,10 +141,12 @@ def test_n8n_json_string_is_valid_json():
 
 # --- LangChain adapter -------------------------------------------------------
 
+
 def test_langchain_output_is_string():
     ast = _parse(FULL_YAML)
     result = to_langchain_python(ast, _report(ast))
     assert isinstance(result, str)
+
 
 def test_langchain_contains_evidence_report_docstring():
     ast = _parse(FULL_YAML)
@@ -143,10 +156,12 @@ def test_langchain_contains_evidence_report_docstring():
     assert "NOT CHECKED:" in result
     assert "ENGINEER RESPONSIBILITIES" in result
 
+
 def test_langchain_contains_run_workflow_function():
     ast = _parse(FULL_YAML)
     result = to_langchain_python(ast, _report(ast))
     assert "def run_invoice_approval" in result
+
 
 def test_langchain_contains_all_step_ids():
     ast = _parse(FULL_YAML)
@@ -154,26 +169,31 @@ def test_langchain_contains_all_step_ids():
     for step in ast.steps:
         assert step.id in result
 
+
 def test_langchain_contains_all_ops():
     ast = _parse(FULL_YAML)
     result = to_langchain_python(ast, _report(ast))
     for step in ast.steps:
         assert step.op in result
 
+
 def test_langchain_imports_requests_when_fetch_api():
     ast = _parse(FULL_YAML)
     result = to_langchain_python(ast, _report(ast))
     assert "import requests" in result
+
 
 def test_langchain_imports_sqlalchemy_when_database_ops():
     ast = _parse(FULL_YAML)
     result = to_langchain_python(ast, _report(ast))
     assert "sqlalchemy" in result
 
+
 def test_langchain_imports_pydantic_when_validate_schema():
     ast = _parse(FULL_YAML)
     result = to_langchain_python(ast, _report(ast))
     assert "pydantic" in result
+
 
 def test_langchain_workflow_id_in_function_name():
     ast = _parse(FULL_YAML)

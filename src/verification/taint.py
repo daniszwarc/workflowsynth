@@ -52,6 +52,7 @@ TAINT_SANITISERS: set[str] = {
 
 # --- TaintViolation dataclass ------------------------------------------------
 
+
 @dataclass
 class TaintViolation:
     """
@@ -64,6 +65,7 @@ class TaintViolation:
         taint_origin:   ID of the source step that introduced the taint.
         message:        Human-readable error for the LLM repair prompt.
     """
+
     step_id: str
     op: str
     tainted_var: str
@@ -72,6 +74,7 @@ class TaintViolation:
 
 
 # --- Main entry point --------------------------------------------------------
+
 
 def taint_analysis(ast: WorkflowAST) -> list[TaintViolation]:
     """
@@ -97,6 +100,7 @@ def taint_analysis(ast: WorkflowAST) -> list[TaintViolation]:
 
 # --- Step processing ---------------------------------------------------------
 
+
 def _process_step(
     step: WorkflowStep,
     tainted_vars: dict[str, str],
@@ -109,16 +113,18 @@ def _process_step(
     input_var = step.params.get("input")
 
     if input_var is not None and not isinstance(input_var, str):
-        violations.append(TaintViolation(
-            step_id=step.id,
-            op=step.op,
-            tainted_var=repr(input_var),
-            taint_origin="",
-            message=(
-                f"Step '{step.id}': params.input must be a string variable name, "
-                f"got {type(input_var).__name__}"
+        violations.append(
+            TaintViolation(
+                step_id=step.id,
+                op=step.op,
+                tainted_var=repr(input_var),
+                taint_origin="",
+                message=(
+                    f"Step '{step.id}': params.input must be a string variable name, "
+                    f"got {type(input_var).__name__}"
+                ),
             )
-        ))
+        )
         input_var = None
 
     input_is_tainted = input_var is not None and input_var in tainted_vars
@@ -127,20 +133,22 @@ def _process_step(
     # If this op is a sink and receives tainted input, record a violation.
     if step.op in TAINT_SINKS and input_is_tainted:
         taint_origin = tainted_vars[input_var]
-        violations.append(TaintViolation(
-            step_id=step.id,
-            op=step.op,
-            tainted_var=input_var,
-            taint_origin=taint_origin,
-            message=(
-                f"Step '{step.id}' (op: {step.op}): "
-                f"tainted variable '{input_var}' reached a sink without sanitisation. "
-                f"Taint introduced at step '{taint_origin}' via a source operation. "
-                f"Add a sanitising step (validate_schema, encrypt_field, transform_json, "
-                f"filter_records, or extract_field) between step '{taint_origin}' "
-                f"and step '{step.id}'."
+        violations.append(
+            TaintViolation(
+                step_id=step.id,
+                op=step.op,
+                tainted_var=input_var,
+                taint_origin=taint_origin,
+                message=(
+                    f"Step '{step.id}' (op: {step.op}): "
+                    f"tainted variable '{input_var}' reached a sink without sanitisation. "
+                    f"Taint introduced at step '{taint_origin}' via a source operation. "
+                    f"Add a sanitising step (validate_schema, encrypt_field, transform_json, "
+                    f"filter_records, or extract_field) between step '{taint_origin}' "
+                    f"and step '{step.id}'."
+                ),
             )
-        ))
+        )
         # Do not return -- continue processing so we catch all violations
         # in a single pass (better repair prompts).
 

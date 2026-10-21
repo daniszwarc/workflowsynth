@@ -16,6 +16,7 @@ steps:
     output: raw_data
 """
 
+
 def test_valid_minimal_workflow():
     result = parse_workflow(VALID_YAML_MINIMAL)
     assert result["ok"] is True
@@ -53,6 +54,7 @@ steps:
       table: invoices
 """
 
+
 def test_valid_full_workflow():
     result = parse_workflow(VALID_YAML_FULL)
     assert result["ok"] is True
@@ -61,10 +63,12 @@ def test_valid_full_workflow():
 
 # --- YAML errors -------------------------------------------------------------
 
+
 def test_invalid_yaml_syntax():
     result = parse_workflow("workflow_id: test\nsteps: [unclosed")
     assert result["ok"] is False
     assert any("YAML syntax error" in e for e in result["errors"])
+
 
 def test_yaml_not_a_dict():
     result = parse_workflow("- just a list")
@@ -74,30 +78,36 @@ def test_yaml_not_a_dict():
 
 # --- Structure errors --------------------------------------------------------
 
+
 def test_missing_workflow_id():
     result = parse_workflow("steps:\n  - id: s1\n    op: fetch_api")
     assert result["ok"] is False
     assert any("workflow_id" in e for e in result["errors"])
+
 
 def test_missing_steps():
     result = parse_workflow("workflow_id: test")
     assert result["ok"] is False
     assert any("steps" in e for e in result["errors"])
 
+
 def test_empty_steps():
     result = parse_workflow("workflow_id: test\nsteps: []")
     assert result["ok"] is False
     assert any("empty" in e for e in result["errors"])
+
 
 def test_step_missing_id():
     result = parse_workflow("workflow_id: t\nsteps:\n  - op: fetch_api")
     assert result["ok"] is False
     assert any("'id'" in e for e in result["errors"])
 
+
 def test_step_missing_op():
     result = parse_workflow("workflow_id: t\nsteps:\n  - id: s1")
     assert result["ok"] is False
     assert any("'op'" in e for e in result["errors"])
+
 
 def test_duplicate_step_ids():
     yaml = """
@@ -115,6 +125,7 @@ steps:
 
 # --- Vocabulary errors -------------------------------------------------------
 
+
 def test_invalid_op():
     yaml = "workflow_id: t\nsteps:\n  - id: s1\n    op: send_email\n"
     result = parse_workflow(yaml)
@@ -122,9 +133,11 @@ def test_invalid_op():
     assert any("send_email" in e for e in result["errors"])
     assert any("unknown op" in e for e in result["errors"])
 
+
 def test_all_valid_ops_accepted():
     """Verifies all 25 vocabulary ops are accepted by the parser."""
     from workflowsynth.dsl.constants import VALID_OPS
+
     for op in VALID_OPS:
         yaml = f"workflow_id: t\nsteps:\n  - id: s1\n    op: {op}\n"
         result = parse_workflow(yaml)
