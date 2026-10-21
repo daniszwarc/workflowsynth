@@ -140,18 +140,8 @@ def fmt_pp(x: float) -> str:
     return f"{sign}{x * 100:.2f}pp"
 
 
-def main() -> None:
-    """Loads all six conditions' results, prints the full analysis report, and
-    saves it to results/session_09/analysis_summary.json."""
-    data = {c: load_condition(c) for c in CONDITIONS}
-    task_maps = {c: build_task_map(recs) for c, recs in data.items()}
-
-    lines: list[str] = []
-
-    def p(s: str = "") -> None:
-        lines.append(s)
-        print(s)
-
+def _print_dataset_overview(p, data: dict) -> None:
+    """Prints the header and per-condition valid-task counts (section intro, no JSON output)."""
     p("=" * 100)
     p("SESSION 09 -- STATISTICAL ANALYSIS (Dataset A)")
     p("=" * 100)
@@ -171,9 +161,9 @@ def main() -> None:
         )
     p()
 
-    # ------------------------------------------------------------------
-    # 1. MAIN RESULTS TABLE
-    # ------------------------------------------------------------------
+
+def _print_main_results_table(p, data: dict) -> dict:
+    """Prints section 1 (per-condition pass@k/mean_attempts/security table) and returns its data."""
     p("-" * 100)
     p("1. MAIN RESULTS TABLE")
     p("-" * 100)
@@ -205,10 +195,11 @@ def main() -> None:
             f"{fmt_pct(pk[10]):>10}{ma:>16.2f}{fmt_pct(sp10):>14}{n_sec:>7}"
         )
     p()
+    return main_results
 
-    # ------------------------------------------------------------------
-    # 2. ABLATION COMPARISON
-    # ------------------------------------------------------------------
+
+def _print_ablation_comparison(p, main_results: dict) -> dict:
+    """Prints section 2 (ablation deltas vs. full) and returns its data."""
     p("-" * 100)
     p("2. ABLATION COMPARISON (baseline = full)")
     p("-" * 100)
@@ -237,10 +228,11 @@ def main() -> None:
         )
         p(f"    -> {ablation_notes[c]}")
     p()
+    return ablation
 
-    # ------------------------------------------------------------------
-    # 3. BASELINE COMPARISON
-    # ------------------------------------------------------------------
+
+def _print_baseline_comparison(p, main_results: dict) -> dict:
+    """Prints section 3 (baseline deltas vs. full) and returns its data."""
     p("-" * 100)
     p("3. BASELINE COMPARISON (baseline = full)")
     p("-" * 100)
@@ -255,6 +247,7 @@ def main() -> None:
             "the gap closed vs. an off-the-shelf agent framework."
         ),
     }
+    full_pass10 = main_results["full"]["pass_at_10"]
     for c in ["baseline_pure_llm", "baseline_langchain"]:
         delta = main_results[c]["pass_at_10"] - full_pass10
         baseline_comp[c] = {
@@ -274,25 +267,26 @@ def main() -> None:
         )
         p(f"    -> {baseline_notes[c]}")
     p()
+    return baseline_comp
 
-    # ------------------------------------------------------------------
-    # 4. BY COMPLEXITY (full only)
-    # ------------------------------------------------------------------
+
+def _print_by_complexity(p, full_recs: list[dict]) -> dict:
+    """Prints section 4 (pass@10 by complexity, condition=full) and returns its data."""
     p("-" * 100)
     p("4. BY COMPLEXITY (condition=full)")
     p("-" * 100)
     by_complexity = {}
-    full_recs = data["full"]
     for complexity in sorted({r["complexity"] for r in full_recs}):
         subset = [r for r in full_recs if r["complexity"] == complexity]
         pk10 = pass_at_k(subset, 10)
         by_complexity[str(complexity)] = {"pass_at_10": pk10, "n_tasks": len(subset)}
         p(f"  complexity {complexity}: pass@10={fmt_pct(pk10):>8}  (n={len(subset)})")
     p()
+    return by_complexity
 
-    # ------------------------------------------------------------------
-    # 5. BY DOMAIN (full only)
-    # ------------------------------------------------------------------
+
+def _print_by_domain(p, full_recs: list[dict]) -> dict:
+    """Prints section 5 (pass@10 by domain, condition=full) and returns its data."""
     p("-" * 100)
     p("5. BY DOMAIN (condition=full, sorted descending by pass@10)")
     p("-" * 100)
@@ -304,10 +298,11 @@ def main() -> None:
     for domain, v in sorted(by_domain.items(), key=lambda kv: kv[1]["pass_at_10"], reverse=True):
         p(f"  {domain:<25} pass@10={fmt_pct(v['pass_at_10']):>8}  (n={v['n_tasks']})")
     p()
+    return by_domain
 
-    # ------------------------------------------------------------------
-    # 6. FAILURE TAXONOMY (full only)
-    # ------------------------------------------------------------------
+
+def _print_failure_taxonomy(p, full_recs: list[dict]) -> dict:
+    """Prints section 6 (failure taxonomy by attempt bucket, full only) and returns its data."""
     p("-" * 100)
     p("6. FAILURE TAXONOMY (condition=full, from attempt_history)")
     p("-" * 100)
@@ -346,10 +341,11 @@ def main() -> None:
         "avg_attempts_failed_tasks": avg_attempts_failed,
     }
     p()
+    return failure_taxonomy_summary
 
-    # ------------------------------------------------------------------
-    # 7. STATISTICAL TESTS
-    # ------------------------------------------------------------------
+
+def _print_statistical_tests(p, task_maps: dict) -> dict:
+    """Prints section 7 (paired t-tests vs. full) and returns its data."""
     p("-" * 100)
     p("7. STATISTICAL TESTS (paired, vs. full; alpha=0.05)")
     p("-" * 100)
@@ -387,10 +383,11 @@ def main() -> None:
         p(f"    pass@10 diff={fmt_pp(p1 - p2)}  95% CI=[{ci_lo * 100:.2f}pp, {ci_hi * 100:.2f}pp]")
         p(f"    significant at alpha={ALPHA}: {'Yes' if significant else 'No'}")
         p()
+    return stat_tests
 
-    # ------------------------------------------------------------------
-    # 8. COST SUMMARY
-    # ------------------------------------------------------------------
+
+def _print_cost_summary(p, data: dict) -> dict:
+    """Prints section 8 (token/cost summary with grand total) and returns its data."""
     p("-" * 100)
     p("8. COST SUMMARY")
     p("-" * 100)
@@ -421,6 +418,31 @@ def main() -> None:
         "cost_usd": grand_cost,
     }
     p()
+    return cost_summary
+
+
+def main() -> None:
+    """Loads all six conditions' results, prints the full analysis report, and
+    saves it to results/session_09/analysis_summary.json."""
+    data = {c: load_condition(c) for c in CONDITIONS}
+    task_maps = {c: build_task_map(recs) for c, recs in data.items()}
+    full_recs = data["full"]
+
+    lines: list[str] = []
+
+    def p(s: str = "") -> None:
+        lines.append(s)
+        print(s)
+
+    _print_dataset_overview(p, data)
+    main_results = _print_main_results_table(p, data)
+    ablation = _print_ablation_comparison(p, main_results)
+    baseline_comp = _print_baseline_comparison(p, main_results)
+    by_complexity = _print_by_complexity(p, full_recs)
+    by_domain = _print_by_domain(p, full_recs)
+    failure_taxonomy_summary = _print_failure_taxonomy(p, full_recs)
+    stat_tests = _print_statistical_tests(p, task_maps)
+    cost_summary = _print_cost_summary(p, data)
 
     # ------------------------------------------------------------------
     # Save JSON
