@@ -18,6 +18,10 @@ source .venv/bin/activate
 # 2. Install the package with dev dependencies (pytest, ruff)
 pip install -e ".[dev]"
 
+# 2b. For an exact reproduction of the verified environment, use the lock
+#     file instead (pins every dependency to the version this was tested on):
+#     pip install -r requirements-lock.txt && pip install -e . --no-deps
+
 # 3. Run the unit test suite (no API keys required, no network calls)
 pytest tests/unit/ -v
 
