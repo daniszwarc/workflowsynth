@@ -12,7 +12,6 @@
 
 import argparse
 import json
-import sys
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
@@ -31,6 +30,7 @@ from workflowsynth.evaluation.runner import (
     EvaluationRunner,
     EvaluationSummary,
     _estimate_cost_usd,
+    check_budget_and_warn,
 )
 
 BASELINE_CONDITIONS = ("baseline_pure_llm", "baseline_langchain")
@@ -123,25 +123,15 @@ def _run_baseline(
         results.append(result)
         spent_usd += _estimate_cost_usd(result.total_input_tokens, result.total_output_tokens)
 
-        if budget_limit_usd and spent_usd >= budget_limit_usd * 0.80 and not warning_shown:
-            warning_shown = True
-            pct = len(results) / len(ids) * 100
-            print(
-                f"\n*** BUDGET WARNING ***\n"
-                f"Spent so far: ${spent_usd:.2f} USD\n"
-                f"Budget limit: ${budget_limit_usd:.2f} USD (80% reached)\n"
-                f"Progress: {len(results)}/{len(ids)} tasks ({pct:.1f}%)\n"
-                f"Continue? [Y/n]: ",
-                file=sys.stderr,
-                end="",
-                flush=True,
-            )
-            answer = input().strip().lower()
-            if answer == "n":
-                print("Stopping experiment. Results saved so far are complete.")
-                break
-            else:
-                print("Continuing...\n")
+        warning_shown, stop_requested = check_budget_and_warn(
+            spent_usd=spent_usd,
+            budget_limit_usd=budget_limit_usd,
+            tasks_done=len(results),
+            tasks_total=len(ids),
+            already_shown=warning_shown,
+        )
+        if stop_requested:
+            break
 
     return _build_summary(condition, results)
 

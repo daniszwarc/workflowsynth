@@ -238,9 +238,8 @@ def run(spec_file: str, out_dir: str, condition: str, output_format: str = "n8n"
             workflow_path.write_text(json.dumps(workflow_json, indent=2))
 
         attempts_used = full_state["repair_attempt"] + 1
-        print(
-            f"\n✓ Synthesis successful in {attempts_used} attempt{'s' if attempts_used != 1 else ''}"
-        )
+        plural = "s" if attempts_used != 1 else ""
+        print(f"\n✓ Synthesis successful in {attempts_used} attempt{plural}")
         print(f"Output: {workflow_path}")
         print(f"Evidence report: {evidence_path}")
         return 0

@@ -19,7 +19,7 @@ pytestmark = pytest.mark.skipif(
     reason="ANTHROPIC_API_KEY not set -- skipping integration tests",
 )
 
-from workflowsynth.synthesis.pipeline import build_pipeline, run_synthesis
+from workflowsynth.synthesis.pipeline import build_pipeline, run_synthesis  # noqa: E402 -- import must follow the skipif guard above
 
 # --- Test spec: simple invoice approval workflow ----------------------------
 # This is the simplest possible real-world workflow.

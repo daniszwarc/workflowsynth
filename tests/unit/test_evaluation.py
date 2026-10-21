@@ -207,8 +207,16 @@ def fake_dataset(tmp_path):
         version: "1.0"
         total_tasks: 2
         tasks:
-          - {task_id: wf_x_001, domain: publishing, complexity: 2, has_security_constraint: false, primitive_count: 5}
-          - {task_id: wf_x_002, domain: clinical_ai, complexity: 4, has_security_constraint: true, primitive_count: 9}
+          - task_id: wf_x_001
+            domain: publishing
+            complexity: 2
+            has_security_constraint: false
+            primitive_count: 5
+          - task_id: wf_x_002
+            domain: clinical_ai
+            complexity: 4
+            has_security_constraint: true
+            primitive_count: 9
         """
     )
     (dataset_dir / "index.yaml").write_text(index_yaml)
@@ -335,7 +343,11 @@ def fake_task_dataset(tmp_path):
         version: "1.0"
         total_tasks: 1
         tasks:
-          - {task_id: wf_agent_test_001, domain: general_ai, complexity: 1, has_security_constraint: false, primitive_count: 1}
+          - task_id: wf_agent_test_001
+            domain: general_ai
+            complexity: 1
+            has_security_constraint: false
+            primitive_count: 1
         """
     )
     (dataset_dir / "index.yaml").write_text(index_yaml)
@@ -474,6 +486,57 @@ def test_estimated_cost_calculation():
     from workflowsynth.evaluation.runner import _estimate_cost_usd
 
     assert _estimate_cost_usd(1_000_000, 1_000_000) == pytest.approx(30.0)
+
+
+def test_check_budget_and_warn_no_limit_never_warns():
+    from workflowsynth.evaluation.runner import check_budget_and_warn
+
+    shown, stop = check_budget_and_warn(
+        spent_usd=100.0, budget_limit_usd=None, tasks_done=1, tasks_total=1, already_shown=False
+    )
+    assert (shown, stop) == (False, False)
+
+
+def test_check_budget_and_warn_below_threshold_does_not_warn():
+    from workflowsynth.evaluation.runner import check_budget_and_warn
+
+    shown, stop = check_budget_and_warn(
+        spent_usd=5.0, budget_limit_usd=10.0, tasks_done=1, tasks_total=10, already_shown=False
+    )
+    assert (shown, stop) == (False, False)
+
+
+def test_check_budget_and_warn_crosses_threshold_and_continues(monkeypatch):
+    from workflowsynth.evaluation.runner import check_budget_and_warn
+
+    monkeypatch.setattr("builtins.input", lambda: "y")
+    shown, stop = check_budget_and_warn(
+        spent_usd=8.0, budget_limit_usd=10.0, tasks_done=5, tasks_total=10, already_shown=False
+    )
+    assert (shown, stop) == (True, False)
+
+
+def test_check_budget_and_warn_crosses_threshold_and_stops(monkeypatch):
+    from workflowsynth.evaluation.runner import check_budget_and_warn
+
+    monkeypatch.setattr("builtins.input", lambda: "n")
+    shown, stop = check_budget_and_warn(
+        spent_usd=8.0, budget_limit_usd=10.0, tasks_done=5, tasks_total=10, already_shown=False
+    )
+    assert (shown, stop) == (True, True)
+
+
+def test_check_budget_and_warn_does_not_reprompt_once_shown(monkeypatch):
+    from workflowsynth.evaluation.runner import check_budget_and_warn
+
+    def fail_if_called():
+        raise AssertionError("input() should not be called once already_shown is True")
+
+    monkeypatch.setattr("builtins.input", lambda: fail_if_called())
+    shown, stop = check_budget_and_warn(
+        spent_usd=9.0, budget_limit_usd=10.0, tasks_done=6, tasks_total=10, already_shown=True
+    )
+    assert (shown, stop) == (True, False)
 
 
 def test_batch_flag_cli():

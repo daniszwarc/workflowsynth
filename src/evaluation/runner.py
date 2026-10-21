@@ -104,6 +104,57 @@ def _estimate_cost_usd(total_input_tokens: int, total_output_tokens: int) -> flo
     )
 
 
+def check_budget_and_warn(
+    spent_usd: float,
+    budget_limit_usd: Optional[float],
+    tasks_done: int,
+    tasks_total: int,
+    already_shown: bool,
+) -> tuple[bool, bool]:
+    """
+    Checks whether cumulative spend has crossed 80% of budget_limit_usd for
+    the first time and, if so, prints a warning to stderr and prompts the
+    user to continue.
+
+    Args:
+        spent_usd: Cumulative estimated spend so far.
+        budget_limit_usd: The configured budget limit, or None/0 to disable.
+        tasks_done: Number of tasks completed so far.
+        tasks_total: Total number of tasks in this run.
+        already_shown: Whether the warning has already fired this run.
+
+    Returns:
+        (warning_now_shown, stop_requested). warning_now_shown becomes True
+        the first time the 80% threshold is crossed and stays True on every
+        call afterwards. stop_requested is True only if the user answered
+        "n" at the prompt.
+
+    Shared by EvaluationRunner._accumulate_and_check_budget and
+    scripts/run_evaluation.py's baseline runner, which previously
+    duplicated this exact warn-and-prompt logic.
+    """
+    if not budget_limit_usd or already_shown or spent_usd < budget_limit_usd * 0.80:
+        return already_shown, False
+
+    pct = tasks_done / tasks_total * 100 if tasks_total else 0.0
+    print(
+        f"\n*** BUDGET WARNING ***\n"
+        f"Spent so far: ${spent_usd:.2f} USD\n"
+        f"Budget limit: ${budget_limit_usd:.2f} USD (80% reached)\n"
+        f"Progress: {tasks_done}/{tasks_total} tasks ({pct:.1f}%)\n"
+        f"Continue? [Y/n]: ",
+        file=sys.stderr,
+        end="",
+        flush=True,
+    )
+    answer = input().strip().lower()
+    if answer == "n":
+        print("Stopping experiment. Results saved so far are complete.")
+        return True, True
+    print("Continuing...\n")
+    return True, False
+
+
 # --- Pytest execution helper ---------------------------------------------------
 
 
@@ -329,31 +380,17 @@ class EvaluationRunner:
         )
         self._completed_results.append(result)
 
-        if (
-            self.budget_limit_usd
-            and self.spent_usd >= self.budget_limit_usd * 0.80
-            and not self._budget_warning_shown
-        ):
-            self._budget_warning_shown = True
-            tasks_done = len(self._completed_results)
-            tasks_total = self._tasks_total or tasks_done
-            pct = tasks_done / tasks_total * 100
-            print(
-                f"\n*** BUDGET WARNING ***\n"
-                f"Spent so far: ${self.spent_usd:.2f} USD\n"
-                f"Budget limit: ${self.budget_limit_usd:.2f} USD (80% reached)\n"
-                f"Progress: {tasks_done}/{tasks_total} tasks ({pct:.1f}%)\n"
-                f"Continue? [Y/n]: ",
-                file=sys.stderr,
-                end="",
-                flush=True,
-            )
-            answer = input().strip().lower()
-            if answer == "n":
-                self._stop_requested = True
-                print("Stopping experiment. Results saved so far are complete.")
-            else:
-                print("Continuing...\n")
+        tasks_done = len(self._completed_results)
+        tasks_total = self._tasks_total or tasks_done
+        self._budget_warning_shown, stop_requested = check_budget_and_warn(
+            spent_usd=self.spent_usd,
+            budget_limit_usd=self.budget_limit_usd,
+            tasks_done=tasks_done,
+            tasks_total=tasks_total,
+            already_shown=self._budget_warning_shown,
+        )
+        if stop_requested:
+            self._stop_requested = True
 
     def _run_single_safe(self, task_id: str) -> TaskResult:
         """
