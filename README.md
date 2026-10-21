@@ -5,6 +5,47 @@
 
 ---
 
+## Installation and Quick Start
+
+**Requires Python >= 3.10.** On macOS the system `python3` is typically 3.9.x and will fail
+the install below -- use a 3.10+ interpreter explicitly (e.g. `python3.11` via Homebrew).
+
+```bash
+# 1. Create and activate a virtual environment
+python3.11 -m venv .venv
+source .venv/bin/activate
+
+# 2. Install the package with dev dependencies (pytest, ruff)
+pip install -e ".[dev]"
+
+# 3. Run the unit test suite (no API keys required, no network calls)
+pytest tests/unit/ -v
+
+# 4. Run one end-to-end synthesis example (REQUIRES ANTHROPIC_API_KEY, spends API credits)
+cp .env.example .env   # then fill in ANTHROPIC_API_KEY
+python scripts/synthesize.py examples/invoice_processing.md --out ./output
+```
+
+Note: `tests/integration/` makes real LLM calls and is skipped automatically unless
+`ANTHROPIC_API_KEY` is set. Do not run `pytest` (bare) with API keys configured unless you
+intend to spend API credits -- always target `tests/unit/` for routine checks.
+
+**Reproducing the evaluation** (full experiment run -- spends significant API credits, do not
+run casually):
+
+```bash
+python scripts/run_evaluation.py \
+  --condition full \
+  --dataset datasets/dataset_a \
+  --results results/my_run
+```
+
+Valid `--condition` values are the six experimental conditions: `full`, `no_repair`,
+`no_verify`, `no_taint`, `baseline_pure_llm`, `baseline_langchain`. See
+`python scripts/run_evaluation.py --help` for all options.
+
+---
+
 ## Research Question
 
 **Primary:**
@@ -221,7 +262,7 @@ Four public AI benchmarks adapted to WorkflowSynth DSL: GAIA, WebArena, ToolBenc
 | Dataset A -- enterprise workflow tasks | [ ] Week 34 | -- |
 | Evaluation -- baselines, ablation, metrics | [ ] Week 35 | -- |
 
-**Total tests passing: 51/51**
+**Total tests passing: 137/137** (131 unit + 6 integration; integration tests require API keys and are skipped otherwise)
 
 ---
 
@@ -262,7 +303,7 @@ workflowsynth/
 |   +-- synthesis/
 |   |   +-- __init__.py
 |   |   +-- state.py                     # WorkflowSynthState TypedDict
-|   |   +-- nodes.py                     # 8 LangGraph nodes
+|   |   +-- nodes.py                     # 7 LangGraph nodes
 |   |   +-- pipeline.py                  # Graph definition + compile
 |   +-- verification/
 |   |   +-- __init__.py
@@ -295,7 +336,7 @@ workflowsynth/
 | **Dissertation Advisor** | Kathleen Kelm |
 | **Dissertation Lead** | Andrea Corradini |
 | **Expected Completion** | 2 November 2026 |
-| **Status** | Build phase in progress -- 51/51 tests passing |
+| **Status** | Build phase in progress -- 137/137 tests passing |
 
 ---
 
