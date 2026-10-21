@@ -266,7 +266,7 @@ Four public AI benchmarks adapted to WorkflowSynth DSL: GAIA, WebArena, ToolBenc
 | Dataset A -- enterprise workflow tasks | [ ] Week 34 | -- |
 | Evaluation -- baselines, ablation, metrics | [ ] Week 35 | -- |
 
-**Total tests passing: 137/137** (131 unit + 6 integration; integration tests require API keys and are skipped otherwise)
+**Total tests passing: 143/143** (137 unit + 6 integration; integration tests require API keys and are skipped otherwise)
 
 ---
 
@@ -340,7 +340,7 @@ workflowsynth/
 | **Dissertation Advisor** | Kathleen Kelm |
 | **Dissertation Lead** | Andrea Corradini |
 | **Expected Completion** | 2 November 2026 |
-| **Status** | Build phase in progress -- 137/137 tests passing |
+| **Status** | Build phase in progress -- 143/143 tests passing |
 
 ---
 
